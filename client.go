@@ -282,7 +282,7 @@ func (c *Client) RequestInformation(r *InformationRequest) (*messages.IdentityIn
 }
 
 // GenerateQRCode generates a qr code image containing a signed jws
-func (c *Client) GenerateQRCode(cid string, fields map[string]interface{}, exp time.Duration) ([]byte, error) {
+func (c *Client) GenerateQRCode(cid string, fields map[string]interface{}, size int, exp time.Duration) ([]byte, error) {
 	if fields == nil {
 		return nil, errors.New("must specify valid fields")
 	}
@@ -318,7 +318,7 @@ func (c *Client) GenerateQRCode(cid string, fields map[string]interface{}, exp t
 	q.BackgroundColor, _ = colorful.Hex("#FFFFFF")
 	q.ForegroundColor, _ = colorful.Hex("#71B4FF")
 
-	return q.PNG(512)
+	return q.PNG(size)
 }
 
 func (c *Client) respond(requestID string, err error) {
