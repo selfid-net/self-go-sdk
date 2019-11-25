@@ -310,7 +310,7 @@ func (c *Client) GenerateQRCode(cid string, fields map[string]interface{}, size 
 		return nil, err
 	}
 
-	q, err := qrcode.New(signedPayload.FullSerialize(), qrcode.Medium)
+	q, err := qrcode.New(signedPayload.FullSerialize(), qrcode.Low)
 	if err != nil {
 		return nil, err
 	}
