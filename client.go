@@ -290,6 +290,8 @@ func (c *Client) GenerateQRCode(cid string, fields map[string]interface{}, size 
 	fields["typ"] = "authentication_req"
 	fields["cid"] = cid
 	fields["iss"] = c.AppID
+	fields["sub"] = "-"
+	fields["aud"] = "-"
 	fields["jti"] = uuid.New().String()
 	fields["iat"] = messaging.TimeFunc().Format(time.RFC3339)
 	fields["exp"] = messaging.TimeFunc().Add(exp).Format(time.RFC3339)
