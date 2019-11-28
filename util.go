@@ -1,9 +1,11 @@
 package selfsdk
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 
+	"github.com/tidwall/gjson"
 	"golang.org/x/crypto/ed25519"
 	"gopkg.in/square/go-jose.v2"
 )
@@ -67,4 +69,18 @@ func validate(subjectID string, data []byte, kc *keyCache) ([]byte, error) {
 	}
 
 	return nil, errors.New("jws verification failed")
+}
+
+func getJWSValue(data []byte, field string) string {
+	encodedPayload := gjson.GetBytes(data, "payload").String()
+	if encodedPayload == "" {
+		return encodedPayload
+	}
+
+	payload, err := base64.RawURLEncoding.DecodeString(encodedPayload)
+	if err != nil {
+		return ""
+	}
+
+	return gjson.GetBytes(payload, field).String()
 }

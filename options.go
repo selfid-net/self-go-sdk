@@ -23,3 +23,11 @@ func SetMessagingDevice(device string) func(c *Client) error {
 		return nil
 	}
 }
+
+// SetQRColor sets the foreground color of the qr code
+func SetQRColor(color string) func(c *Client) error {
+	return func(c *Client) error {
+		c.qrcolor = color
+		return nil
+	}
+}

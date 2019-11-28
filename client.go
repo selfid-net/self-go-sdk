@@ -28,9 +28,11 @@ type Client struct {
 	target          string
 	messagingTarget string
 	messagingDevice string
+	qrcolor         string
 	conn            *http.Client
 	messaging       *messaging.Client
 	requestCache    sync.Map
+	handlers        sync.Map
 }
 
 // New creates a new self sdk client
@@ -46,6 +48,7 @@ func New(appID string, appKey string, opts ...func(c *Client) error) (*Client, e
 		target:          DefaultEndpointTarget,
 		messagingTarget: DefaultMessagingTarget,
 		messagingDevice: "1",
+		qrcolor:         "#0E1C42",
 		conn:            &http.Client{},
 	}
 
@@ -61,7 +64,36 @@ func New(appID string, appKey string, opts ...func(c *Client) error) (*Client, e
 		return nil, err
 	}
 
+	// handle all incoming messages
+	go c.messages()
+
 	return c, nil
+}
+
+func (c *Client) messages() {
+	ch := c.messaging.ReceiveChan()
+
+	for {
+		msg := <-ch
+
+		msgType := getJWSValue(msg.Ciphertext, "typ")
+
+		if msgType == "" {
+			continue
+		}
+
+		handle, ok := c.handlers.Load(msgType)
+		if !ok {
+			continue
+		}
+
+		handle.(MessageHandler)(msg)
+	}
+}
+
+// OnMessage sets a message handler for incoming jws messages of a given type
+func (c *Client) OnMessage(msgType string, handler MessageHandler) {
+	c.handlers.Store(msgType, handler)
 }
 
 // GetApp get an app by its ID
@@ -282,7 +314,7 @@ func (c *Client) RequestInformation(r *InformationRequest) (*messages.IdentityIn
 }
 
 // GenerateQRCode generates a qr code image containing a signed jws
-func (c *Client) GenerateQRCode(cid string, fields map[string]interface{}, size int, exp time.Duration) ([]byte, error) {
+func (c *Client) GenerateQRCode(reqType string, cid string, fields map[string]interface{}, size int, exp time.Duration) ([]byte, error) {
 	if fields == nil {
 		return nil, errors.New("must specify valid fields")
 	}
@@ -318,7 +350,7 @@ func (c *Client) GenerateQRCode(cid string, fields map[string]interface{}, size 
 	}
 
 	q.BackgroundColor, _ = colorful.Hex("#FFFFFF")
-	q.ForegroundColor, _ = colorful.Hex("#71B4FF")
+	q.ForegroundColor, _ = colorful.Hex(c.qrcolor)
 
 	return q.PNG(size)
 }
