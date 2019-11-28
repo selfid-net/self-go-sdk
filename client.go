@@ -28,7 +28,8 @@ type Client struct {
 	target          string
 	messagingTarget string
 	messagingDevice string
-	qrcolor         string
+	qrcolorf        string
+	qrcolorb        string
 	conn            *http.Client
 	messaging       *messaging.Client
 	requestCache    sync.Map
@@ -48,7 +49,8 @@ func New(appID string, appKey string, opts ...func(c *Client) error) (*Client, e
 		target:          DefaultEndpointTarget,
 		messagingTarget: DefaultMessagingTarget,
 		messagingDevice: "1",
-		qrcolor:         "#0E1C42",
+		qrcolorf:        "#0E1C42",
+		qrcolorb:        "#FFFFFF",
 		conn:            &http.Client{},
 	}
 
@@ -349,8 +351,8 @@ func (c *Client) GenerateQRCode(reqType string, cid string, fields map[string]in
 		return nil, err
 	}
 
-	q.BackgroundColor, _ = colorful.Hex("#FFFFFF")
-	q.ForegroundColor, _ = colorful.Hex(c.qrcolor)
+	q.BackgroundColor, _ = colorful.Hex(c.qrcolorb)
+	q.ForegroundColor, _ = colorful.Hex(c.qrcolorf)
 
 	return q.PNG(size)
 }
