@@ -319,7 +319,7 @@ func (c *Client) GenerateQRCode(reqType string, cid string, fields map[string]in
 		return nil, errors.New("must specify valid fields")
 	}
 
-	fields["typ"] = "authentication_req"
+	fields["typ"] = reqType
 	fields["cid"] = cid
 	fields["iss"] = c.AppID
 	fields["sub"] = "-"
