@@ -3,6 +3,7 @@ package selfsdk
 import (
 	"encoding/json"
 	"errors"
+	"log"
 	"net/http"
 	"net/url"
 	"sync"
@@ -73,10 +74,12 @@ func New(appID string, appKey string, opts ...func(c *Client) error) (*Client, e
 }
 
 func (c *Client) messages() {
-	ch := c.messaging.ReceiveChan()
-
 	for {
-		msg := <-ch
+		msg, err := c.messaging.Receive()
+		if err != nil {
+			log.Println("error receving messages:", err)
+			continue
+		}
 
 		msgType := getJWSValue(msg.Ciphertext, "typ")
 
