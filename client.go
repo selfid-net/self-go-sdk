@@ -29,6 +29,7 @@ type Client struct {
 	target          string
 	messagingTarget string
 	messagingDevice string
+	reconnect       bool
 	qrcolorf        string
 	qrcolorb        string
 	conn            *http.Client
@@ -62,7 +63,7 @@ func New(appID string, appKey string, opts ...func(c *Client) error) (*Client, e
 		}
 	}
 
-	c.messaging, err = messaging.New(c.messagingTarget, appID, c.messagingDevice, appKey)
+	c.messaging, err = messaging.New(c.messagingTarget, appID, c.messagingDevice, appKey, messaging.AutoReconnect(c.reconnect))
 	if err != nil {
 		return nil, err
 	}

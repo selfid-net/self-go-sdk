@@ -24,6 +24,14 @@ func SetMessagingDevice(device string) func(c *Client) error {
 	}
 }
 
+// AutoReconnect enables or disables automatic reconnection to the messaging endpoint
+func AutoReconnect(enabled bool) func(c *Client) error {
+	return func(c *Client) error {
+		c.reconnect = enabled
+		return nil
+	}
+}
+
 // SetQRColors sets the colors of the qr code
 func SetQRColors(foreground, background string) func(c *Client) error {
 	return func(c *Client) error {
