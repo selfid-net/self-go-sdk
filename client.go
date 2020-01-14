@@ -182,11 +182,11 @@ func (c *Client) Authenticate(selfID string) error {
 		return err
 	}
 
-	return c.validateAuth(response.Ciphertext)
+	return c.ValidateAuth(response.Ciphertext)
 }
 
 // ValidateAuth validate the authentication response sent by the users device
-func (c *Client) validateAuth(response []byte) error {
+func (c *Client) ValidateAuth(response []byte) error {
 	payload := make(map[string]string)
 
 	jws, err := jose.ParseSigned(string(response))
