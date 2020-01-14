@@ -233,10 +233,32 @@ func (c *Client) validateAuth(response []byte) error {
 	}
 }
 
-// Connect allows connections from the specified SelfID. You can also use '*' to
+// ACLAllow allows messages from the specified SelfID. You can also use '*' to
 // permit all senders.
-func (c *Client) Connect(selfID string) error {
+func (c *Client) ACLAllow(selfID string) error {
 	return c.messaging.PermitSender(selfID, messaging.TimeFunc().Add(time.Hour*876000))
+}
+
+// ACLDeny removes any rule that allows messages to be sent to your identity
+// from other identities
+func (c *Client) ACLDeny(selfID string) error {
+	return c.messaging.BlockSender(selfID)
+}
+
+// ACLList returns the rules present in the access control list
+func (c *Client) ACLList() ([]string, error) {
+	rules, err := c.messaging.ListACLRules()
+	if err != nil {
+		return nil, err
+	}
+
+	list := make([]string, len(rules))
+
+	for i, r := range rules {
+		list[i] = r.Source
+	}
+
+	return list, nil
 }
 
 // RequestInformation requests information to an entity
