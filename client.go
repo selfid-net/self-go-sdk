@@ -102,6 +102,11 @@ func (c *Client) OnMessage(msgType string, handler MessageHandler) {
 	c.handlers.Store(msgType, handler)
 }
 
+// WaitForResponse waits for a response for a given conversation id
+func (c *Client) WaitForResponse(cid string, timeout time.Duration) (*msgproto.Message, error) {
+	return c.messaging.JWSResponse(cid, timeout)
+}
+
 // GetApp get an app by its ID
 func (c *Client) GetApp(appID string) (*App, error) {
 	var m App
@@ -349,6 +354,9 @@ func (c *Client) GenerateQRCode(reqType string, cid string, fields map[string]in
 	if fields == nil {
 		return nil, errors.New("must specify valid fields")
 	}
+
+	// setup a handler for the response
+	c.messaging.JWSRegister(cid)
 
 	fields["typ"] = reqType
 	fields["cid"] = cid
