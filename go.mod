@@ -5,7 +5,7 @@ go 1.13
 require (
 	github.com/google/uuid v1.1.1
 	github.com/lucasb-eyer/go-colorful v1.0.3
-	github.com/selfid-net/self-messaging-client v0.0.0-20191203155650-fefa77d8400b
+	github.com/selfid-net/self-messaging-client v0.0.0-20200114122723-ff21be3845a6
 	github.com/selfid-net/self-messaging-proto v0.0.0-20191112132827-f8fe0ddb0f42
 	github.com/skip2/go-qrcode v0.0.0-20191027152451-9434209cb086
 	github.com/tidwall/gjson v1.3.4
