@@ -5,7 +5,6 @@ import (
 	"errors"
 	"log"
 	"net/http"
-	"net/url"
 	"sync"
 	"time"
 
@@ -51,6 +50,7 @@ func New(appID string, appKey string, opts ...func(c *Client) error) (*Client, e
 		target:          DefaultEndpointTarget,
 		messagingTarget: DefaultMessagingTarget,
 		messagingDevice: "1",
+		reconnect:       true,
 		qrcolorf:        "#0E1C42",
 		qrcolorb:        "#FFFFFF",
 		conn:            &http.Client{},
@@ -102,6 +102,11 @@ func (c *Client) OnMessage(msgType string, handler MessageHandler) {
 	c.handlers.Store(msgType, handler)
 }
 
+// WaitForResponse waits for a response for a given conversation id
+func (c *Client) WaitForResponse(cid string, timeout time.Duration) (*msgproto.Message, error) {
+	return c.messaging.JWSResponse(cid, timeout)
+}
+
 // GetApp get an app by its ID
 func (c *Client) GetApp(appID string) (*App, error) {
 	var m App
@@ -139,101 +144,126 @@ func (c *Client) GetDevices(selfID string) ([]string, error) {
 }
 
 // Authenticate sends an authentication challenge to a given identity
-func (c *Client) Authenticate(selfID, callbackURL string) (string, error) {
-	u, err := url.Parse(callbackURL)
-	if err != nil {
-		return "", err
+func (c *Client) Authenticate(selfID string) error {
+	request := map[string]string{
+		"typ": "authentication_req",
+		"cid": uuid.New().String(),
+		"iss": c.AppID,
+		"sub": selfID,
+		"iat": messaging.TimeFunc().Format(time.RFC3339),
+		"exp": messaging.TimeFunc().Add(time.Minute * 5).Format(time.RFC3339),
+		"jti": uuid.New().String(),
 	}
 
-	request := map[string]string{
-		"typ":      "authentication_req",
-		"cid":      uuid.New().String(),
-		"iss":      c.AppID,
-		"aud":      u.Hostname(),
-		"sub":      selfID,
-		"iat":      messaging.TimeFunc().Format(time.RFC3339),
-		"exp":      messaging.TimeFunc().Add(time.Minute * 5).Format(time.RFC3339),
-		"jti":      uuid.New().String(),
-		"callback": callbackURL,
-	}
+	c.messaging.JWSRegister(request["cid"])
 
 	payload, err := json.Marshal(request)
 	if err != nil {
-		return request["cid"], err
+		return err
 	}
 
 	signer, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: c.PrivateKey}, nil)
 	if err != nil {
-		return request["cid"], err
+		return err
 	}
 
 	signedPayload, err := signer.Sign(payload)
 	if err != nil {
-		return request["cid"], err
+		return err
 	}
 
 	_, err = c.post("/v1/auth/", "application/json", []byte(signedPayload.FullSerialize()))
+	if err != nil {
+		return err
+	}
 
-	return request["cid"], err
+	response, err := c.messaging.JWSResponse(request["cid"], time.Minute)
+	if err != nil {
+		return err
+	}
+
+	return c.ValidateAuth(response.Ciphertext)
 }
 
 // ValidateAuth validate the authentication response sent by the users device
-func (c *Client) ValidateAuth(response []byte) (string, error) {
+func (c *Client) ValidateAuth(response []byte) error {
 	payload := make(map[string]string)
 
 	jws, err := jose.ParseSigned(string(response))
 	if err != nil {
-		return payload["cid"], err
+		return err
 	}
 
 	err = json.Unmarshal(jws.UnsafePayloadWithoutVerification(), &payload)
 	if err != nil {
-		return payload["cid"], err
+		return err
 	}
 
 	if payload["sub"] == "" {
-		return payload["cid"], ErrInvalidAuthSubject
+		return ErrInvalidAuthSubject
 	}
 
 	if payload["iss"] != c.AppID {
-		return payload["cid"], ErrInvalidAuthIssuer
+		return ErrInvalidAuthIssuer
 	}
 
 	exp, err := time.Parse(time.RFC3339, payload["exp"])
 	if err != nil {
-		return payload["cid"], err
+		return err
 	}
 
 	if messaging.TimeFunc().After(exp) {
-		return payload["cid"], ErrAuthenticationRequestExpired
+		return ErrAuthenticationRequestExpired
 	}
 
 	kc := newKeyCache(c)
 
 	keys, err := kc.get(payload["sub"])
 	if err != nil {
-		return payload["cid"], err
+		return err
 	}
 
 	_, err = verify(response, keys)
 	if err != nil {
-		return payload["cid"], err
+		return err
 	}
 
 	switch payload["status"] {
 	case "accepted":
-		return payload["cid"], nil
+		return nil
 	case "rejected":
-		return payload["cid"], ErrAuthRejected
+		return ErrAuthRejected
 	default:
-		return payload["cid"], ErrInvalidAuthStatus
+		return ErrInvalidAuthStatus
 	}
 }
 
-// Connect allows connections from the specified SelfID. You can also use '*' to
+// ACLAllow allows messages from the specified SelfID. You can also use '*' to
 // permit all senders.
-func (c *Client) Connect(selfID string) error {
+func (c *Client) ACLAllow(selfID string) error {
 	return c.messaging.PermitSender(selfID, messaging.TimeFunc().Add(time.Hour*876000))
+}
+
+// ACLDeny removes any rule that allows messages to be sent to your identity
+// from other identities
+func (c *Client) ACLDeny(selfID string) error {
+	return c.messaging.BlockSender(selfID)
+}
+
+// ACLList returns the rules present in the access control list
+func (c *Client) ACLList() ([]string, error) {
+	rules, err := c.messaging.ListACLRules()
+	if err != nil {
+		return nil, err
+	}
+
+	list := make([]string, len(rules))
+
+	for i, r := range rules {
+		list[i] = r.Source
+	}
+
+	return list, nil
 }
 
 // RequestInformation requests information to an entity
@@ -324,6 +354,9 @@ func (c *Client) GenerateQRCode(reqType string, cid string, fields map[string]in
 	if fields == nil {
 		return nil, errors.New("must specify valid fields")
 	}
+
+	// setup a handler for the response
+	c.messaging.JWSRegister(cid)
 
 	fields["typ"] = reqType
 	fields["cid"] = cid

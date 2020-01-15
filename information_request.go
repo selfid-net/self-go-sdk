@@ -9,9 +9,6 @@ import (
 	messaging "github.com/selfid-net/self-messaging-client"
 )
 
-// TypeInformationRequest the jws message type for an information request
-const TypeInformationRequest = "identity_info_req"
-
 // InformationRequest represents an information request
 type InformationRequest struct {
 	SelfID       string

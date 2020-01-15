@@ -21,6 +21,8 @@ github.com/selfid-net/self-messaging-client v0.0.0-20191112162217-00f68d395c8c h
 github.com/selfid-net/self-messaging-client v0.0.0-20191112162217-00f68d395c8c/go.mod h1:f2r4QFqXIJWOJ5mlJzdF0WlKw9bY1pCRLiIMIqjg0VQ=
 github.com/selfid-net/self-messaging-client v0.0.0-20191203155650-fefa77d8400b h1:4wetVKOJxlT2DP7sedlR2pZ14H1ODwrzBT1F4Rn/sMg=
 github.com/selfid-net/self-messaging-client v0.0.0-20191203155650-fefa77d8400b/go.mod h1:f2r4QFqXIJWOJ5mlJzdF0WlKw9bY1pCRLiIMIqjg0VQ=
+github.com/selfid-net/self-messaging-client v0.0.0-20200114122723-ff21be3845a6 h1:dhUmPMQIVIPZWv83pPrL5OUnKXjAti0UTmGugINtnT8=
+github.com/selfid-net/self-messaging-client v0.0.0-20200114122723-ff21be3845a6/go.mod h1:f2r4QFqXIJWOJ5mlJzdF0WlKw9bY1pCRLiIMIqjg0VQ=
 github.com/selfid-net/self-messaging-proto v0.0.0-20191112132827-f8fe0ddb0f42 h1:qJleKEp818d23s7V4Uw/DUOn4prZA35VhMRIKZLHHhM=
 github.com/selfid-net/self-messaging-proto v0.0.0-20191112132827-f8fe0ddb0f42/go.mod h1:5ZzNxspy89uxwBjNzJhny4CfOUZRbhLQiLifRMEps8s=
 github.com/skip2/go-qrcode v0.0.0-20191027152451-9434209cb086 h1:RYiqpb2ii2Z6J4x0wxK46kvPBbFuZcdhS+CIztmYgZs=
