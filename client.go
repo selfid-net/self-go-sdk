@@ -199,12 +199,8 @@ func (c *Client) ValidateAuth(response []byte) error {
 		return err
 	}
 
-	if payload["sub"] == "" {
+	if payload["sub"] != c.AppID {
 		return ErrInvalidAuthSubject
-	}
-
-	if payload["iss"] != c.AppID {
-		return ErrInvalidAuthIssuer
 	}
 
 	exp, err := time.Parse(time.RFC3339, payload["exp"])
