@@ -1,6 +1,8 @@
 # Self Go SDK
 
-An sdk for interacting with the self API.
+An SDK for interacting with the Self API.
+
+https://godoc.org/github.com/selfid-net/self-go-sdk
 
 ## Setup
 
