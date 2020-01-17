@@ -234,15 +234,15 @@ func (c *Client) ValidateAuth(response []byte) error {
 	}
 }
 
-// ACLAllow allows messages from the specified SelfID. You can also use '*' to
+// ACLPermit allows messages from the specified SelfID. You can also use '*' to
 // permit all senders.
-func (c *Client) ACLAllow(selfID string) error {
+func (c *Client) ACLPermit(selfID string) error {
 	return c.messaging.PermitSender(selfID, messaging.TimeFunc().Add(time.Hour*876000))
 }
 
-// ACLDeny removes any rule that allows messages to be sent to your identity
+// ACLRevoke removes any rule that allows messages to be sent to your identity
 // from other identities
-func (c *Client) ACLDeny(selfID string) error {
+func (c *Client) ACLRevoke(selfID string) error {
 	return c.messaging.BlockSender(selfID)
 }
 
