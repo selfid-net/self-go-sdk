@@ -35,6 +35,7 @@ type Client struct {
 	messaging       *messaging.Client
 	requestCache    sync.Map
 	handlers        sync.Map
+	JWTExpiry       time.Duration
 }
 
 // New creates a new self sdk client
@@ -54,6 +55,7 @@ func New(appID string, appKey string, opts ...func(c *Client) error) (*Client, e
 		qrcolorf:        "#0E1C42",
 		qrcolorb:        "#FFFFFF",
 		conn:            &http.Client{},
+		JWTExpiry:       time.Minute * 5,
 	}
 
 	for _, opt := range opts {
@@ -346,25 +348,27 @@ func (c *Client) RequestInformation(r *InformationRequest) (*messages.IdentityIn
 }
 
 // GenerateQRCode generates a qr code image containing a signed jws
-func (c *Client) GenerateQRCode(reqType string, cid string, fields map[string]interface{}, size int, exp time.Duration) ([]byte, error) {
-	if fields == nil {
-		return nil, errors.New("must specify valid fields")
+func (c *Client) GenerateQRCode(reqType string, cid string, size int, fields ...map[string]interface{}) ([]byte, error) {
+	f := make(map[string]interface{})
+
+	if len(fields) > 0 {
+		f = fields[0]
 	}
 
 	// setup a handler for the response
 	c.messaging.JWSRegister(cid)
 
-	fields["typ"] = reqType
-	fields["cid"] = cid
-	fields["iss"] = c.AppID
-	fields["sub"] = "-"
-	fields["aud"] = "-"
-	fields["jti"] = uuid.New().String()
-	fields["iat"] = messaging.TimeFunc().Format(time.RFC3339)
-	fields["exp"] = messaging.TimeFunc().Add(exp).Format(time.RFC3339)
-	fields["device_id"] = c.messagingDevice
+	f["typ"] = reqType
+	f["cid"] = cid
+	f["iss"] = c.AppID
+	f["sub"] = "-"
+	f["aud"] = "-"
+	f["jti"] = uuid.New().String()
+	f["iat"] = messaging.TimeFunc().Format(time.RFC3339)
+	f["exp"] = messaging.TimeFunc().Add(c.JWTExpiry).Format(time.RFC3339)
+	f["device_id"] = c.messagingDevice
 
-	payload, err := json.Marshal(fields)
+	payload, err := json.Marshal(f)
 	if err != nil {
 		return nil, err
 	}

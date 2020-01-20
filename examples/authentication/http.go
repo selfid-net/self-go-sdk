@@ -46,11 +46,8 @@ func (s *server) handleQRcode() http.HandlerFunc {
 			return
 		}
 
-		fields := make(map[string]interface{})
-
 		// Generate QR code.
-		//qr, err := s.self.GenerateQRCode(selfsdk.TypeAuthenticationRequest, cookie.Value, 400)
-		qr, err := s.self.GenerateQRCode(selfsdk.TypeAuthenticationRequest, cookie.Value, fields, 400, time.Minute*5)
+		qr, err := s.self.GenerateQRCode(selfsdk.TypeAuthenticationRequest, cookie.Value, 400)
 		if err != nil {
 			http.Error(w, err.Error(), 500)
 			return
