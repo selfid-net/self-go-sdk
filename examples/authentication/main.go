@@ -12,8 +12,7 @@ func main() {
 	appID := os.Getenv("APP_ID")
 	appKey := os.Getenv("APP_KEY")
 
-	//self, _ := selfsdk.New(appID, appKey)
-	self, err := selfsdk.New(appID, appKey, selfsdk.SetEndpoint("http://10.49.15.22:8080"), selfsdk.SetMessagingEndpoint("ws://10.49.15.22:8086/v1/messaging"))
+	self, err := selfsdk.New(appID, appKey)
 	if err != nil {
 		fmt.Println(err)
 	}
