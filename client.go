@@ -29,12 +29,19 @@ type Client struct {
 	messagingTarget string
 	messagingDevice string
 	reconnect       bool
-	qrcolorf        string
-	qrcolorb        string
 	conn            *http.Client
 	messaging       *messaging.Client
 	requestCache    sync.Map
 	handlers        sync.Map
+}
+
+// QR Code config
+type qrConfig struct {
+	expiry   time.Duration
+	fields   map[string]interface{}
+	size     int
+	qrcolorf string
+	qrcolorb string
 }
 
 // New creates a new self sdk client
@@ -51,8 +58,6 @@ func New(appID string, appKey string, opts ...func(c *Client) error) (*Client, e
 		messagingTarget: DefaultMessagingTarget,
 		messagingDevice: "1",
 		reconnect:       true,
-		qrcolorf:        "#0E1C42",
-		qrcolorb:        "#FFFFFF",
 		conn:            &http.Client{},
 	}
 
@@ -346,25 +351,36 @@ func (c *Client) RequestInformation(r *InformationRequest) (*messages.IdentityIn
 }
 
 // GenerateQRCode generates a qr code image containing a signed jws
-func (c *Client) GenerateQRCode(reqType string, cid string, fields map[string]interface{}, size int, exp time.Duration) ([]byte, error) {
-	if fields == nil {
-		return nil, errors.New("must specify valid fields")
+func (c *Client) GenerateQRCode(reqType string, cid string, opts ...func(c *qrConfig) error) ([]byte, error) {
+	qrc := &qrConfig{
+		expiry:   time.Minute * 5,
+		fields:   make(map[string]interface{}),
+		size:     400,
+		qrcolorf: "#0E1C42",
+		qrcolorb: "#FFFFFF",
+	}
+
+	for _, opt := range opts {
+		err := opt(qrc)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	// setup a handler for the response
 	c.messaging.JWSRegister(cid)
 
-	fields["typ"] = reqType
-	fields["cid"] = cid
-	fields["iss"] = c.AppID
-	fields["sub"] = "-"
-	fields["aud"] = "-"
-	fields["jti"] = uuid.New().String()
-	fields["iat"] = messaging.TimeFunc().Format(time.RFC3339)
-	fields["exp"] = messaging.TimeFunc().Add(exp).Format(time.RFC3339)
-	fields["device_id"] = c.messagingDevice
+	qrc.fields["typ"] = reqType
+	qrc.fields["cid"] = cid
+	qrc.fields["iss"] = c.AppID
+	qrc.fields["sub"] = "-"
+	qrc.fields["aud"] = "-"
+	qrc.fields["jti"] = uuid.New().String()
+	qrc.fields["iat"] = messaging.TimeFunc().Format(time.RFC3339)
+	qrc.fields["exp"] = messaging.TimeFunc().Add(qrc.expiry).Format(time.RFC3339)
+	qrc.fields["device_id"] = c.messagingDevice
 
-	payload, err := json.Marshal(fields)
+	payload, err := json.Marshal(qrc.fields)
 	if err != nil {
 		return nil, err
 	}
@@ -384,10 +400,10 @@ func (c *Client) GenerateQRCode(reqType string, cid string, fields map[string]in
 		return nil, err
 	}
 
-	q.BackgroundColor, _ = colorful.Hex(c.qrcolorb)
-	q.ForegroundColor, _ = colorful.Hex(c.qrcolorf)
+	q.BackgroundColor, _ = colorful.Hex(qrc.qrcolorb)
+	q.ForegroundColor, _ = colorful.Hex(qrc.qrcolorf)
 
-	return q.PNG(size)
+	return q.PNG(qrc.size)
 }
 
 func (c *Client) respond(requestID string, err error) {
