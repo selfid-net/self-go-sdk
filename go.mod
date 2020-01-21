@@ -3,7 +3,9 @@ module github.com/selfid-net/self-go-sdk
 go 1.13
 
 require (
+	github.com/go-chi/chi v4.0.3+incompatible
 	github.com/google/uuid v1.1.1
+	github.com/gorilla/websocket v1.4.1
 	github.com/lucasb-eyer/go-colorful v1.0.3
 	github.com/selfid-net/self-messaging-client v0.0.0-20200114122723-ff21be3845a6
 	github.com/selfid-net/self-messaging-proto v0.0.0-20191112132827-f8fe0ddb0f42
