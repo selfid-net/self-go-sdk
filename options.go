@@ -1,5 +1,7 @@
 package selfsdk
 
+import "time"
+
 // SetEndpoint sets the target endpoint for the self api
 func SetEndpoint(target string) func(c *Client) error {
 	return func(c *Client) error {
@@ -33,10 +35,34 @@ func AutoReconnect(enabled bool) func(c *Client) error {
 }
 
 // SetQRColors sets the colors of the qr code
-func SetQRColors(foreground, background string) func(c *Client) error {
-	return func(c *Client) error {
+func SetQRColors(foreground, background string) func(c *qrConfig) error {
+	return func(c *qrConfig) error {
 		c.qrcolorf = foreground
 		c.qrcolorb = background
+		return nil
+	}
+}
+
+// SetQRSize sets the size of the QR Code
+func SetQRSize(size int) func(c *qrConfig) error {
+	return func(c *qrConfig) error {
+		c.size = size
+		return nil
+	}
+}
+
+// SetQRExpiry sets the expiry on the QR Code
+func SetQRExpiry(exp time.Duration) func(c *qrConfig) error {
+	return func(c *qrConfig) error {
+		c.expiry = exp
+		return nil
+	}
+}
+
+// SetQRFields sets fields within the QR Code
+func SetQRFields(fields map[string]interface{}) func(c *qrConfig) error {
+	return func(c *qrConfig) error {
+		c.fields = fields
 		return nil
 	}
 }
