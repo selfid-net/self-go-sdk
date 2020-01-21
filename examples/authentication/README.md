@@ -2,11 +2,11 @@
 
 This example shows a simple web application using Self for authentication.
 
-It consists of five endpoints served via HTTP:
+It consists of five HTTP endpoints:
 
-/  - Landing page (authentication challenge).  
-/qrcode  - Generates QR Code which is used by the landing page.  
-/auth  - Provides a websocket connection between the application and browser.  
+`/`  - Landing page (authentication challenge).  
+`/qrcode`  - Generates QR Code which is used by the landing page.  
+`/auth`  - Provides a websocket connection between the application and browser.  
 /accept  - Authentication accepted  
 /reject  - Authentication rejected
 
