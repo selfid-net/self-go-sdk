@@ -1,6 +1,7 @@
 package selfsdk
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"log"
@@ -341,7 +342,12 @@ func (c *Client) RequestInformation(r *InformationRequest) (*messages.IdentityIn
 	}
 
 	for _, v := range resp.Facts {
-		_, err = validate(r.SelfID, v, kc)
+		data, err := base64.RawStdEncoding.DecodeString(string(v))
+		if err != nil {
+			return nil, err
+		}
+
+		_, err = validate(r.SelfID, data, kc)
 		if err != nil {
 			return nil, err
 		}
