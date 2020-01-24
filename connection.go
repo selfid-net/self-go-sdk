@@ -19,7 +19,7 @@ func (c *Client) generateToken(expires time.Duration) (string, error) {
 	claims, err := json.Marshal(map[string]interface{}{
 		"jti": uuid.New().String(),
 		"iss": c.AppID,
-		"iat": messaging.TimeFunc().Unix(),
+		"iat": messaging.TimeFunc().Add(-(time.Second)).Unix(), // round down time for inaccurate clocks
 		"exp": messaging.TimeFunc().Add(time.Minute).Unix(),
 	})
 
