@@ -156,6 +156,7 @@ func (c *Client) Authenticate(selfID string) error {
 		"cid": uuid.New().String(),
 		"iss": c.AppID,
 		"sub": selfID,
+		"aud": selfID,
 		"iat": messaging.TimeFunc().Format(time.RFC3339),
 		"exp": messaging.TimeFunc().Add(time.Minute * 5).Format(time.RFC3339),
 		"jti": uuid.New().String(),
