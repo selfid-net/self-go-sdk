@@ -22,7 +22,7 @@ func (k *keyCache) get(selfID string) ([]ed25519.PublicKey, error) {
 		return keys, nil
 	}
 
-	if len(selfID) > 10 {
+	if len(selfID) > 11 {
 		return k.getApp(selfID)
 	}
 
@@ -30,7 +30,7 @@ func (k *keyCache) get(selfID string) ([]ed25519.PublicKey, error) {
 }
 
 func (k *keyCache) getApp(selfID string) ([]ed25519.PublicKey, error) {
-	identity, err := k.client.GetIdentity(selfID)
+	identity, err := k.client.GetApp(selfID)
 	if err != nil {
 		return nil, err
 	}
@@ -48,7 +48,7 @@ func (k *keyCache) getApp(selfID string) ([]ed25519.PublicKey, error) {
 }
 
 func (k *keyCache) getIdentity(selfID string) ([]ed25519.PublicKey, error) {
-	app, err := k.client.GetApp(selfID)
+	app, err := k.client.GetIdentity(selfID)
 	if err != nil {
 		return nil, err
 	}
