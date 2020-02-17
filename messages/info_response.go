@@ -12,4 +12,5 @@ type IdentityInfoResponse struct {
 	Jti    string            `json:"jti"`
 	Fields map[string]Field  `json:"fields"`
 	Facts  map[string]string `json:"facts"`
+	Status string            `json:"status"`
 }
