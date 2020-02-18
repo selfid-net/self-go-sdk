@@ -42,7 +42,7 @@ func (c *Client) generateToken(expires time.Duration) (string, error) {
 
 // Request make a raw request to the self api
 func (c *Client) request(method, path string, data []byte, headers map[string]string) (*http.Response, error) {
-	u, err := url.Parse(c.target + path)
+	u, err := url.Parse(c.baseURL + path)
 	if err != nil {
 		return nil, err
 	}

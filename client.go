@@ -19,15 +19,15 @@ import (
 	"gopkg.in/square/go-jose.v2"
 )
 
-const DefaultEndpointTarget = "https://api.selfid.net"
-const DefaultMessagingTarget = "wss://messaging.selfid.net/v1/messaging"
+const BaseURL = "https://api.selfid.net"
+const MessagingURL = "wss://messaging.selfid.net/v1/messaging"
 
 // Client self client
 type Client struct {
 	AppID           string
 	PrivateKey      ed25519.PrivateKey
-	target          string
-	messagingTarget string
+	baseURL         string
+	messagingURL    string
 	messagingDevice string
 	reconnect       bool
 	conn            *http.Client
@@ -55,8 +55,8 @@ func New(appID string, appKey string, opts ...func(c *Client) error) (*Client, e
 	c := &Client{
 		AppID:           appID,
 		PrivateKey:      ed25519.NewKeyFromSeed(pk),
-		target:          DefaultEndpointTarget,
-		messagingTarget: DefaultMessagingTarget,
+		baseURL:         BaseURL,
+		messagingURL:    MessagingURL,
 		messagingDevice: "1",
 		reconnect:       true,
 		conn:            &http.Client{},
@@ -69,7 +69,7 @@ func New(appID string, appKey string, opts ...func(c *Client) error) (*Client, e
 		}
 	}
 
-	c.messaging, err = messaging.New(c.messagingTarget, appID, c.messagingDevice, appKey, messaging.AutoReconnect(c.reconnect))
+	c.messaging, err = messaging.New(c.messagingURL, appID, c.messagingDevice, appKey, messaging.AutoReconnect(c.reconnect))
 	if err != nil {
 		return nil, err
 	}
