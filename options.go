@@ -2,32 +2,32 @@ package selfsdk
 
 import "time"
 
-// SetEndpoint sets the target endpoint for the self api
-func SetEndpoint(target string) func(c *Client) error {
+// WithBaseURL sets the endpoint for the Self API.
+func WithBaseURL(baseURL string) func(c *Client) error {
 	return func(c *Client) error {
-		c.target = target
+		c.baseURL = baseURL
 		return nil
 	}
 }
 
-// SetMessagingEndpoint sets the target endpoint for self messaging
-func SetMessagingEndpoint(target string) func(c *Client) error {
+// WithMessagingURL sets the endpoint for the Self Messaging service.
+func WithMessagingURL(messagingURL string) func(c *Client) error {
 	return func(c *Client) error {
-		c.messagingTarget = target
+		c.messagingURL = messagingURL
 		return nil
 	}
 }
 
-// SetMessagingDevice sets the messaging device you want to connect as
-func SetMessagingDevice(device string) func(c *Client) error {
+// WithMessagingDevice sets the messaging device you want to connect as.
+func WithMessagingDevice(device string) func(c *Client) error {
 	return func(c *Client) error {
 		c.messagingDevice = device
 		return nil
 	}
 }
 
-// AutoReconnect enables or disables automatic reconnection to the messaging endpoint
-func AutoReconnect(enabled bool) func(c *Client) error {
+// WithAutoReconnect enables or disables automatic reconnection to the messaging endpoint.
+func WithAutoReconnect(enabled bool) func(c *Client) error {
 	return func(c *Client) error {
 		c.reconnect = enabled
 		return nil
