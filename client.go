@@ -241,20 +241,20 @@ func (c *Client) ValidateAuth(response []byte) error {
 	}
 }
 
-// ACLPermit allows messages from the specified SelfID. You can also use '*' to
-// permit all senders.
-func (c *Client) ACLPermit(selfID string) error {
+// PermitConnection permits communication from the specified Self ID.
+// You can also use '*' to permit communication from all Self IDs.
+func (c *Client) PermitConnection(selfID string) error {
 	return c.messaging.PermitSender(selfID, messaging.TimeFunc().Add(time.Hour*876000))
 }
 
-// ACLRevoke removes any rule that allows messages to be sent to your identity
-// from other identities
-func (c *Client) ACLRevoke(selfID string) error {
+// RevokeConnection removes a previously permitted connection based on the
+// specified Self ID.
+func (c *Client) RevokeConnection(selfID string) error {
 	return c.messaging.BlockSender(selfID)
 }
 
-// ACLList returns the rules present in the access control list
-func (c *Client) ACLList() ([]string, error) {
+// AllowedConnections returns a list of permitted connections.
+func (c *Client) AllowedConnections() ([]string, error) {
 	rules, err := c.messaging.ListACLRules()
 	if err != nil {
 		return nil, err
