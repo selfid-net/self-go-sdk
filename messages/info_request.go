@@ -11,5 +11,5 @@ type IdentityInfoRequest struct {
 	Exp         string `json:"exp"`
 	Jti         string `json:"jti"`
 	Description string `json:"description,omitempty"`
-	Facts       []Fact `json:"fact"`
+	Facts       []Fact `json:"facts"`
 }
