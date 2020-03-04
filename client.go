@@ -1,7 +1,6 @@
 package selfsdk
 
 import (
-	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"log"
@@ -152,14 +151,15 @@ func (c *Client) GetDevices(selfID string) ([]string, error) {
 // Authenticate sends an authentication challenge to a given identity
 func (c *Client) Authenticate(selfID string) error {
 	request := map[string]string{
-		"typ": "authentication_req",
-		"cid": uuid.New().String(),
-		"iss": c.AppID,
-		"sub": selfID,
-		"aud": selfID,
-		"iat": messaging.TimeFunc().Format(time.RFC3339),
-		"exp": messaging.TimeFunc().Add(time.Minute * 5).Format(time.RFC3339),
-		"jti": uuid.New().String(),
+		"typ":       "authentication_req",
+		"cid":       uuid.New().String(),
+		"iss":       c.AppID,
+		"sub":       selfID,
+		"aud":       selfID,
+		"iat":       messaging.TimeFunc().Format(time.RFC3339),
+		"exp":       messaging.TimeFunc().Add(time.Minute * 5).Format(time.RFC3339),
+		"jti":       uuid.New().String(),
+		"device_id": c.messagingDevice,
 	}
 
 	c.messaging.JWSRegister(request["cid"])
@@ -342,15 +342,27 @@ func (c *Client) RequestInformation(r *InformationRequest) (*messages.IdentityIn
 		return nil, err
 	}
 
-	for _, v := range resp.Facts {
-		data, err := base64.RawStdEncoding.DecodeString(string(v))
-		if err != nil {
-			return nil, err
+	for _, f := range r.Facts {
+		if resp.Fact(f.Fact) == nil {
+			return nil, errors.New("response did not contain the requested fact")
+		}
+	}
+
+	for _, f := range resp.Facts {
+		if len(f.Attestations) < 1 {
+			return nil, errors.New("provided fact does not contain any valid attestations")
 		}
 
-		_, err = validate(r.SelfID, data, kc)
-		if err != nil {
-			return nil, err
+		for _, a := range f.Attestations {
+			keys, err := kc.get(a.Issuer())
+			if err != nil {
+				return nil, err
+			}
+
+			err = a.Validate(keys)
+			if err != nil {
+				return nil, err
+			}
 		}
 	}
 

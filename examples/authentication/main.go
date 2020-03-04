@@ -17,7 +17,7 @@ func main() {
 		fmt.Println(err)
 	}
 
-	err = self.ACLPermit("*")
+	err = self.PermitConnection("*")
 	if err != nil {
 		fmt.Println(err)
 	}
