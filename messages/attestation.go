@@ -6,16 +6,23 @@ import (
 	"github.com/square/go-jose"
 	"github.com/tidwall/gjson"
 	"golang.org/x/crypto/ed25519"
-
-	"encoding/json"
 )
 
 // Attestation holds an attestation about a fact
-type Attestation json.RawMessage
+type Attestation struct {
+	jws *jose.JSONWebSignature
+}
 
-// JWS returns the attestation as a jws
-func (a *Attestation) JWS() (*jose.JSONWebSignature, error) {
-	return jose.ParseSigned(string(*a))
+// UnmarshalJSON custom unmarshal function
+func (a *Attestation) UnmarshalJSON(b []byte) error {
+	jws, err := jose.ParseSigned(string(b))
+	if err != nil {
+		return err
+	}
+
+	a.jws = jws
+
+	return nil
 }
 
 // Issuer returns the identity that issued and signed the attestation
@@ -29,13 +36,8 @@ func (a *Attestation) Validate(keys []ed25519.PublicKey) error {
 		return errors.New("no valid identity keys provided")
 	}
 
-	jws, err := a.JWS()
-	if err != nil {
-		return err
-	}
-
 	for _, k := range keys {
-		_, err = jws.Verify(k)
+		_, err := a.jws.Verify(k)
 		if err == nil {
 			return nil
 		}
@@ -45,12 +47,6 @@ func (a *Attestation) Validate(keys []ed25519.PublicKey) error {
 }
 
 func (a *Attestation) value(key string) string {
-	jws, err := a.JWS()
-	if err != nil {
-		return ""
-	}
-
-	payload := jws.UnsafePayloadWithoutVerification()
-
+	payload := a.jws.UnsafePayloadWithoutVerification()
 	return gjson.GetBytes(payload, key).String()
 }
