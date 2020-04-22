@@ -20,6 +20,18 @@ This sdk provides access to the following self services:
 - [olm](github.com/selfid-net/olm)
 - [go 1.13 or higher](golang.org)
 
+
+#### Debian/Ubuntu
+```sh
+$ curl -O http://download.selfid.net/olm/libselfid-olm_0.1.4_amd64.deb
+$ apt install libselfid-olm_0.1.4_amd64.deb
+```
+
+#### Redhat/Centos
+```sh
+$ rpm -Uvh http://download.selfid.net/olm/libselfid-olm-0.1.4-1.x86_64.rpm
+```
+
 ## Quick Start
 
 To install the go sdk:
