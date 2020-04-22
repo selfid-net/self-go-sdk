@@ -1,6 +1,6 @@
 # Self Go SDK
 
-[![GoDoc](https://godoc.org/github.com/selfid-net/self-go-sdk?status.svg)](https://godoc.org/github.com/selfid-net/self-go-sdk) [![Go Report Card](https://goreportcard.com/badge/github.com/selfid-net/self-go-sdk)](https://goreportcard.com/report/github.com/selfid-net/self-go-sdk) [![Build Status](https://travis-ci.org/selfid-net/self-go-sdk?branch=master)](https://travis-ci.org/selfid-net/self-go-sdk)
+[![GoDoc](https://godoc.org/github.com/selfid-net/self-go-sdk?status.svg)](https://godoc.org/github.com/selfid-net/self-go-sdk) [![Go Report Card](https://goreportcard.com/badge/github.com/selfid-net/self-go-sdk)](https://goreportcard.com/report/github.com/selfid-net/self-go-sdk) [![Build Status](https://travis-ci.com/selfid-net/self-go-sdk?branch=master)](https://travis-ci.com/selfid-net/self-go-sdk)
 
 
 The official self sdk for golang.
@@ -24,7 +24,8 @@ This sdk provides access to the following self services:
 #### Debian/Ubuntu
 ```sh
 $ curl -O http://download.selfid.net/olm/libselfid-olm_0.1.4_amd64.deb
-$ apt install libselfid-olm_0.1.4_amd64.deb
+$ apt install libsodium-dev
+$ apt install ./libselfid-olm_0.1.4_amd64.deb
 ```
 
 #### Redhat/Centos
