@@ -2,7 +2,8 @@ language: go
 
 before_install:
   - curl -O http://download.selfid.net/olm/libselfid-olm_0.1.4_amd64.deb
-  - sudo apt install libsodium-dev ./libselfid-olm_0.1.4_amd64.deb
+  - sudo apt install libsodium-dev
+  - sudo apt install ./libselfid-olm_0.1.4_amd64.deb
 
 go:
   - "1.12"

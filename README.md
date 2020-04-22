@@ -24,7 +24,8 @@ This sdk provides access to the following self services:
 #### Debian/Ubuntu
 ```sh
 $ curl -O http://download.selfid.net/olm/libselfid-olm_0.1.4_amd64.deb
-$ apt install libsodium-dev ./libselfid-olm_0.1.4_amd64.deb
+$ apt install libsodium-dev
+$ apt install ./libselfid-olm_0.1.4_amd64.deb
 ```
 
 #### Redhat/Centos
