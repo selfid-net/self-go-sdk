@@ -247,7 +247,7 @@ func (s Service) WaitForResponse(cid string, exp time.Duration) (*QRFactResponse
 
 	selfID := strings.Split(responder, ":")[0]
 
-	facts, err := s.factResponse("", selfID, response)
+	facts, err := s.factResponse(selfID, selfID, response)
 	if err != nil {
 		return nil, err
 	}
