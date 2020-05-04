@@ -307,7 +307,7 @@ func (s *Service) factResponse(issuer, subject string, response []byte) ([]Fact,
 		return nil, ErrMessageExpired
 	}
 
-	if resp.IssuedAt.After(ntp.TimeFunc()) {
+	if resp.IssuedAt.After(ntp.TimeFunc().Add(time.Second)) {
 		return nil, ErrMessageIssuedTooSoon
 	}
 
