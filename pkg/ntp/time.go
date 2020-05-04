@@ -54,3 +54,13 @@ func (c *Time) syncNTP() error {
 
 	return nil
 }
+
+// Before returns true if a given time is before the current time
+func Before(t time.Time) bool {
+	return t.After(TimeFunc().Add(time.Second*5))
+}
+
+// After returns true if a given time is after the current time
+func After(t time.Time) bool {
+	return TimeFunc().After(t)
+}

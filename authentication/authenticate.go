@@ -151,7 +151,7 @@ func (s *Service) authenticationResponse(selfID string, resp []byte) error {
 		return ErrInvalidExpiry
 	}
 
-	if ntp.TimeFunc().After(exp) {
+	if ntp.After(exp) {
 		return ErrResponseExpired
 	}
 
@@ -160,7 +160,7 @@ func (s *Service) authenticationResponse(selfID string, resp []byte) error {
 		return ErrInvalidIssuedAt
 	}
 
-	if iat.After(ntp.TimeFunc()) {
+	if ntp.Before(iat) {
 		return ErrResponseIssuedTooSoon
 	}
 

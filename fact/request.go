@@ -303,11 +303,11 @@ func (s *Service) factResponse(issuer, subject string, response []byte) ([]Fact,
 		return nil, ErrMessageBadIssuer
 	}
 
-	if ntp.TimeFunc().After(resp.ExpiresAt) {
+	if ntp.After(resp.ExpiresAt) {
 		return nil, ErrMessageExpired
 	}
 
-	if resp.IssuedAt.After(ntp.TimeFunc().Add(time.Second)) {
+	if ntp.Before(resp.IssuedAt) {
 		return nil, ErrMessageIssuedTooSoon
 	}
 
