@@ -123,8 +123,6 @@ func (c *Websocket) Receive() (string, []byte, error) {
 		return "", nil, errors.New("received unknown message")
 	}
 
-	fmt.Println(string(m.Ciphertext))
-
 	return m.Sender, m.Ciphertext, nil
 }
 

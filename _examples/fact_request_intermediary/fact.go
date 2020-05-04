@@ -64,7 +64,9 @@ func main() {
 		if f.Result() != true {
 			log.Fatal("intermediary could not verify the required facts")
 		}
+		log.Printf("Your assertion that %s %s is %t\n", f.Fact, f.Operator, f.Result())
 	}
 
 	log.Println("intermediary verified the requried facts")
+
 }
