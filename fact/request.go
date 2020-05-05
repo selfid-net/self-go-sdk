@@ -25,6 +25,7 @@ var (
 	ErrMessageExpired               = errors.New("response has expired")
 	ErrMessageIssuedTooSoon         = errors.New("response was issued in the future")
 	ErrStatusRejected               = errors.New("fact request was rejected")
+	ErrStatusUnauthorized           = errors.New("you are not authorized to interact with this user")
 	ErrFactRequestBadIdentity       = errors.New("fact request must specify a valid self id")
 	ErrFactRequestBadFacts          = errors.New("fact request must specify one or more facts")
 	ErrFactQRRequestBadConversation = errors.New("fact qr request must specify a valid conversation id")
@@ -364,6 +365,8 @@ func (s *Service) factResponse(issuer, subject string, response []byte) ([]Fact,
 		return resp.Facts, nil
 	case StatusRejected:
 		return nil, ErrStatusRejected
+	case StatusUnauthorized:
+		return nil, ErrStatusUnauthorized
 	default:
 		return nil, ErrMessageBadStatus
 	}

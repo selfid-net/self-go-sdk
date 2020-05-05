@@ -32,6 +32,7 @@ var (
 
 	StatusAccepted = "accepted"
 	StatusRejected = "rejected"
+	StatusUnauthorized = "unauthorized"
 
 	ErrFactEmptyName     = errors.New("provided fact does not specify a name")
 	ErrFactBadSource     = errors.New("fact must specify one source")
