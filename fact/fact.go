@@ -30,9 +30,9 @@ var (
 
 	OperatorEqual            = "=="
 	OperatorDifferent        = "!="
-	OperatorGreatOrEqualThan = ">="
+	OperatorGreaterOrEqualThan = ">="
 	OperatorLessOrEqualThan  = "<="
-	OperatorGreatThan        = ">"
+	OperatorGreaterThan      = ">"
 	OperatorLessThan         = "<"
 
 	RequestInformation  = "identity_info_req"
@@ -114,7 +114,7 @@ func (f *Fact) validate() error {
 }
 
 func (f *Fact) hasValidOperator() bool {
-	var validOperators = []string{"", OperatorEqual, OperatorDifferent, OperatorGreatOrEqualThan, OperatorGreatThan, OperatorLessOrEqualThan, OperatorLessThan}
+	var validOperators = []string{"", OperatorEqual, OperatorDifferent, OperatorGreaterOrEqualThan, OperatorGreaterThan, OperatorLessOrEqualThan, OperatorLessThan}
 
 	for _, b := range validOperators {
 		if b == f.Operator {
