@@ -3,6 +3,7 @@ package fact
 import (
 	"encoding/json"
 	"errors"
+
 	"github.com/square/go-jose"
 
 	"github.com/tidwall/gjson"
@@ -27,16 +28,24 @@ var (
 	FactDateOfIssuance   = "date_of_issuance"
 	FactDateOfExpiration = "date_of_expiration"
 
+	OperatorEqual            = "=="
+	OperatorDifferent        = "!="
+	OperatorGreatOrEqualThan = ">="
+	OperatorLessOrEqualThan  = "<="
+	OperatorGreatThan        = ">"
+	OperatorLessThan         = "<"
+
 	RequestInformation  = "identity_info_req"
 	ResponseInformation = "identity_info_resp"
 
-	StatusAccepted = "accepted"
-	StatusRejected = "rejected"
+	StatusAccepted     = "accepted"
+	StatusRejected     = "rejected"
 	StatusUnauthorized = "unauthorized"
 
-	ErrFactEmptyName     = errors.New("provided fact does not specify a name")
-	ErrFactBadSource     = errors.New("fact must specify one source")
-	ErrFactInvalidSource = errors.New("provided fact does not specify a valid source")
+	ErrFactEmptyName       = errors.New("provided fact does not specify a name")
+	ErrFactBadSource       = errors.New("fact must specify one source")
+	ErrFactInvalidSource   = errors.New("provided fact does not specify a valid source")
+	ErrFactInvalidOperator = errors.New("provided fact does not specify a valid operator")
 )
 
 // Fact specific details about the fact
@@ -97,5 +106,20 @@ func (f *Fact) validate() error {
 		}
 	}
 
+	if !f.hasValidOperator() {
+		return ErrFactInvalidOperator
+	}
+
 	return nil
+}
+
+func (f *Fact) hasValidOperator() bool {
+	var validOperators = []string{"", OperatorEqual, OperatorDifferent, OperatorGreatOrEqualThan, OperatorGreatThan, OperatorLessOrEqualThan, OperatorLessThan}
+
+	for _, b := range validOperators {
+		if b == f.Operator {
+			return true
+		}
+	}
+	return false
 }
