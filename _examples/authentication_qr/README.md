@@ -20,7 +20,7 @@ Running this command will open the qr code in a browser, which you will need to 
 
 This diagram shows how the Self authentication process works when using a qr code.
 
-![Diagram](https://storage.googleapis.com/self-public/images/authentication_qr_diagram.png)
+![Diagram](https://storage.googleapis.com/static.selfid.net/images/authentication_qr_diagram.png)
 
 1. Generate Self authentication request QR code
 2. Share generated QR code with your user
