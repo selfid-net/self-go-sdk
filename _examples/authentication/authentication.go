@@ -4,17 +4,17 @@ import (
 	"log"
 	"os"
 
-	"github.com/selfid-net/self-go-sdk"
+	selfsdk "github.com/selfid-net/self-go-sdk"
 )
 
 // expects 1 argument - the Self ID you want to authenticate
 func main() {
 	cfg := selfsdk.Config{
-		SelfID:     os.Getenv("SELF_APP_ID"),
-		DeviceID:   "1",
-		PrivateKey: os.Getenv("SELF_APP_SECRET"),
-		StorageDir: "/opt/self/crypto",
-		StorageKey: "my-secret-crypto-storage-key",
+		SelfAppID:     os.Getenv("SELF_APP_ID"),
+		DeviceID:      "1",
+		SelfAppSecret: os.Getenv("SELF_APP_SECRET"),
+		StorageDir:    "/opt/self/crypto",
+		StorageKey:    "my-secret-crypto-storage-key",
 	}
 
 	client, err := selfsdk.New(cfg)

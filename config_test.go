@@ -52,7 +52,7 @@ func TestConfigValidate(t *testing.T) {
 	err := cfg.validate()
 	assert.NotNil(t, err)
 
-	cfg.SelfID = "self-id"
+	cfg.SelfAppID = "self-id"
 	err = cfg.validate()
 	assert.NotNil(t, err)
 
@@ -60,7 +60,7 @@ func TestConfigValidate(t *testing.T) {
 	err = cfg.validate()
 	assert.NotNil(t, err)
 
-	cfg.PrivateKey = "private-key"
+	cfg.SelfAppSecret = "private-key"
 	err = cfg.validate()
 	assert.NotNil(t, err)
 
@@ -81,11 +81,11 @@ func TestConfigLoad(t *testing.T) {
 	require.Nil(t, err)
 
 	cfg := Config{
-		SelfID:     "self-id",
-		DeviceID:   "device-id",
-		PrivateKey: base64.RawStdEncoding.EncodeToString(sk.Seed()),
-		StorageKey: "super-secret-encryption-key",
-		StorageDir: "/tmp/test",
+		SelfAppID:     "self-id",
+		DeviceID:      "device-id",
+		SelfAppSecret: base64.RawStdEncoding.EncodeToString(sk.Seed()),
+		StorageKey:    "super-secret-encryption-key",
+		StorageDir:    "/tmp/test",
 		Connectors: &Connectors{
 			Rest:      &trt,
 			Websocket: &twt,

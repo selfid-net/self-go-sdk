@@ -9,18 +9,17 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/selfid-net/self-go-sdk"
-	"github.com/selfid-net/self-go-sdk/authentication"
 	"github.com/google/uuid"
+	selfsdk "github.com/selfid-net/self-go-sdk"
+	"github.com/selfid-net/self-go-sdk/authentication"
 )
 
 func main() {
 	cfg := selfsdk.Config{
-		SelfID:     os.Getenv("SELF_ID"),
-		DeviceID:   "1",
-		PrivateKey: os.Getenv("SELF_KEY"),
-		StorageDir: "/opt/self/crypto",
-		StorageKey: "my-secret-crypto-storage-key",
+		SelfAppID:     os.Getenv("SELF_ID"),
+		SelfAppSecret: os.Getenv("SELF_KEY"),
+		StorageDir:    "/opt/self/crypto",
+		StorageKey:    "my-secret-crypto-storage-key",
 	}
 
 	client, err := selfsdk.New(cfg)

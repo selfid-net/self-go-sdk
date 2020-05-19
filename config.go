@@ -37,11 +37,11 @@ type Connectors struct {
 
 // Config configuration options for the sdk
 type Config struct {
-	SelfID               string
-	DeviceID             string
-	PrivateKey           string
-	StorageDir           string
+	SelfAppID            string
+	SelfAppSecret        string
 	StorageKey           string
+	DeviceID             string
+	StorageDir           string
 	APIURL               string
 	MessagingURL         string
 	ReconnectionAttempts int
@@ -63,24 +63,24 @@ func (d *debugCryptoClient) Decrypt(sender string, ciphertext []byte) ([]byte, e
 }
 
 func (c Config) validate() error {
-	if c.SelfID == "" {
-		return errors.New("config must specify the self id of an app")
+	if c.SelfAppID == "" {
+		return errors.New("config must specify the self app id")
 	}
 
-	if c.DeviceID == "" {
-		return errors.New("config must specify an app device id")
-	}
-
-	if c.PrivateKey == "" {
-		return errors.New("config must specify an app private key")
-	}
-
-	if c.StorageDir == "" {
-		return errors.New("config must specify a storage directory")
+	if c.SelfAppSecret == "" {
+		return errors.New("config must specify an app secret key")
 	}
 
 	if c.StorageKey == "" {
 		return errors.New("config must specify a key to encrypt storage")
+	}
+
+	if c.DeviceID == "" {
+		c.DeviceID = "1"
+	}
+
+	if c.StorageDir == "" {
+		c.StorageDir = "~/.storage"
 	}
 
 	return nil
@@ -111,7 +111,7 @@ func (c *Config) load() error {
 		c.RequestTimeout = defaultRequestTimeout
 	}
 
-	skData, err := decoder.DecodeString(c.PrivateKey)
+	skData, err := decoder.DecodeString(c.SelfAppSecret)
 	if err != nil {
 		return errors.New("could not decode private key")
 	}
@@ -163,7 +163,7 @@ func (c Config) loadRestConnector() error {
 			},
 		},
 		APIURL:     c.APIURL,
-		SelfID:     c.SelfID,
+		SelfID:     c.SelfAppID,
 		PrivateKey: c.sk,
 	}
 
@@ -184,7 +184,7 @@ func (c Config) loadWebsocketConnector() error {
 
 	cfg := transport.WebsocketConfig{
 		MessagingURL: c.MessagingURL,
-		SelfID:       c.SelfID,
+		SelfID:       c.SelfAppID,
 		DeviceID:     c.DeviceID,
 		PrivateKey:   c.sk,
 		TCPDeadline:  defaultTCPDeadline,
@@ -227,7 +227,7 @@ func (c Config) loadPKIConnector() error {
 
 	cfg := pki.Config{
 		APIURL:     c.APIURL,
-		SelfID:     c.SelfID,
+		SelfID:     c.SelfAppID,
 		PrivateKey: c.sk,
 		Transport:  c.Connectors.Rest,
 	}
@@ -253,7 +253,7 @@ func (c Config) loadCryptoConnector() error {
 	}
 
 	cfg := crypto.Config{
-		SelfID:     c.SelfID,
+		SelfID:     c.SelfAppID,
 		DeviceID:   c.DeviceID,
 		PrivateKey: c.sk,
 		StorageKey: c.StorageKey,
