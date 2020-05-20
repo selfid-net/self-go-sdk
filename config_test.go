@@ -127,5 +127,5 @@ func TestConfigLoadWithEnvironment(t *testing.T) {
 	require.Nil(t, err)
 
 	assert.Equal(t, cfg.APIURL, "https://api.sandbox.selfid.net")
-	assert.Equal(t, cfg.MessagingURL, "wss://messaging.sandbox.selfid.net")
+	assert.Equal(t, cfg.MessagingURL, "wss://messaging.sandbox.selfid.net/v1/messaging")
 }

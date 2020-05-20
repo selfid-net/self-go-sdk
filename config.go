@@ -16,7 +16,7 @@ import (
 
 var (
 	defaultAPIURL               = "https://api.selfid.net"
-	defaultMessagingURL         = "wss://messaging.selfid.net"
+	defaultMessagingURL         = "wss://messaging.selfid.net/v1/messaging"
 	defaultReconnectionAttempts = 10
 	defaultTCPDeadline          = time.Second * 5
 	defaultRequestTimeout       = time.Second * 5
