@@ -52,7 +52,7 @@ func TestConfigValidate(t *testing.T) {
 	err := cfg.validate()
 	assert.NotNil(t, err)
 
-	cfg.SelfID = "self-id"
+	cfg.SelfAppID = "self-id"
 	err = cfg.validate()
 	assert.NotNil(t, err)
 
@@ -60,7 +60,7 @@ func TestConfigValidate(t *testing.T) {
 	err = cfg.validate()
 	assert.NotNil(t, err)
 
-	cfg.PrivateKey = "private-key"
+	cfg.SelfAppSecret = "private-key"
 	err = cfg.validate()
 	assert.NotNil(t, err)
 
@@ -81,11 +81,11 @@ func TestConfigLoad(t *testing.T) {
 	require.Nil(t, err)
 
 	cfg := Config{
-		SelfID:     "self-id",
-		DeviceID:   "device-id",
-		PrivateKey: base64.RawStdEncoding.EncodeToString(sk.Seed()),
-		StorageKey: "super-secret-encryption-key",
-		StorageDir: "/tmp/test",
+		SelfAppID:     "self-id",
+		DeviceID:      "device-id",
+		SelfAppSecret: base64.RawStdEncoding.EncodeToString(sk.Seed()),
+		StorageKey:    "super-secret-encryption-key",
+		StorageDir:    "/tmp/test",
 		Connectors: &Connectors{
 			Rest:      &trt,
 			Websocket: &twt,
@@ -101,4 +101,31 @@ func TestConfigLoad(t *testing.T) {
 	assert.NotNil(t, cfg.Connectors.Crypto)
 	assert.NotNil(t, cfg.Connectors.Storage)
 	assert.NotNil(t, cfg.Connectors.Messaging)
+	assert.Equal(t, cfg.APIURL, "https://api.selfid.net")
+	assert.Equal(t, cfg.MessagingURL, "wss://messaging.selfid.net/v1/messaging")
+}
+
+func TestConfigLoadWithEnvironment(t *testing.T) {
+	var twt testWebsocketTransport
+	var trt testRestTransport
+
+	_, sk, err := ed25519.GenerateKey(rand.Reader)
+	require.Nil(t, err)
+
+	cfg := Config{
+		SelfAppID:     "self-id",
+		SelfAppSecret: base64.RawStdEncoding.EncodeToString(sk.Seed()),
+		StorageKey:    "super-secret-encryption-key",
+		Environment:   "sandbox",
+		Connectors: &Connectors{
+			Rest:      &trt,
+			Websocket: &twt,
+		},
+	}
+
+	err = cfg.load()
+	require.Nil(t, err)
+
+	assert.Equal(t, cfg.APIURL, "https://api.sandbox.selfid.net")
+	assert.Equal(t, cfg.MessagingURL, "wss://messaging.sandbox.selfid.net/v1/messaging")
 }
