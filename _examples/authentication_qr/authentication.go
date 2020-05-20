@@ -16,9 +16,13 @@ import (
 
 func main() {
 	cfg := selfsdk.Config{
-		SelfAppID:     os.Getenv("SELF_ID"),
-		SelfAppSecret: os.Getenv("SELF_KEY"),
+		SelfAppID:     os.Getenv("SELF_APP_ID"),
+		SelfAppSecret: os.Getenv("SELF_APP_SECRET"),
 		StorageKey:    "my-secret-crypto-storage-key",
+	}
+
+	if os.Getenv("SELF_ENV") != "" {
+		cfg.Environment = os.Getenv("SELF_ENV")
 	}
 
 	client, err := selfsdk.New(cfg)

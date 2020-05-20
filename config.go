@@ -89,7 +89,7 @@ func (c *Config) load() error {
 	}
 
 	if c.StorageDir == "" {
-		c.StorageDir = "~/.storage"
+		c.StorageDir = "./.storage"
 	}
 
 	if c.Environment != "" {
@@ -98,7 +98,7 @@ func (c *Config) load() error {
 		}
 
 		if c.MessagingURL == "" {
-			c.MessagingURL = "wss://messaging." + c.Environment + ".selfid.net"
+			c.MessagingURL = "wss://messaging." + c.Environment + ".selfid.net/v1/messaging"
 		}
 
 	}

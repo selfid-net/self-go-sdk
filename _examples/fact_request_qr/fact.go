@@ -21,6 +21,10 @@ func main() {
 		StorageKey:    "my-secret-crypto-storage-key",
 	}
 
+	if os.Getenv("SELF_ENV") != "" {
+		cfg.Environment = os.Getenv("SELF_ENV")
+	}
+
 	client, err := selfsdk.New(cfg)
 	if err != nil {
 		log.Fatal(err)
