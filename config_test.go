@@ -102,7 +102,7 @@ func TestConfigLoad(t *testing.T) {
 	assert.NotNil(t, cfg.Connectors.Storage)
 	assert.NotNil(t, cfg.Connectors.Messaging)
 	assert.Equal(t, cfg.APIURL, "https://api.selfid.net")
-	assert.Equal(t, cfg.MessagingURL, "wss://messaging.selfid.net")
+	assert.Equal(t, cfg.MessagingURL, "wss://messaging.selfid.net/v1/messaging")
 }
 
 func TestConfigLoadWithEnvironment(t *testing.T) {
