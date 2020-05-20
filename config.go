@@ -44,6 +44,7 @@ type Config struct {
 	StorageDir           string
 	APIURL               string
 	MessagingURL         string
+	Environment          string
 	ReconnectionAttempts int
 	TCPDeadline          time.Duration
 	RequestTimeout       time.Duration
@@ -75,6 +76,14 @@ func (c Config) validate() error {
 		return errors.New("config must specify a key to encrypt storage")
 	}
 
+	return nil
+}
+
+func (c *Config) load() error {
+	if c.Connectors == nil {
+		c.Connectors = &Connectors{}
+	}
+
 	if c.DeviceID == "" {
 		c.DeviceID = "1"
 	}
@@ -83,12 +92,15 @@ func (c Config) validate() error {
 		c.StorageDir = "~/.storage"
 	}
 
-	return nil
-}
+	if c.Environment != "" {
+		if c.APIURL == "" {
+			c.APIURL = "https://api." + c.Environment + ".selfid.net"
+		}
 
-func (c *Config) load() error {
-	if c.Connectors == nil {
-		c.Connectors = &Connectors{}
+		if c.MessagingURL == "" {
+			c.MessagingURL = "wss://messaging." + c.Environment + ".selfid.net"
+		}
+
 	}
 
 	if c.APIURL == "" {

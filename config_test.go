@@ -101,4 +101,31 @@ func TestConfigLoad(t *testing.T) {
 	assert.NotNil(t, cfg.Connectors.Crypto)
 	assert.NotNil(t, cfg.Connectors.Storage)
 	assert.NotNil(t, cfg.Connectors.Messaging)
+	assert.Equal(t, cfg.APIURL, "https://api.selfid.net")
+	assert.Equal(t, cfg.MessagingURL, "wss://messaging.selfid.net")
+}
+
+func TestConfigLoadWithEnvironment(t *testing.T) {
+	var twt testWebsocketTransport
+	var trt testRestTransport
+
+	_, sk, err := ed25519.GenerateKey(rand.Reader)
+	require.Nil(t, err)
+
+	cfg := Config{
+		SelfAppID:     "self-id",
+		SelfAppSecret: base64.RawStdEncoding.EncodeToString(sk.Seed()),
+		StorageKey:    "super-secret-encryption-key",
+		Environment:   "sandbox",
+		Connectors: &Connectors{
+			Rest:      &trt,
+			Websocket: &twt,
+		},
+	}
+
+	err = cfg.load()
+	require.Nil(t, err)
+
+	assert.Equal(t, cfg.APIURL, "https://api.sandbox.selfid.net")
+	assert.Equal(t, cfg.MessagingURL, "wss://messaging.sandbox.selfid.net")
 }
