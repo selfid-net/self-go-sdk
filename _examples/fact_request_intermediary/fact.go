@@ -14,10 +14,7 @@ func main() {
 	cfg := selfsdk.Config{
 		SelfAppID:     os.Getenv("SELF_APP_ID"),
 		SelfAppSecret: os.Getenv("SELF_APP_SECRET"),
-		StorageDir:    "/opt/self/crypto",
 		StorageKey:    "my-secret-crypto-storage-key",
-		APIURL:        "https://api.review.selfid.net",
-		MessagingURL:  "wss://messaging.review.selfid.net/v1/messaging",
 	}
 
 	client, err := selfsdk.New(cfg)

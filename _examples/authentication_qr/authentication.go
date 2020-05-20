@@ -18,7 +18,6 @@ func main() {
 	cfg := selfsdk.Config{
 		SelfAppID:     os.Getenv("SELF_ID"),
 		SelfAppSecret: os.Getenv("SELF_KEY"),
-		StorageDir:    "/opt/self/crypto",
 		StorageKey:    "my-secret-crypto-storage-key",
 	}
 
