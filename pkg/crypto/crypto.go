@@ -9,7 +9,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/selfid-net/go-olm"
+	"github.com/selfid-net/self-crypto-go"
 	"github.com/selfid-net/self-go-sdk/pkg/pki"
 	"golang.org/x/crypto/ed25519"
 )
@@ -64,7 +64,7 @@ type Client struct {
 	address string
 	pki     PKI
 	storage Storage
-	account *olm.Account
+	account *selfcrypto.Account
 	mu      sync.Mutex
 }
 
@@ -121,7 +121,7 @@ func New(config Config) (*Client, error) {
 	if ap == nil {
 		c.account, err = c.createAccount()
 	} else {
-		c.account, err = olm.AccountFromPickle(c.address, c.config.StorageKey, string(ap))
+		c.account, err = selfcrypto.AccountFromPickle(c.address, c.config.StorageKey, string(ap))
 	}
 
 	return c, err
@@ -129,13 +129,13 @@ func New(config Config) (*Client, error) {
 
 // Encrypt encrypt a message for any number of recipients
 func (c *Client) Encrypt(recipients []string, plaintext []byte) ([]byte, error) {
-	sessions := make([]*olm.Session, len(recipients))
+	sessions := make([]*selfcrypto.Session, len(recipients))
 
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
 	for i, r := range recipients {
-		var s *olm.Session
+		var s *selfcrypto.Session
 
 		sp, err := c.storage.GetSession(r)
 		if err != nil {
@@ -145,7 +145,7 @@ func (c *Client) Encrypt(recipients []string, plaintext []byte) ([]byte, error) 
 		if sp == nil {
 			s, err = c.createOutboundSession(r)
 		} else {
-			s, err = olm.SessionFromPickle(r, c.config.StorageKey, string(sp))
+			s, err = selfcrypto.SessionFromPickle(r, c.config.StorageKey, string(sp))
 		}
 
 		if err != nil {
@@ -155,7 +155,7 @@ func (c *Client) Encrypt(recipients []string, plaintext []byte) ([]byte, error) 
 		sessions[i] = s
 	}
 
-	gs, err := olm.CreateGroupSession(c.account, sessions)
+	gs, err := selfcrypto.CreateGroupSession(c.account, sessions)
 	if err != nil {
 		return nil, err
 	}
@@ -182,7 +182,7 @@ func (c *Client) Encrypt(recipients []string, plaintext []byte) ([]byte, error) 
 
 // Decrypt decrypt a message from a recipient
 func (c *Client) Decrypt(sender string, ciphertext []byte) ([]byte, error) {
-	var s *olm.Session
+	var s *selfcrypto.Session
 
 	c.mu.Lock()
 	defer c.mu.Unlock()
@@ -195,14 +195,14 @@ func (c *Client) Decrypt(sender string, ciphertext []byte) ([]byte, error) {
 	if sp == nil {
 		s, err = c.createInboundSession(sender, ciphertext)
 	} else {
-		s, err = olm.SessionFromPickle(sender, c.config.StorageKey, string(sp))
+		s, err = selfcrypto.SessionFromPickle(sender, c.config.StorageKey, string(sp))
 	}
 
 	if err != nil {
 		return nil, err
 	}
 
-	gs, err := olm.CreateGroupSession(c.account, []*olm.Session{s})
+	gs, err := selfcrypto.CreateGroupSession(c.account, []*selfcrypto.Session{s})
 	if err != nil {
 		return nil, err
 	}
@@ -225,8 +225,8 @@ func (c *Client) Decrypt(sender string, ciphertext []byte) ([]byte, error) {
 	return plaintext, nil
 }
 
-func (c *Client) createAccount() (*olm.Account, error) {
-	a, err := olm.AccountFromSeed(c.address, c.config.PrivateKey.Seed())
+func (c *Client) createAccount() (*selfcrypto.Account, error) {
+	a, err := selfcrypto.AccountFromSeed(c.address, c.config.PrivateKey.Seed())
 	if err != nil {
 		return nil, err
 	}
@@ -244,7 +244,7 @@ func (c *Client) createAccount() (*olm.Account, error) {
 	return a, c.storage.SetAccount([]byte(ap))
 }
 
-func (c *Client) publishPreKeys(a *olm.Account) error {
+func (c *Client) publishPreKeys(a *selfcrypto.Account) error {
 	var pkb prekeys
 
 	err := a.GenerateOneTimeKeys(c.config.PreKeyBundleSize)
@@ -269,7 +269,7 @@ func (c *Client) publishPreKeys(a *olm.Account) error {
 	return c.pki.SetDeviceKeys(c.config.SelfID, c.config.DeviceID, pkbd)
 }
 
-func (c *Client) createOutboundSession(recipient string) (*olm.Session, error) {
+func (c *Client) createOutboundSession(recipient string) (*selfcrypto.Session, error) {
 	var prk prekey
 	var pks pubkeys
 
@@ -301,25 +301,25 @@ func (c *Client) createOutboundSession(recipient string) (*olm.Session, error) {
 		return nil, err
 	}
 
-	pkr, err := olm.Ed25519PKToCurve25519(pkd)
+	pkr, err := selfcrypto.Ed25519PKToCurve25519(pkd)
 	if err != nil {
 		return nil, err
 	}
 
 	pk := base64.RawStdEncoding.EncodeToString(pkr)
 
-	return olm.CreateOutboundSession(c.account, recipient, pk, prk.Key)
+	return selfcrypto.CreateOutboundSession(c.account, recipient, pk, prk.Key)
 }
 
-func (c *Client) createInboundSession(recipient string, ciphertext []byte) (*olm.Session, error) {
-	var m olm.GroupMessage
+func (c *Client) createInboundSession(recipient string, ciphertext []byte) (*selfcrypto.Session, error) {
+	var m selfcrypto.GroupMessage
 
 	err := json.Unmarshal(ciphertext, &m)
 	if err != nil {
 		return nil, err
 	}
 
-	s, err := olm.CreateInboundSession(c.account, recipient, m.Recipients[c.address])
+	s, err := selfcrypto.CreateInboundSession(c.account, recipient, m.Recipients[c.address])
 	if err != nil {
 		return nil, err
 	}

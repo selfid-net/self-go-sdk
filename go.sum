@@ -16,8 +16,8 @@ github.com/lucasb-eyer/go-colorful v1.0.3 h1:QIbQXiugsb+q10B+MI+7DI1oQLdmnep86tW
 github.com/lucasb-eyer/go-colorful v1.0.3/go.mod h1:R4dSotOR9KMtayYi1e77YzuveK+i7ruzyGqttikkLy0=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
-github.com/selfid-net/go-olm v0.0.0-20200422105633-aa8798833229 h1:O2wY8T0ptsgZNHw0JXq5dmWbCielduzw+nSgD4XMhkw=
-github.com/selfid-net/go-olm v0.0.0-20200422105633-aa8798833229/go.mod h1:HRyNuW8X9Ys5FB95Wjvwe/Yg7dDw4G1y7UEUcPMFDnk=
+github.com/selfid-net/self-crypto-go v0.0.0-20200521183458-12414ef97d9e h1:aKSQFsPifWa1E82ynOpdydjhtEq6DTxExnaMp4r3wgg=
+github.com/selfid-net/self-crypto-go v0.0.0-20200521183458-12414ef97d9e/go.mod h1:GGx37ojFPThoCN89qWBfGAkWnZBMvrQgLXtQwjVFdGM=
 github.com/skip2/go-qrcode v0.0.0-20191027152451-9434209cb086 h1:RYiqpb2ii2Z6J4x0wxK46kvPBbFuZcdhS+CIztmYgZs=
 github.com/skip2/go-qrcode v0.0.0-20191027152451-9434209cb086/go.mod h1:PLPIyL7ikehBD1OAjmKKiOEhbvWyHGaNDjquXMcYABo=
 github.com/square/go-jose v2.4.1+incompatible h1:KFYc54wTtgnd3x4B/Y7Zr1s/QaEx2BNzRsB3Hae5LHo=

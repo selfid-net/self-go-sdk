@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/selfid-net/go-olm"
+	"github.com/selfid-net/self-crypto-go"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/crypto/ed25519"
@@ -55,7 +55,7 @@ func TestCryptoClientEncrypt(t *testing.T) {
 	ciphertext, err := c.Encrypt(recips, []byte("hello"))
 	require.Nil(t, err)
 
-	var gm olm.GroupMessage
+	var gm selfcrypto.GroupMessage
 
 	err = json.Unmarshal(ciphertext, &gm)
 	require.Nil(t, err)
@@ -96,7 +96,7 @@ func TestCryptoClientEncryptMultipleRecipients(t *testing.T) {
 	ciphertext, err := c.Encrypt(recips, []byte("hello"))
 	require.Nil(t, err)
 
-	var gm olm.GroupMessage
+	var gm selfcrypto.GroupMessage
 
 	err = json.Unmarshal(ciphertext, &gm)
 	require.Nil(t, err)
@@ -149,7 +149,7 @@ func TestCryptoClientEncryptExistingRecipient(t *testing.T) {
 		otks.Curve25519["AAAAAQ"],
 	)
 
-	ps, err := olm.CreateInboundSession(c.account, recips[0], ct)
+	ps, err := selfcrypto.CreateInboundSession(c.account, recips[0], ct)
 	require.Nil(t, err)
 
 	pt, err := ps.Decrypt(ct)
@@ -160,7 +160,7 @@ func TestCryptoClientEncryptExistingRecipient(t *testing.T) {
 	ciphertext, err := c.Encrypt(recips, []byte("hello"))
 	require.Nil(t, err)
 
-	var gm olm.GroupMessage
+	var gm selfcrypto.GroupMessage
 
 	err = json.Unmarshal(ciphertext, &gm)
 	require.Nil(t, err)
