@@ -1,10 +1,12 @@
 language: go
 
 before_install:
-  - curl -O http://download.selfid.net/olm/libselfid-olm_0.1.4_amd64.deb
+  - curl -O http://download.selfid.net/olm/libself-olm_0.1.14_amd64.deb
+  - curl -O http://download.selfid.net/olm/libself-omemo_0.1.0_amd64.deb
   - sudo apt update
   - sudo apt install libsodium-dev
-  - sudo apt install ./libselfid-olm_0.1.4_amd64.deb
+  - sudo apt install ./libself-olm_0.1.14_amd64.deb
+  - sudo apt install ./libself-omemo_0.1.0_amd64.deb
 
 go:
   - "1.13"
