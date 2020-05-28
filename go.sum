@@ -18,6 +18,8 @@ github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZb
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/selfid-net/self-crypto-go v0.0.0-20200521183458-12414ef97d9e h1:aKSQFsPifWa1E82ynOpdydjhtEq6DTxExnaMp4r3wgg=
 github.com/selfid-net/self-crypto-go v0.0.0-20200521183458-12414ef97d9e/go.mod h1:GGx37ojFPThoCN89qWBfGAkWnZBMvrQgLXtQwjVFdGM=
+github.com/selfid-net/self-crypto-go v0.0.0-20200528155607-976ff03a13c7 h1:1lD1joLCle5+W3SGmQkSj3mOVsug/PcbgzhUC3x8Oro=
+github.com/selfid-net/self-crypto-go v0.0.0-20200528155607-976ff03a13c7/go.mod h1:GGx37ojFPThoCN89qWBfGAkWnZBMvrQgLXtQwjVFdGM=
 github.com/skip2/go-qrcode v0.0.0-20191027152451-9434209cb086 h1:RYiqpb2ii2Z6J4x0wxK46kvPBbFuZcdhS+CIztmYgZs=
 github.com/skip2/go-qrcode v0.0.0-20191027152451-9434209cb086/go.mod h1:PLPIyL7ikehBD1OAjmKKiOEhbvWyHGaNDjquXMcYABo=
 github.com/square/go-jose v2.4.1+incompatible h1:KFYc54wTtgnd3x4B/Y7Zr1s/QaEx2BNzRsB3Hae5LHo=
