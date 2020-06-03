@@ -11,7 +11,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/selfid-net/go-olm"
+	"github.com/selfid-net/self-crypto-go"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/crypto/ed25519"
@@ -29,8 +29,8 @@ func setup(t *testing.T, recipients int) (map[string]recipient, *testPKI, *testS
 		pk, sk, err := ed25519.GenerateKey(rand.Reader)
 		require.Nil(t, err)
 
-		// create an olm account from the private key
-		a, err := olm.AccountFromSeed(id+":1", sk.Seed())
+		// create an selfcrypto account from the private key
+		a, err := selfcrypto.AccountFromSeed(id+":1", sk.Seed())
 		require.Nil(t, err)
 
 		// generate and store the accounts one time keys
@@ -98,24 +98,24 @@ func randomRecipients(r map[string]recipient, max int) []string {
 
 type recipient struct {
 	id      string
-	account *olm.Account
-	session *olm.Session
+	account *selfcrypto.Account
+	session *selfcrypto.Session
 	pk      ed25519.PublicKey
 	sk      ed25519.PrivateKey
 }
 
-func (r recipient) createInboundGroupSesson(t *testing.T, from string, gm *olm.GroupMessage) *olm.GroupSession {
-	cas, err := olm.CreateInboundSession(r.account, from, gm.Recipients[r.id])
+func (r recipient) createInboundGroupSesson(t *testing.T, from string, gm *selfcrypto.GroupMessage) *selfcrypto.GroupSession {
+	cas, err := selfcrypto.CreateInboundSession(r.account, from, gm.Recipients[r.id])
 	require.Nil(t, err)
 
-	gs, err := olm.CreateGroupSession(r.account, []*olm.Session{cas})
+	gs, err := selfcrypto.CreateGroupSession(r.account, []*selfcrypto.Session{cas})
 	require.Nil(t, err)
 
 	return gs
 }
 
-func (r recipient) encryptNewMessage(t *testing.T, recipient string, pt []byte, ik, otk string) *olm.Message {
-	s, err := olm.CreateOutboundSession(r.account, recipient, ik, otk)
+func (r recipient) encryptNewMessage(t *testing.T, recipient string, pt []byte, ik, otk string) *selfcrypto.Message {
+	s, err := selfcrypto.CreateOutboundSession(r.account, recipient, ik, otk)
 	require.Nil(t, err)
 
 	ct, err := s.Encrypt(pt)
