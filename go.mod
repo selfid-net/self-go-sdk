@@ -9,7 +9,7 @@ require (
 	github.com/google/uuid v1.1.1
 	github.com/gorilla/websocket v1.4.1
 	github.com/lucasb-eyer/go-colorful v1.0.3
-	github.com/selfid-net/self-crypto-go v0.0.0-20200528155607-976ff03a13c7
+	github.com/selfid-net/self-crypto-go v0.0.0-20200603171410-f921744c87b5
 	github.com/skip2/go-qrcode v0.0.0-20191027152451-9434209cb086
 	github.com/square/go-jose v2.4.1+incompatible
 	github.com/stretchr/testify v1.5.1
