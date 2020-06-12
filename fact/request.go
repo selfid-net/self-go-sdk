@@ -1,14 +1,15 @@
 package fact
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"strings"
 	"time"
 
-	"github.com/selfid-net/self-go-sdk/pkg/ntp"
 	"github.com/google/uuid"
 	"github.com/lucasb-eyer/go-colorful"
+	"github.com/selfid-net/self-go-sdk/pkg/ntp"
 	"github.com/skip2/go-qrcode"
 	"github.com/square/go-jose"
 	"github.com/tidwall/gjson"
@@ -33,6 +34,8 @@ var (
 	ErrFactResultMismatch           = errors.New("fact has differing attested values")
 	ErrFactNotAttested              = errors.New("fact has attestations with empty or invalid values")
 	ErrBadAttestationSubject        = errors.New("attestation is not related to the responder")
+	ErrMissingConversationID        = errors.New("deep link request must specify a unique conversation id")
+	ErrMissingCallback              = errors.New("deep link request must specify a callback url")
 
 	ServiceSelfIntermediary = "self_intermediary"
 )
@@ -63,6 +66,15 @@ type QRFactRequest struct {
 type QRFactResponse struct {
 	Responder string
 	Facts     []Fact
+}
+
+// DeepLinkFactRequest contains the details of the requested facts
+type DeepLinkFactRequest struct {
+	ConversationID string
+	Description    string
+	Callback       string
+	Facts          []Fact
+	Expiry         time.Duration
 }
 
 type QRConfig struct {
@@ -199,7 +211,7 @@ func (s Service) RequestViaIntermediary(req *IntermediaryFactRequest) (*Intermed
 	return &IntermediaryFactResponse{Facts: facts}, nil
 }
 
-// GenerateFactQR generates a qr code containing an fact request
+// GenerateQRCode generates a qr code containing an fact request
 func (s Service) GenerateQRCode(req *QRFactRequest) ([]byte, error) {
 	if req.ConversationID == "" {
 		return nil, ErrFactQRRequestBadConversation
@@ -208,6 +220,7 @@ func (s Service) GenerateQRCode(req *QRFactRequest) ([]byte, error) {
 	if req.Expiry == 0 {
 		req.Expiry = defaultRequestTimeout
 	}
+	// TODO(@adriacidre) should we check the facts length to avoid empty arrays?
 
 	if req.QRConfig.ForegroundColor == "" {
 		req.QRConfig.ForegroundColor = "#0E1C42"
@@ -237,6 +250,33 @@ func (s Service) GenerateQRCode(req *QRFactRequest) ([]byte, error) {
 	s.messaging.Register(req.ConversationID)
 
 	return q.PNG(req.QRConfig.Size)
+}
+
+// GenerateDeepLink generates a qr code containing an fact request
+func (s Service) GenerateDeepLink(req *DeepLinkFactRequest) (string, error) {
+	if req.ConversationID == "" {
+		return "", ErrMissingConversationID
+	}
+
+	if req.Callback == "" {
+		return "", ErrMissingCallback
+	}
+	// TODO(@adriacidre) should we check the facts length to avoid empty arrays?
+
+	payload, err := s.factPayload(req.ConversationID, "-", "-", req.Description, req.Facts, req.Expiry)
+	if err != nil {
+		return "", err
+	}
+
+	s.messaging.Register(req.ConversationID)
+
+	url := "https://selfid.page.link/?link=" + req.Callback + "%3Fqr=" + base64.RawStdEncoding.EncodeToString(payload)
+	if s.environment == "" {
+		return url + "&apn=net.selfid.app", nil
+	} else if s.environment == "development" {
+		return url + "&apn=net.selfid.app.dev", nil
+	}
+	return url + "&apn=net.selfid.app." + s.environment, nil
 }
 
 // WaitForResponse waits for completion of a fact request that was initiated by qr code
