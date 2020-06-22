@@ -1,32 +1,35 @@
 package authentication
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"strings"
 	"time"
 
-	"github.com/selfid-net/self-go-sdk/pkg/ntp"
 	"github.com/google/uuid"
 	"github.com/lucasb-eyer/go-colorful"
+	"github.com/selfid-net/self-go-sdk/pkg/ntp"
 	"github.com/skip2/go-qrcode"
 	"github.com/square/go-jose"
 )
 
 var (
-	ErrMissingConversationID  = errors.New("qr request must specify a unique conversation id")
-	ErrRequestTimeout         = errors.New("request timeout")
-	ErrResponseBadType        = errors.New("received response is not an authentication response")
-	ErrResponseBadIssuer      = errors.New("bad response issuer")
-	ErrResponseBadAudience    = errors.New("bad response audience")
-	ErrResponseBadSubject     = errors.New("bad response subject")
-	ErrResponseBadSignature   = errors.New("bad response signature")
-	ErrResponseBadStatus      = errors.New("bad response status")
-	ErrInvalidExpiry          = errors.New("invalid expiry format")
-	ErrInvalidIssuedAt        = errors.New("invalid issued at format")
-	ErrResponseExpired        = errors.New("response has expired")
-	ErrResponseIssuedTooSoon  = errors.New("response was issued in the future")
-	ErrResponseStatusRejected = errors.New("authentication was rejected")
+	ErrMissingConversationID      = errors.New("qr request must specify a unique conversation id")
+	ErrRequestTimeout             = errors.New("request timeout")
+	ErrResponseBadType            = errors.New("received response is not an authentication response")
+	ErrResponseBadIssuer          = errors.New("bad response issuer")
+	ErrResponseBadAudience        = errors.New("bad response audience")
+	ErrResponseBadSubject         = errors.New("bad response subject")
+	ErrResponseBadSignature       = errors.New("bad response signature")
+	ErrResponseBadStatus          = errors.New("bad response status")
+	ErrInvalidExpiry              = errors.New("invalid expiry format")
+	ErrInvalidIssuedAt            = errors.New("invalid issued at format")
+	ErrResponseExpired            = errors.New("response has expired")
+	ErrResponseIssuedTooSoon      = errors.New("response was issued in the future")
+	ErrResponseStatusRejected     = errors.New("authentication was rejected")
+	ErrMissingConversationIDForDL = errors.New("deep link request must specify a unique conversation id")
+	ErrMissingCallback            = errors.New("deep link request must specify a callback url")
 )
 
 // QRAuthenticationRequest specifies options in a qr code authentication request
@@ -34,6 +37,13 @@ type QRAuthenticationRequest struct {
 	ConversationID string
 	Expiry         time.Duration
 	QRConfig       QRConfig
+}
+
+// DeepLinkAuthenticationRequest specifies options in a deep link authentication request
+type DeepLinkAuthenticationRequest struct {
+	Callback       string
+	ConversationID string
+	Expiry         time.Duration
 }
 
 // QRConfig specifies options for generating a qr code
@@ -103,6 +113,36 @@ func (s *Service) GenerateQRCode(req *QRAuthenticationRequest) ([]byte, error) {
 	s.messaging.Register(req.ConversationID)
 
 	return q.PNG(req.QRConfig.Size)
+}
+
+// GenerateDeepLink generates an authentication request as a deep link
+func (s *Service) GenerateDeepLink(req *DeepLinkAuthenticationRequest) (string, error) {
+	if req.ConversationID == "" {
+		return "", ErrMissingConversationIDForDL
+	}
+
+	if req.Callback == "" {
+		return "", ErrMissingCallback
+	}
+
+	if req.Expiry == 0 {
+		req.Expiry = time.Minute * 5
+	}
+
+	payload, err := s.authenticationPayload(req.ConversationID, "", req.Expiry)
+	if err != nil {
+		return "", err
+	}
+
+	s.messaging.Register(req.ConversationID)
+
+	url := "https://selfid.page.link/?link=" + req.Callback + "%3Fqr=" + base64.RawStdEncoding.EncodeToString(payload)
+	if s.environment == "" {
+		return url + "&apn=net.selfid.app", nil
+	} else if s.environment == "development" {
+		return url + "&apn=net.selfid.app.dev", nil
+	}
+	return url + "&apn=net.selfid.app." + s.environment, nil
 }
 
 // WaitForResponse waits for a response from a qr code authentication request
@@ -234,7 +274,6 @@ func (s *Service) authenticationPayload(cid, selfID string, exp time.Duration) (
 
 	return []byte(signature.FullSerialize()), nil
 }
-
 
 // builds a list of all devices associated with an identity
 func (s Service) recipients(selfID string) ([]string, error) {

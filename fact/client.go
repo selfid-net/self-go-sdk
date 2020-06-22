@@ -45,32 +45,35 @@ type device struct {
 
 // Service handles all fact operations
 type Service struct {
-	selfID    string
-	deviceID  string
-	sk        ed25519.PrivateKey
-	api       restTransport
-	pki       pkiClient
-	messaging messagingClient
+	selfID      string
+	deviceID    string
+	environment string
+	sk          ed25519.PrivateKey
+	api         restTransport
+	pki         pkiClient
+	messaging   messagingClient
 }
 
 // Config stores all configuration needed by the fact service
 type Config struct {
-	SelfID     string
-	DeviceID   string
-	PrivateKey ed25519.PrivateKey
-	Rest       restTransport
-	PKI        pkiClient
-	Messaging  messagingClient
+	SelfID      string
+	DeviceID    string
+	Environment string
+	PrivateKey  ed25519.PrivateKey
+	Rest        restTransport
+	PKI         pkiClient
+	Messaging   messagingClient
 }
 
 // NewService creates a new client for interacting with facts
 func NewService(cfg Config) *Service {
 	return &Service{
-		selfID:    cfg.SelfID,
-		deviceID:  cfg.DeviceID,
-		sk:        cfg.PrivateKey,
-		api:       cfg.Rest,
-		pki:       cfg.PKI,
-		messaging: cfg.Messaging,
+		selfID:      cfg.SelfID,
+		deviceID:    cfg.DeviceID,
+		environment: cfg.Environment,
+		sk:          cfg.PrivateKey,
+		api:         cfg.Rest,
+		pki:         cfg.PKI,
+		messaging:   cfg.Messaging,
 	}
 }

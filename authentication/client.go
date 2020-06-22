@@ -38,34 +38,37 @@ func (p publickey) pk() ed25519.PublicKey {
 
 // Service handles all fact operations
 type Service struct {
-	api       restTransport
-	pki       pkiClient
-	messaging messagingClient
-	selfID    string
-	deviceID  string
-	expiry    time.Duration
-	sk        ed25519.PrivateKey
+	api         restTransport
+	pki         pkiClient
+	messaging   messagingClient
+	selfID      string
+	deviceID    string
+	environment string
+	expiry      time.Duration
+	sk          ed25519.PrivateKey
 }
 
 // Config stores all configuration needed by the authentication service
 type Config struct {
-	SelfID     string
-	DeviceID   string
-	PrivateKey ed25519.PrivateKey
-	Rest       restTransport
-	Messaging  messagingClient
-	PKI        pkiClient
+	SelfID      string
+	DeviceID    string
+	Environment string
+	PrivateKey  ed25519.PrivateKey
+	Rest        restTransport
+	Messaging   messagingClient
+	PKI         pkiClient
 }
 
 // NewService creates a new client for interacting with facts
 func NewService(config Config) *Service {
 	return &Service{
-		selfID:    config.SelfID,
-		deviceID:  config.DeviceID,
-		sk:        config.PrivateKey,
-		api:       config.Rest,
-		pki:       config.PKI,
-		messaging: config.Messaging,
-		expiry:    time.Minute,
+		selfID:      config.SelfID,
+		deviceID:    config.DeviceID,
+		environment: config.Environment,
+		sk:          config.PrivateKey,
+		api:         config.Rest,
+		pki:         config.PKI,
+		messaging:   config.Messaging,
+		expiry:      time.Minute,
 	}
 }

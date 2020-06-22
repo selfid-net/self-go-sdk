@@ -92,12 +92,13 @@ func New(cfg Config) (*Client, error) {
 // FactService returns a client for working with facts
 func (c *Client) FactService() *fact.Service {
 	cfg := fact.Config{
-		SelfID:     c.config.SelfAppID,
-		DeviceID:   c.config.DeviceID,
-		PrivateKey: c.config.sk,
-		Rest:       c.connectors.Rest,
-		PKI:        c.connectors.PKI,
-		Messaging:  c.connectors.Messaging,
+		SelfID:      c.config.SelfAppID,
+		DeviceID:    c.config.DeviceID,
+		Environment: c.config.Environment,
+		PrivateKey:  c.config.sk,
+		Rest:        c.connectors.Rest,
+		PKI:         c.connectors.PKI,
+		Messaging:   c.connectors.Messaging,
 	}
 	return fact.NewService(cfg)
 }
@@ -114,12 +115,13 @@ func (c *Client) IdentityService() *identity.Service {
 // AuthenticationService returns a client for working with authentication
 func (c *Client) AuthenticationService() *authentication.Service {
 	cfg := authentication.Config{
-		SelfID:     c.config.SelfAppID,
-		DeviceID:   c.config.DeviceID,
-		PrivateKey: c.config.sk,
-		Rest:       c.connectors.Rest,
-		PKI:        c.connectors.PKI,
-		Messaging:  c.connectors.Messaging,
+		SelfID:      c.config.SelfAppID,
+		DeviceID:    c.config.DeviceID,
+		Environment: c.config.Environment,
+		PrivateKey:  c.config.sk,
+		Rest:        c.connectors.Rest,
+		PKI:         c.connectors.PKI,
+		Messaging:   c.connectors.Messaging,
 	}
 
 	return authentication.NewService(cfg)
