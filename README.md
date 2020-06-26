@@ -17,20 +17,29 @@ This sdk provides access to the following self services:
 
 ## Requirements
 
-- [olm](github.com/selfid-net/olm)
+- [libself_olm](github.com/selfid-net/olm)
+- [libself_omemo](github.com/selfid-net/omemo)
 - [go 1.13 or higher](golang.org)
 
 
 #### Debian/Ubuntu
 ```sh
-$ curl -O http://download.selfid.net/olm/libselfid-olm_0.1.4_amd64.deb
+$ curl -O http://download.selfid.net/olm/libselfid-olm_0.1.17_amd64.deb
+$ curl -O http://download.selfid.net/omemo/libselfid-omemo_0.1.2_amd64.deb
 $ apt install libsodium-dev
-$ apt install ./libselfid-olm_0.1.4_amd64.deb
+$ apt install ./libselfid-olm_0.1.17_amd64.deb ./libselfid-omemo_0.1.2_amd64.deb
 ```
 
 #### Redhat/Centos
 ```sh
-$ rpm -Uvh http://download.selfid.net/olm/libselfid-olm-0.1.4-1.x86_64.rpm
+$ rpm -Uvh http://download.selfid.net/olm/libselfid-olm-0.1.14-1.x86_64.rpm
+$ rpm -Uvh http://download.selfid.net/omemo/libselfid-omemo-0.1.2-1.x86_64.rpm
+```
+
+#### Mac
+```sh
+$ brew tap selfid-net/crypto
+$ brew install libself_olm libself_omemo
 ```
 
 ## Quick Start
@@ -48,11 +57,10 @@ import "github.com/selfid-net/self-go-sdk"
 
 func main() {
     cfg := selfsdk.Config{
-		SelfID:     os.Getenv("SELF_ID"),
-		DeviceID:   "1",
-		PrivateKey: os.Getenv("SELF_KEY"),
-		StorageDir: "/opt/self/crypto",
-		StorageKey: "my-secret-crypto-storage-key",
+		SelfAppID:     os.Getenv("SELF_APP_ID"),
+		SelfAppSecret: os.Getenv("SELF_APP_SECRET"),
+		StorageDir:    "/opt/self/crypto",
+		StorageKey:    "my-secret-crypto-storage-key",
 	}
 
     client, err := selfsdk.New(cfg)
