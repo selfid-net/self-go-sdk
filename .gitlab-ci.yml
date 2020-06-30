@@ -1,0 +1,37 @@
+default:
+  image: golang:1.14.4-buster
+
+stages:
+  - Test
+  - Release
+
+.setup: &setup |
+  apt-get update
+  apt-get -y install libsodium-dev
+  tmpdir=$(mktemp -d)
+  curl http://download.selfid.net/olm/libself-olm_0.1.14_amd64.deb -o ${tmpdir}/libself-olm_0.1.14_amd64.deb
+  curl http://download.selfid.net/omemo/libself-omemo_0.1.1_amd64.deb -o ${tmpdir}/libself-omemo_0.1.1_amd64.deb
+  apt-get -y install ${tmpdir}/libself-olm_0.1.14_amd64.deb
+  apt-get -y install ${tmpdir}/libself-omemo_0.1.1_amd64.deb
+
+before_script:
+  - export SCRIPTS_DIR=$(mktemp -d)
+  - git clone -q --depth 1 "${SCRIPTS_REPO}" "${SCRIPTS_DIR}"
+
+test:
+  stage: Test
+  script:
+    - *setup
+    - go test -v ./...
+  only:
+    - branches
+
+release:
+  stage: Release
+  script:
+    - ${SCRIPTS_DIR}/git-setup
+    - version=$(${SCRIPTS_DIR}/git-new-version)
+    - ${SCRIPTS_DIR}/git-release ${version}
+    - ${SCRIPTS_DIR}/slack-release-notification ${version}
+  only:
+    - master
