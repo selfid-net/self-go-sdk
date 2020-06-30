@@ -35,3 +35,4 @@ release:
     - ${SCRIPTS_DIR}/slack-release-notification ${version}
   only:
     - master
+
