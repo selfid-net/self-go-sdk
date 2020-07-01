@@ -249,7 +249,9 @@ func (s Service) GenerateQRCode(req *QRFactRequest) ([]byte, error) {
 	q.BackgroundColor, _ = colorful.Hex(req.QRConfig.BackgroundColor)
 	q.ForegroundColor, _ = colorful.Hex(req.QRConfig.ForegroundColor)
 
-	s.messaging.Register(req.ConversationID)
+	if req.ConversationID != "-" {
+		s.messaging.Register(req.ConversationID)
+	}
 
 	return q.PNG(req.QRConfig.Size)
 }
