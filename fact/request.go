@@ -130,7 +130,7 @@ func (s Service) Request(req *FactRequest) (*FactResponse, error) {
 
 	cid := uuid.New().String()
 
-	payload, err := s.factPayload(cid, req.SelfID, req.SelfID, req.Description, req.Facts, req.Expiry)
+	payload, err := s.factPayload(cid, req.SelfID, req.SelfID, req.Description, req.Facts, nil, req.Expiry)
 	if err != nil {
 		return nil, err
 	}
@@ -173,7 +173,7 @@ func (s Service) RequestViaIntermediary(req *IntermediaryFactRequest) (*Intermed
 
 	cid := uuid.New().String()
 
-	payload, err := s.factPayload(cid, req.SelfID, req.Intermediary, req.Description, req.Facts, req.Expiry)
+	payload, err := s.factPayload(cid, req.SelfID, req.Intermediary, req.Description, req.Facts, nil, req.Expiry)
 	if err != nil {
 		return nil, err
 	}
@@ -236,7 +236,7 @@ func (s Service) GenerateQRCode(req *QRFactRequest) ([]byte, error) {
 		req.QRConfig.Size = 400
 	}
 
-	payload, err := s.factPayload(req.ConversationID, "-", "-", req.Description, req.Facts, req.Expiry)
+	payload, err := s.factPayload(req.ConversationID, "-", "-", req.Description, req.Facts, req.Options, req.Expiry)
 	if err != nil {
 		return nil, err
 	}
@@ -265,7 +265,7 @@ func (s Service) GenerateDeepLink(req *DeepLinkFactRequest) (string, error) {
 	}
 	// TODO(@adriacidre) should we check the facts length to avoid empty arrays?
 
-	payload, err := s.factPayload(req.ConversationID, "-", "-", req.Description, req.Facts, req.Expiry)
+	payload, err := s.factPayload(req.ConversationID, "-", "-", req.Description, req.Facts, nil, req.Expiry)
 	if err != nil {
 		return "", err
 	}
@@ -414,22 +414,24 @@ func (s *Service) factResponse(issuer, subject string, response []byte) ([]Fact,
 	}
 }
 
-func (s *Service) factPayload(cid, selfID, intermediary, description string, facts []Fact, exp time.Duration) ([]byte, error) {
-	request, err := json.Marshal(
-		map[string]interface{}{
-			"typ":         RequestInformation,
-			"cid":         cid,
-			"jti":         uuid.New().String(),
-			"iss":         s.selfID,
-			"sub":         selfID,
-			"aud":         intermediary,
-			"iat":         ntp.TimeFunc().Format(time.RFC3339),
-			"exp":         ntp.TimeFunc().Add(exp).Format(time.RFC3339),
-			"device_id":   s.deviceID,
-			"description": description,
-			"facts":       facts,
-		},
-	)
+func (s *Service) factPayload(cid, selfID, intermediary, description string, facts []Fact, options map[string]string, exp time.Duration) ([]byte, error) {
+	req := map[string]interface{}{
+		"typ":         RequestInformation,
+		"cid":         cid,
+		"jti":         uuid.New().String(),
+		"iss":         s.selfID,
+		"sub":         selfID,
+		"aud":         intermediary,
+		"iat":         ntp.TimeFunc().Format(time.RFC3339),
+		"exp":         ntp.TimeFunc().Add(exp).Format(time.RFC3339),
+		"device_id":   s.deviceID,
+		"description": description,
+		"facts":       facts,
+	}
+	if options != nil {
+		req["options"] = options
+	}
+	request, err := json.Marshal(req)
 
 	signer, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: s.sk}, nil)
 	if err != nil {
