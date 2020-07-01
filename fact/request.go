@@ -55,18 +55,19 @@ type FactResponse struct {
 
 // QRFactRequest contains the details of the requested facts
 type QRFactRequest struct {
-	ConversationID     string
-	Description        string
-	ProcessAllRequests bool
-	Facts              []Fact
-	Expiry             time.Duration
-	QRConfig           QRConfig
+	ConversationID string
+	Description    string
+	Facts          []Fact
+	Options        map[string]string
+	Expiry         time.Duration
+	QRConfig       QRConfig
 }
 
 // QRFactResponse contains the details of the requested facts
 type QRFactResponse struct {
 	Responder string
 	Facts     []Fact
+	Options   map[string]string
 }
 
 // DeepLinkFactRequest contains the details of the requested facts
