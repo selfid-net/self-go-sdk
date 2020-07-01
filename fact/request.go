@@ -57,7 +57,7 @@ type FactResponse struct {
 type QRFactRequest struct {
 	ConversationID     string
 	Description        string
-	ProcessEachRequest bool
+	ProcessAllRequests bool
 	Facts              []Fact
 	Expiry             time.Duration
 	QRConfig           QRConfig
