@@ -151,7 +151,7 @@ func (s Service) Request(req *FactRequest) (*FactResponse, error) {
 		return nil, ErrMessageBadIssuer
 	}
 
-	facts, err := s.FactResponse(selfID, selfID, response)
+	facts, err := s.factResponse(selfID, selfID, response)
 	if err != nil {
 		return nil, err
 	}
@@ -205,7 +205,7 @@ func (s Service) RequestViaIntermediary(req *IntermediaryFactRequest) (*Intermed
 		return nil, ErrMessageBadSubject
 	}
 
-	facts, err := s.FactResponse(req.Intermediary, req.SelfID, response)
+	facts, err := s.factResponse(req.Intermediary, req.SelfID, response)
 	if err != nil {
 		return nil, err
 	}
@@ -292,7 +292,7 @@ func (s Service) WaitForResponse(cid string, exp time.Duration) (*QRFactResponse
 
 	selfID := strings.Split(responder, ":")[0]
 
-	facts, err := s.FactResponse(selfID, selfID, response)
+	facts, err := s.factResponse(selfID, selfID, response)
 	if err != nil {
 		return nil, err
 	}
@@ -300,8 +300,7 @@ func (s Service) WaitForResponse(cid string, exp time.Duration) (*QRFactResponse
 	return &QRFactResponse{Responder: responder, Facts: facts}, nil
 }
 
-// FactResponse validate and process a fact response
-func (s *Service) FactResponse(issuer, subject string, response []byte) ([]Fact, error) {
+func (s *Service) factResponse(issuer, subject string, response []byte) ([]Fact, error) {
 	pks, err := s.pki.GetPublicKeys(issuer)
 	if err != nil {
 		return nil, err
@@ -334,9 +333,14 @@ func (s *Service) FactResponse(issuer, subject string, response []byte) ([]Fact,
 		return nil, ErrResponseBadSignature
 	}
 
+	return s.FactResponse(issuer, subject, msg)
+}
+
+// FactResponse validate and process a fact response
+func (s *Service) FactResponse(issuer, subject string, response []byte) ([]Fact, error) {
 	var resp standardresponse
 
-	err = json.Unmarshal(msg, &resp)
+	err := json.Unmarshal(response, &resp)
 	if err != nil {
 		return nil, ErrBadJSONPayload
 	}
