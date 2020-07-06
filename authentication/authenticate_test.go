@@ -20,7 +20,6 @@ func TestAuthenticationRequest(t *testing.T) {
 	pk, sk, err := ed25519.GenerateKey(rand.Reader)
 	require.Nil(t, err)
 
-
 	var called bool
 
 	tr.responder = func(req map[string]string) (string, []byte, error) {
@@ -30,7 +29,7 @@ func TestAuthenticationRequest(t *testing.T) {
 		assert.NotEmpty(t, req["cid"])
 		assert.NotEmpty(t, req["exp"])
 		assert.NotEmpty(t, req["iat"])
-		assert.Equal(t, "authentication_req", req["typ"])
+		assert.Equal(t, "identities.authenticate.req", req["typ"])
 		assert.Equal(t, cfg.SelfID, req["iss"])
 		assert.Equal(t, "1234567890", req["aud"])
 		assert.Equal(t, cfg.DeviceID, req["device_id"])
@@ -38,7 +37,7 @@ func TestAuthenticationRequest(t *testing.T) {
 		resp, err := json.Marshal(map[string]string{
 			"jti":    uuid.New().String(),
 			"cid":    req["cid"],
-			"typ":    "authentication_resp",
+			"typ":    "identities.authenticate.resp",
 			"iss":    req["sub"],
 			"sub":    req["sub"],
 			"aud":    req["iss"],
@@ -111,7 +110,7 @@ func TestAuthenticationBadSignature(t *testing.T) {
 		assert.NotEmpty(t, req["cid"])
 		assert.NotEmpty(t, req["exp"])
 		assert.NotEmpty(t, req["iat"])
-		assert.Equal(t, "authentication_req", req["typ"])
+		assert.Equal(t, "identities.authenticate.req", req["typ"])
 		assert.Equal(t, cfg.SelfID, req["iss"])
 		assert.Equal(t, "1234567890", req["aud"])
 		assert.Equal(t, cfg.DeviceID, req["device_id"])
@@ -119,7 +118,7 @@ func TestAuthenticationBadSignature(t *testing.T) {
 		resp, err := json.Marshal(map[string]string{
 			"jti":    uuid.New().String(),
 			"cid":    req["cid"],
-			"typ":    "authentication_resp",
+			"typ":    "identities.authenticate.resp",
 			"iss":    req["sub"],
 			"sub":    req["sub"],
 			"aud":    req["iss"],
@@ -164,7 +163,7 @@ func TestAuthenticationBadIssuingIdentity(t *testing.T) {
 		assert.NotEmpty(t, req["cid"])
 		assert.NotEmpty(t, req["exp"])
 		assert.NotEmpty(t, req["iat"])
-		assert.Equal(t, "authentication_req", req["typ"])
+		assert.Equal(t, "identities.authenticate.req", req["typ"])
 		assert.Equal(t, cfg.SelfID, req["iss"])
 		assert.Equal(t, "1234567890", req["aud"])
 		assert.Equal(t, cfg.DeviceID, req["device_id"])
@@ -172,7 +171,7 @@ func TestAuthenticationBadIssuingIdentity(t *testing.T) {
 		resp, err := json.Marshal(map[string]string{
 			"jti":    uuid.New().String(),
 			"cid":    req["cid"],
-			"typ":    "authentication_resp",
+			"typ":    "identities.authenticate.resp",
 			"iss":    "some-other-individual",
 			"sub":    req["sub"],
 			"aud":    req["iss"],
@@ -217,7 +216,7 @@ func TestAuthenticationBadAudienceIdentity(t *testing.T) {
 		assert.NotEmpty(t, req["cid"])
 		assert.NotEmpty(t, req["exp"])
 		assert.NotEmpty(t, req["iat"])
-		assert.Equal(t, "authentication_req", req["typ"])
+		assert.Equal(t, "identities.authenticate.req", req["typ"])
 		assert.Equal(t, cfg.SelfID, req["iss"])
 		assert.Equal(t, "1234567890", req["aud"])
 		assert.Equal(t, cfg.DeviceID, req["device_id"])
@@ -225,7 +224,7 @@ func TestAuthenticationBadAudienceIdentity(t *testing.T) {
 		resp, err := json.Marshal(map[string]string{
 			"jti":    uuid.New().String(),
 			"cid":    req["cid"],
-			"typ":    "authentication_resp",
+			"typ":    "identities.authenticate.resp",
 			"iss":    req["sub"],
 			"sub":    req["sub"],
 			"aud":    "some-other-app",
@@ -270,7 +269,7 @@ func TestAuthenticationRequestExpired(t *testing.T) {
 		assert.NotEmpty(t, req["cid"])
 		assert.NotEmpty(t, req["exp"])
 		assert.NotEmpty(t, req["iat"])
-		assert.Equal(t, "authentication_req", req["typ"])
+		assert.Equal(t, "identities.authenticate.req", req["typ"])
 		assert.Equal(t, cfg.SelfID, req["iss"])
 		assert.Equal(t, "1234567890", req["aud"])
 		assert.Equal(t, cfg.DeviceID, req["device_id"])
@@ -278,7 +277,7 @@ func TestAuthenticationRequestExpired(t *testing.T) {
 		resp, err := json.Marshal(map[string]string{
 			"jti":    uuid.New().String(),
 			"cid":    req["cid"],
-			"typ":    "authentication_resp",
+			"typ":    "identities.authenticate.resp",
 			"iss":    req["sub"],
 			"sub":    req["sub"],
 			"aud":    req["iss"],
@@ -323,7 +322,7 @@ func TestAuthenticationRequestIssuedInFuture(t *testing.T) {
 		assert.NotEmpty(t, req["cid"])
 		assert.NotEmpty(t, req["exp"])
 		assert.NotEmpty(t, req["iat"])
-		assert.Equal(t, "authentication_req", req["typ"])
+		assert.Equal(t, "identities.authenticate.req", req["typ"])
 		assert.Equal(t, cfg.SelfID, req["iss"])
 		assert.Equal(t, "1234567890", req["aud"])
 		assert.Equal(t, cfg.DeviceID, req["device_id"])
@@ -331,7 +330,7 @@ func TestAuthenticationRequestIssuedInFuture(t *testing.T) {
 		resp, err := json.Marshal(map[string]string{
 			"jti":    uuid.New().String(),
 			"cid":    req["cid"],
-			"typ":    "authentication_resp",
+			"typ":    "identities.authenticate.resp",
 			"iss":    req["sub"],
 			"sub":    req["sub"],
 			"aud":    req["iss"],

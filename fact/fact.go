@@ -28,15 +28,15 @@ var (
 	FactDateOfIssuance   = "date_of_issuance"
 	FactDateOfExpiration = "date_of_expiration"
 
-	OperatorEqual            = "=="
-	OperatorDifferent        = "!="
+	OperatorEqual              = "=="
+	OperatorDifferent          = "!="
 	OperatorGreaterOrEqualThan = ">="
-	OperatorLessOrEqualThan  = "<="
-	OperatorGreaterThan      = ">"
-	OperatorLessThan         = "<"
+	OperatorLessOrEqualThan    = "<="
+	OperatorGreaterThan        = ">"
+	OperatorLessThan           = "<"
 
-	RequestInformation  = "identity_info_req"
-	ResponseInformation = "identity_info_resp"
+	RequestInformation  = "identities.fact.query.req"
+	ResponseInformation = "identities.fact.query.resp"
 
 	StatusAccepted     = "accepted"
 	StatusRejected     = "rejected"

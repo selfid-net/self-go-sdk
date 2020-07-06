@@ -170,7 +170,7 @@ func (s *Service) authenticationResponse(selfID string, resp []byte) error {
 		return err
 	}
 
-	if payload["typ"] != "authentication_resp" {
+	if payload["typ"] != "identities.authenticate.resp" {
 		return ErrResponseBadType
 	}
 
@@ -248,7 +248,7 @@ func (s *Service) authenticationPayload(cid, selfID string, exp time.Duration) (
 	req := map[string]string{
 		"jti":       uuid.New().String(),
 		"cid":       cid,
-		"typ":       "authentication_req",
+		"typ":       "identities.authenticate.req",
 		"iss":       s.selfID,
 		"aud":       selfID,
 		"sub":       selfID,
