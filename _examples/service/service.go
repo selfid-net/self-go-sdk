@@ -37,7 +37,7 @@ func main() {
 		fact:      fs,
 	}
 
-	ms.Subscribe("document_verification_req", s.verification)
+	ms.Subscribe("identities.documents.verify.req", s.verification)
 
 	runtime.Goexit()
 }
@@ -102,7 +102,7 @@ func (s server) verification(m *messaging.Message) {
 	resp, err := json.Marshal(verificationResponse{
 		ConversationID: req.ConversationID,
 		Nonce:          uuid.New().String(),
-		MessageType:    "document_verification_resp",
+		MessageType:    "identities.documents.verify.resp",
 		Issuer:         os.Getenv("SELF_ID"),
 		Recipient:      req.Issuer,
 		Subject:        req.Issuer,
