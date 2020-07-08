@@ -6,8 +6,8 @@ import (
 	"log"
 	"strings"
 
-	"github.com/selfid-net/self-go-sdk/pkg/ntp"
 	"github.com/google/uuid"
+	"github.com/selfid-net/self-go-sdk/pkg/ntp"
 	"github.com/square/go-jose"
 	"github.com/tidwall/sjson"
 )
@@ -216,4 +216,11 @@ func (s *Service) Respond(recipient, conversationID string, response []byte) err
 	plaintext := signedResponse.FullSerialize()
 
 	return s.messaging.Send([]string{recipient}, []byte(plaintext))
+}
+
+// Send sends a message to a given sender
+func (s *Service) Send(recipient string, body []byte) error {
+	cid := uuid.New().String()
+
+	return s.Respond(recipient, cid, body)
 }
