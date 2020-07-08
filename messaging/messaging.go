@@ -5,9 +5,10 @@ import (
 	"errors"
 	"log"
 	"strings"
+	"time"
 
-	"github.com/selfid-net/self-go-sdk/pkg/ntp"
 	"github.com/google/uuid"
+	"github.com/selfid-net/self-go-sdk/pkg/ntp"
 	"github.com/square/go-jose"
 	"github.com/tidwall/sjson"
 )
@@ -28,6 +29,19 @@ type Message struct {
 	Sender         string
 	ConversationID string
 	Payload        []byte
+}
+
+// infoNotification message
+type infoNotification struct {
+	ID           string    `json:"jti"`
+	Type         string    `json:"typ"`
+	Conversation string    `json:"cid"`
+	Issuer       string    `json:"iss"`
+	Audience     string    `json:"aud"`
+	Subject      string    `json:"sub"`
+	IssuedAt     time.Time `json:"iat"`
+	ExpiresAt    time.Time `json:"exp"`
+	Description  string    `json:"description"`
 }
 
 // Subscribe subscribe to messages of a given type
@@ -216,4 +230,35 @@ func (s *Service) Respond(recipient, conversationID string, response []byte) err
 	plaintext := signedResponse.FullSerialize()
 
 	return s.messaging.Send([]string{recipient}, []byte(plaintext))
+}
+
+// Send sends a message to the given recipient
+func (s *Service) Send(recipient string, body []byte) error {
+	cid := uuid.New().String()
+
+	return s.Respond(recipient, cid, body)
+}
+
+// Notify sends a notification to the given recipient
+func (s *Service) Notify(recipient, body string) error {
+	cid := uuid.New().String()
+	req := infoNotification{
+		ID:           uuid.New().String(),
+		Conversation: cid,
+		Type:         "identities.notify",
+		Issuer:       s.selfID,
+		Subject:      recipient,
+		Audience:     recipient,
+		IssuedAt:     ntp.TimeFunc(),
+		ExpiresAt:    ntp.TimeFunc().Add(time.Hour * 24),
+		Description:  body,
+	}
+
+	data, err := json.Marshal(req)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+
+	return s.Respond(recipient, cid, data)
 }
