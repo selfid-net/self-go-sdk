@@ -1,6 +1,6 @@
 # Fact request witnessed by an independent intermediary
 
-An intermediary fact request allows you do assertions on an identities facts through _Self Intermediary_ without having to directly hold or view any of the users sensitive information.
+An intermediary fact request allows you do assertions on an identities.facts. through _Self Intermediary_ without having to directly hold or view any of the users sensitive information.
 
 This reduces the liabilities of having to securely store user information and complying with data regulations on your organisation, whilst being able to ensure that your criteria for that data is met.
 
@@ -23,7 +23,7 @@ This diagram shows how the intermediary witnessed fact request process works int
 
 ![Diagram](https://storage.googleapis.com/static.selfid.net/images/intermediary_fact_request_diagram.png)
 
-1. Request intermediary to check an identities facts through the self SDK with the data you want to assert, like age > 18.
+1. Request intermediary to check an identities.facts. through the self SDK with the data you want to assert, like age > 18.
 2. SDK will send a fact request to the intermediary.
 3. Intermediary will send a fact request with the same facts you want to assert to your already connected identity.
 4. The user will select the requested facts and accept sharing them with the intermediary.

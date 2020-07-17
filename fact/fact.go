@@ -35,8 +35,8 @@ var (
 	OperatorGreaterThan        = ">"
 	OperatorLessThan           = "<"
 
-	RequestInformation  = "identities.fact.query.req"
-	ResponseInformation = "identities.fact.query.resp"
+	RequestInformation  = "identities.facts.query.req"
+	ResponseInformation = "identities.facts.query.resp"
 
 	StatusAccepted     = "accepted"
 	StatusRejected     = "rejected"
