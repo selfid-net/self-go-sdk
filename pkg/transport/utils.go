@@ -8,8 +8,8 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/selfid-net/self-go-sdk/pkg/ntp"
 	"github.com/google/uuid"
+	"github.com/selfid-net/self-go-sdk/pkg/ntp"
 	"github.com/square/go-jose"
 )
 
@@ -22,7 +22,10 @@ var (
 func GenerateToken(selfID string, sk ed25519.PrivateKey) (string, error) {
 	claims, err := json.Marshal(map[string]interface{}{
 		"jti": uuid.New().String(),
+		"cid": uuid.New().String(),
+		"typ": "auth.token",
 		"iss": selfID,
+		"sub": selfID,
 		"iat": ntp.TimeFunc().Add(-(time.Second * 5)).Unix(),
 		"exp": ntp.TimeFunc().Add(time.Minute).Unix(),
 	})

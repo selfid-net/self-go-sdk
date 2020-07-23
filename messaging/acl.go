@@ -4,18 +4,21 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/selfid-net/self-go-sdk/pkg/ntp"
 	"github.com/google/uuid"
+	"github.com/selfid-net/self-go-sdk/pkg/ntp"
 	"github.com/square/go-jose"
 )
 
 // PermitConnection permits messages from a self ID
 func (c Service) PermitConnection(selfID string) error {
 	payload, err := json.Marshal(map[string]string{
+		"jti":        uuid.New().String(),
+		"cid":        uuid.New().String(),
+		"typ":        "acl.permit",
 		"iss":        c.selfID,
+		"sub":        c.selfID,
 		"iat":        ntp.TimeFunc().Format(time.RFC3339),
 		"exp":        ntp.TimeFunc().Add(time.Minute).Format(time.RFC3339),
-		"jti":        uuid.New().String(),
 		"acl_source": selfID,
 	})
 
@@ -43,10 +46,13 @@ func (c Service) PermitConnection(selfID string) error {
 // RevokeConnection denies and removes any exisitng permissions for a self ID
 func (c Service) RevokeConnection(selfID string) error {
 	payload, err := json.Marshal(map[string]string{
+		"jti":        uuid.New().String(),
+		"cid":        uuid.New().String(),
+		"typ":        "acl.revoke",
 		"iss":        c.selfID,
+		"sub":        c.selfID,
 		"iat":        ntp.TimeFunc().Format(time.RFC3339),
 		"exp":        ntp.TimeFunc().Add(time.Minute).Format(time.RFC3339),
-		"jti":        uuid.New().String(),
 		"acl_source": selfID,
 	})
 
