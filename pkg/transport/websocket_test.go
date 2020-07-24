@@ -18,7 +18,8 @@ func TestWebsocketConnect(t *testing.T) {
 		DeviceID:     "1",
 		PrivateKey:   sk,
 		MessagingURL: s.endpoint,
-		TCPDeadline:  time.Millisecond * 10,
+		TCPDeadline:  time.Millisecond * 100,
+		InboxSize:    128,
 	}
 
 	c, err := NewWebsocket(cfg)
@@ -38,7 +39,8 @@ func TestWebsocketReconnect(t *testing.T) {
 		DeviceID:     "1",
 		PrivateKey:   sk,
 		MessagingURL: s.endpoint,
-		TCPDeadline:  time.Millisecond * 10,
+		TCPDeadline:  time.Second,
+		InboxSize:    128,
 		OnConnect: func() {
 			connected <- true
 		},
@@ -49,7 +51,7 @@ func TestWebsocketReconnect(t *testing.T) {
 
 	c, err := NewWebsocket(cfg)
 	require.Nil(t, err)
-	require.Nil(t, c.Close())
+	defer c.Close()
 
 	assert.True(t, <-connected)
 
@@ -72,7 +74,8 @@ func TestWebsocketSend(t *testing.T) {
 		DeviceID:     "1",
 		PrivateKey:   sk,
 		MessagingURL: s.endpoint,
-		TCPDeadline:  time.Millisecond * 10,
+		TCPDeadline:  time.Millisecond * 100,
+		InboxSize:    128,
 	}
 
 	c, err := NewWebsocket(cfg)
@@ -100,7 +103,8 @@ func TestWebsocketReceive(t *testing.T) {
 		DeviceID:     "1",
 		PrivateKey:   sk,
 		MessagingURL: s.endpoint,
-		TCPDeadline:  time.Millisecond * 10,
+		TCPDeadline:  time.Millisecond * 100,
+		InboxSize:    128,
 	}
 
 	c, err := NewWebsocket(cfg)

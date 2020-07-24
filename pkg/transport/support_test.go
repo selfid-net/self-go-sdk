@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"strings"
+	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -31,6 +32,7 @@ type testmsgserver struct {
 	in       chan msgproto.Message
 	out      chan interface{}
 	stop     chan bool
+	mu       sync.Mutex
 	endpoint string
 }
 
@@ -103,7 +105,7 @@ func (s *testapiserver) testHandler(w http.ResponseWriter, r *http.Request) {
 
 func newTestMessagingServer(t *testing.T) *testmsgserver {
 	s := testmsgserver{
-		in:   make(chan msgproto.Message),
+		in:   make(chan msgproto.Message, 1024),
 		out:  make(chan interface{}, 1024),
 		stop: make(chan bool, 1),
 	}
@@ -169,6 +171,18 @@ func (t *testmsgserver) testHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		panic(err)
 	}
+
+	wc.SetPingHandler(func(appData string) error {
+		err := wc.SetReadDeadline(time.Now().Add(time.Second * 5))
+		if err != nil {
+			log.Println(err.Error())
+		}
+
+		t.mu.Lock()
+		defer t.mu.Unlock()
+
+		return wc.WriteControl(websocket.PongMessage, nil, time.Now().Add(time.Millisecond*100))
+	})
 
 	_, msg, err := wc.ReadMessage()
 	if err != nil {
@@ -264,12 +278,27 @@ func (t *testmsgserver) testHandler(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 
-			wc.WriteMessage(websocket.BinaryMessage, data)
+			t.mu.Lock()
+			err = wc.SetWriteDeadline(time.Now().Add(time.Millisecond * 100))
+			if err != nil {
+				log.Println(err)
+				return
+			}
+
+			err = wc.WriteMessage(websocket.BinaryMessage, data)
+			defer t.mu.Unlock()
+
+			if err != nil {
+				log.Println(err)
+				return
+			}
 		}
 	}()
 
 	go func() {
 		<-t.stop
 		wc.SetReadDeadline(time.Now())
+		wc.SetWriteDeadline(time.Now())
+		wc.Close()
 	}()
 }

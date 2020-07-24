@@ -215,8 +215,7 @@ func (c *Websocket) Close() error {
 
 func (c *Websocket) pongHandler(string) error {
 	deadline := time.Now().Add(c.config.TCPDeadline)
-	c.ws.SetReadDeadline(deadline)
-	return nil
+	return c.ws.SetReadDeadline(deadline)
 }
 
 func (c *Websocket) connect() error {
@@ -236,8 +235,6 @@ func (c *Websocket) connect() error {
 
 	c.ws = ws
 
-	ws.SetPongHandler(c.pongHandler)
-
 	auth := msgproto.Auth{
 		Id:     uuid.New().String(),
 		Type:   msgproto.MsgType_AUTH,
@@ -256,7 +253,7 @@ func (c *Websocket) connect() error {
 		return err
 	}
 
-	ws.SetReadDeadline(time.Now().Add(c.config.TCPDeadline))
+	c.ws.SetReadDeadline(time.Now().Add(c.config.TCPDeadline))
 	_, data, err = c.ws.ReadMessage()
 	if err != nil {
 		return err
@@ -276,6 +273,8 @@ func (c *Websocket) connect() error {
 	default:
 		return errors.New("unknown authentication response")
 	}
+
+	ws.SetPongHandler(c.pongHandler)
 
 	go c.reader()
 	go c.writer()
@@ -360,7 +359,7 @@ func (c *Websocket) reader() {
 			offsetData := make([]byte, 8)
 			binary.LittleEndian.PutUint64(offsetData, uint64(c.offset))
 
-			_, err = c.ofd.Write(offsetData)
+			_, err = c.ofd.WriteAt(offsetData, 0)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -400,14 +399,19 @@ func (c *Websocket) writer() {
 
 func (c *Websocket) ping() {
 	for {
-		c.queue.Push(priorityPing, sigping(true))
+		if c.isClosed() {
+			return
+		}
 
+		c.queue.Push(priorityPing, sigping(true))
 		time.Sleep(c.config.TCPDeadline / 2)
 	}
 }
 
 func (c *Websocket) reconnect(err error) {
-	c.close()
+	if !c.close() {
+		return
+	}
 
 	switch e := err.(type) {
 	case net.Error:
@@ -430,9 +434,9 @@ func (c *Websocket) reconnect(err error) {
 	}
 }
 
-func (c *Websocket) close() {
+func (c *Websocket) close() bool {
 	if !atomic.CompareAndSwapInt32(&c.closed, 0, 1) {
-		return
+		return false
 	}
 
 	if c.config.OnDisconnect != nil {
@@ -443,6 +447,8 @@ func (c *Websocket) close() {
 
 	time.Sleep(time.Millisecond * 10)
 	c.ws.Close()
+
+	return true
 }
 
 func (c *Websocket) isClosed() bool {
