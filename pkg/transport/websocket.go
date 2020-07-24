@@ -243,6 +243,7 @@ func (c *Websocket) connect() error {
 		Type:   msgproto.MsgType_AUTH,
 		Token:  token,
 		Device: c.config.DeviceID,
+		Offset: uint64(c.offset),
 	}
 
 	data, err := proto.Marshal(&auth)
@@ -359,10 +360,9 @@ func (c *Websocket) reader() {
 			offsetData := make([]byte, 8)
 			binary.LittleEndian.PutUint64(offsetData, uint64(c.offset))
 
-			_, err = c.ofd.WriteAt(offsetData, 0)
+			_, err = c.ofd.Write(offsetData)
 			if err != nil {
-				log.Println(err)
-				continue
+				log.Fatal(err)
 			}
 
 			c.inbox <- m

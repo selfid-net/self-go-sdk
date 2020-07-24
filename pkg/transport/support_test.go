@@ -8,14 +8,15 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 
-	"github.com/selfid-net/self-go-sdk/pkg/ntp"
-	"github.com/selfid-net/self-go-sdk/pkg/protos/msgproto"
 	"github.com/gogo/protobuf/proto"
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
+	"github.com/selfid-net/self-go-sdk/pkg/ntp"
+	"github.com/selfid-net/self-go-sdk/pkg/protos/msgproto"
 	"github.com/square/go-jose"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/crypto/ed25519"
@@ -160,6 +161,8 @@ func testToken(id string) (string, ed25519.PrivateKey, ed25519.PublicKey) {
 }
 
 func (t *testmsgserver) testHandler(w http.ResponseWriter, r *http.Request) {
+	var offset int64
+
 	u := websocket.Upgrader{}
 
 	wc, err := u.Upgrade(w, r, nil)
@@ -226,7 +229,9 @@ func (t *testmsgserver) testHandler(w http.ResponseWriter, r *http.Request) {
 			t.out <- &msgproto.Notification{Type: msgproto.MsgType_ACK, Id: h.Id}
 
 			if h.Type == msgproto.MsgType_MSG {
-				var m msgproto.Message
+				m := msgproto.Message{
+					Offset: atomic.AddInt64(&offset, 1),
+				}
 
 				err = proto.Unmarshal(data, &m)
 				if err != nil {
@@ -248,6 +253,7 @@ func (t *testmsgserver) testHandler(w http.ResponseWriter, r *http.Request) {
 
 			switch v := e.(type) {
 			case *msgproto.Message:
+				v.Offset = atomic.AddInt64(&offset, 1)
 				data, err = proto.Marshal(v)
 			case *msgproto.Notification:
 				data, err = proto.Marshal(v)
