@@ -1,18 +1,22 @@
 package transport
 
 import (
+	"encoding/binary"
 	"errors"
 	"fmt"
+	"log"
 	"net"
+	"os"
+	"path/filepath"
 	"sync"
 	"sync/atomic"
 	"time"
 
-	"github.com/selfid-net/self-go-sdk/pkg/pqueue"
-	"github.com/selfid-net/self-go-sdk/pkg/protos/msgproto"
 	"github.com/gogo/protobuf/proto"
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
+	"github.com/selfid-net/self-go-sdk/pkg/pqueue"
+	"github.com/selfid-net/self-go-sdk/pkg/protos/msgproto"
 	"golang.org/x/crypto/ed25519"
 )
 
@@ -32,6 +36,7 @@ type (
 // WebsocketConfig configuration for connecting to a websocket
 type WebsocketConfig struct {
 	MessagingURL string
+	StorageDir   string
 	SelfID       string
 	DeviceID     string
 	PrivateKey   ed25519.PrivateKey
@@ -57,6 +62,8 @@ type Websocket struct {
 	queue     *pqueue.Queue
 	inbox     chan proto.Message
 	responses sync.Map
+	offset    int64
+	ofd       *os.File
 	closed    int32
 }
 
@@ -70,11 +77,39 @@ type event struct {
 func NewWebsocket(config WebsocketConfig) (*Websocket, error) {
 	config.load()
 
+	offsetFile := filepath.Join(config.StorageDir, config.SelfID+":"+config.DeviceID+".offset")
+
+	fd, err := os.OpenFile(offsetFile, os.O_CREATE|os.O_RDWR, 0766)
+	if err != nil {
+		return nil, err
+	}
+
+	stats, err := fd.Stat()
+	if err != nil {
+		return nil, err
+	}
+
+	if stats.Size() != 8 {
+		err = fd.Truncate(8)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	offsetData := make([]byte, 8)
+
+	_, err = fd.Read(offsetData)
+	if err != nil {
+		return nil, err
+	}
+
 	c := Websocket{
 		config:    config,
 		queue:     pqueue.New(5),
 		inbox:     make(chan proto.Message, config.InboxSize),
 		responses: sync.Map{},
+		offset:    int64(binary.LittleEndian.Uint64(offsetData)),
+		ofd:       fd,
 		closed:    1,
 	}
 
@@ -173,17 +208,20 @@ func (c *Websocket) Command(command string, payload []byte) ([]byte, error) {
 
 // Close closes the messaging clients persistent connection
 func (c *Websocket) Close() error {
-	return nil
+	c.close()
+
+	return c.ofd.Close()
 }
 
 func (c *Websocket) pongHandler(string) error {
 	deadline := time.Now().Add(c.config.TCPDeadline)
-	c.ws.SetReadDeadline(deadline)
-	return nil
+	return c.ws.SetReadDeadline(deadline)
 }
 
 func (c *Websocket) connect() error {
-	atomic.StoreInt32(&c.closed, 0)
+	if !atomic.CompareAndSwapInt32(&c.closed, 1, 0) {
+		return errors.New("could not connect")
+	}
 
 	token, err := GenerateToken(c.config.SelfID, c.config.PrivateKey)
 	if err != nil {
@@ -197,13 +235,12 @@ func (c *Websocket) connect() error {
 
 	c.ws = ws
 
-	ws.SetPongHandler(c.pongHandler)
-
 	auth := msgproto.Auth{
 		Id:     uuid.New().String(),
 		Type:   msgproto.MsgType_AUTH,
 		Token:  token,
 		Device: c.config.DeviceID,
+		Offset: uint64(c.offset),
 	}
 
 	data, err := proto.Marshal(&auth)
@@ -216,7 +253,7 @@ func (c *Websocket) connect() error {
 		return err
 	}
 
-	ws.SetReadDeadline(time.Now().Add(c.config.TCPDeadline))
+	c.ws.SetReadDeadline(time.Now().Add(c.config.TCPDeadline))
 	_, data, err = c.ws.ReadMessage()
 	if err != nil {
 		return err
@@ -236,6 +273,8 @@ func (c *Websocket) connect() error {
 	default:
 		return errors.New("unknown authentication response")
 	}
+
+	ws.SetPongHandler(c.pongHandler)
 
 	go c.reader()
 	go c.writer()
@@ -313,6 +352,18 @@ func (c *Websocket) reader() {
 			ev.data = a.Payload
 			ev.err <- nil
 		case msgproto.MsgType_MSG:
+			msg := m.(*msgproto.Message)
+
+			c.offset = msg.Offset
+
+			offsetData := make([]byte, 8)
+			binary.LittleEndian.PutUint64(offsetData, uint64(c.offset))
+
+			_, err = c.ofd.WriteAt(offsetData, 0)
+			if err != nil {
+				log.Fatal(err)
+			}
+
 			c.inbox <- m
 		}
 	}
@@ -348,14 +399,19 @@ func (c *Websocket) writer() {
 
 func (c *Websocket) ping() {
 	for {
-		c.queue.Push(priorityPing, sigping(true))
+		if c.isClosed() {
+			return
+		}
 
+		c.queue.Push(priorityPing, sigping(true))
 		time.Sleep(c.config.TCPDeadline / 2)
 	}
 }
 
 func (c *Websocket) reconnect(err error) {
-	c.close()
+	if !c.close() {
+		return
+	}
 
 	switch e := err.(type) {
 	case net.Error:
@@ -378,12 +434,10 @@ func (c *Websocket) reconnect(err error) {
 	}
 }
 
-func (c *Websocket) close() {
-	if c.isClosed() {
-		return
+func (c *Websocket) close() bool {
+	if !atomic.CompareAndSwapInt32(&c.closed, 0, 1) {
+		return false
 	}
-
-	atomic.StoreInt32(&(c.closed), int32(1))
 
 	if c.config.OnDisconnect != nil {
 		c.config.OnDisconnect()
@@ -393,6 +447,8 @@ func (c *Websocket) close() {
 
 	time.Sleep(time.Millisecond * 10)
 	c.ws.Close()
+
+	return true
 }
 
 func (c *Websocket) isClosed() bool {

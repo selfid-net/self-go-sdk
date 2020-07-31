@@ -196,6 +196,7 @@ func (c Config) loadWebsocketConnector() error {
 
 	cfg := transport.WebsocketConfig{
 		MessagingURL: c.MessagingURL,
+		StorageDir:   c.StorageDir,
 		SelfID:       c.SelfAppID,
 		DeviceID:     c.DeviceID,
 		PrivateKey:   c.sk,
