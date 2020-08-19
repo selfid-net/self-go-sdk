@@ -77,9 +77,7 @@ func (s Service) Request(selfID string) error {
 
 // RequestAsync prompts a user to authenticate via biometrics but
 // does not wait for the response.
-func (s Service) RequestAsync(selfID string) error {
-	cid := uuid.New().String()
-
+func (s Service) RequestAsync(selfID, cid string) error {
 	req, err := s.authenticationPayload(cid, selfID, s.expiry)
 	if err != nil {
 		return err
