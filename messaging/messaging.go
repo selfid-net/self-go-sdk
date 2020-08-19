@@ -120,28 +120,35 @@ func (s *Service) Subscribe(messageType string, h func(m *Message)) {
 	})
 }
 
-// Request make a request to an identity
-func (s *Service) Request(recipients []string, request []byte) ([]byte, error) {
+func (s *Service) serializeRequest(request []byte, cid string) (string, error) {
 	var err error
-
-	cid := uuid.New().String()
 
 	request, err = sjson.SetBytes(request, "cid", cid)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
 	signer, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: s.sk}, nil)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
 	signedRequest, err := signer.Sign(request)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
-	plaintext := signedRequest.FullSerialize()
+	return signedRequest.FullSerialize(), nil
+}
+
+// Request make a request to an identity
+func (s *Service) Request(recipients []string, request []byte) ([]byte, error) {
+	cid := uuid.New().String()
+
+	plaintext, err := s.serializeRequest(request, cid)
+	if err != nil {
+		return nil, err
+	}
 
 	sender, response, err := s.messaging.Request(recipients, cid, []byte(plaintext))
 	if err != nil {
@@ -210,33 +217,17 @@ func (s *Service) Request(recipients []string, request []byte) ([]byte, error) {
 
 // Respond sends a message to a given sender
 func (s *Service) Respond(recipient, conversationID string, response []byte) error {
-	var err error
-
-	response, err = sjson.SetBytes(response, "cid", conversationID)
-	if err != nil {
-		return err
-	}
-
-	signer, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: s.sk}, nil)
-	if err != nil {
-		return err
-	}
-
-	signedResponse, err := signer.Sign(response)
-	if err != nil {
-		return err
-	}
-
-	plaintext := signedResponse.FullSerialize()
-
-	return s.messaging.Send([]string{recipient}, []byte(plaintext))
+	return s.Send([]string{recipient}, conversationID, response)
 }
 
 // Send sends a message to the given recipient
-func (s *Service) Send(recipient string, body []byte) error {
-	cid := uuid.New().String()
+func (s *Service) Send(recipients []string, conversationID string, body []byte) error {
+	plaintext, err := s.serializeRequest(body, conversationID)
+	if err != nil {
+		return err
+	}
 
-	return s.Respond(recipient, cid, body)
+	return s.messaging.Send(recipients, []byte(plaintext))
 }
 
 // Notify sends a notification to the given recipient
@@ -260,5 +251,5 @@ func (s *Service) Notify(recipient, body string) error {
 		return err
 	}
 
-	return s.Respond(recipient, cid, data)
+	return s.Send([]string{recipient}, cid, data)
 }

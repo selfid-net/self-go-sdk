@@ -36,6 +36,7 @@ var (
 	ErrBadAttestationSubject        = errors.New("attestation is not related to the responder")
 	ErrMissingConversationID        = errors.New("deep link request must specify a unique conversation id")
 	ErrMissingCallback              = errors.New("deep link request must specify a callback url")
+	ErrFactRequestCID               = errors.New("cid not provided")
 
 	ServiceSelfIntermediary = "self_intermediary"
 )
@@ -46,6 +47,15 @@ type FactRequest struct {
 	Description string
 	Facts       []Fact
 	Expiry      time.Duration
+}
+
+// FactRequestAsync specifies the parameters of an information requestAsync
+type FactRequestAsync struct {
+	SelfID      string
+	Description string
+	Facts       []Fact
+	Expiry      time.Duration
+	CID         string
 }
 
 // FactResponse contains the details of the requested facts
@@ -157,6 +167,38 @@ func (s Service) Request(req *FactRequest) (*FactResponse, error) {
 	}
 
 	return &FactResponse{Facts: facts}, nil
+}
+
+// RequestAsync requests a fact from a given identity and does not
+// wait for the response
+func (s Service) RequestAsync(req *FactRequestAsync) error {
+	if req.SelfID == "" {
+		return ErrFactRequestBadIdentity
+	}
+
+	if len(req.Facts) < 1 {
+		return ErrFactRequestBadFacts
+	}
+
+	if req.Expiry == 0 {
+		req.Expiry = defaultRequestTimeout
+	}
+
+	if req.CID == "" {
+		return ErrFactRequestCID
+	}
+
+	payload, err := s.factPayload(req.CID, req.SelfID, req.SelfID, req.Description, req.Facts, nil, req.Expiry)
+	if err != nil {
+		return err
+	}
+
+	recipients, err := s.recipients(req.SelfID)
+	if err != nil {
+		return err
+	}
+
+	return s.messaging.Send(recipients, payload)
 }
 
 // RequestViaIntermediary requests a fact from a given identity via a trusted

@@ -56,6 +56,11 @@ func (c *testResponder) Request(recipients []string, cid string, data []byte) (s
 	return c.responder(recipients, data)
 }
 
+func (c *testResponder) Send(recipients []string, plaintext []byte) error {
+	c.recipients = recipients
+	return nil
+}
+
 func (c *testResponder) Get(path string) ([]byte, error) {
 	if path != c.path || cts(path, "unknown") {
 		fmt.Println(path)

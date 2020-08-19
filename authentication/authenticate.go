@@ -75,6 +75,22 @@ func (s Service) Request(selfID string) error {
 	return s.authenticationResponse(selfID, resp)
 }
 
+// RequestAsync prompts a user to authenticate via biometrics but
+// does not wait for the response.
+func (s Service) RequestAsync(selfID, cid string) error {
+	req, err := s.authenticationPayload(cid, selfID, s.expiry)
+	if err != nil {
+		return err
+	}
+
+	recipients, err := s.recipients(selfID)
+	if err != nil {
+		return err
+	}
+
+	return s.messaging.Send(recipients, req)
+}
+
 // GenerateQRCode generates an authentication request as a qr code
 func (s *Service) GenerateQRCode(req *QRAuthenticationRequest) ([]byte, error) {
 	if req.ConversationID == "" {

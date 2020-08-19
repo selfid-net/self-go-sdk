@@ -18,6 +18,7 @@ type restTransport interface {
 type messagingClient interface {
 	Request(recipients []string, cid string, data []byte) (string, []byte, error)
 	Register(cid string)
+	Send(recipients []string, data []byte) error
 	Wait(cid string, timeout time.Duration) (string, []byte, error)
 }
 
