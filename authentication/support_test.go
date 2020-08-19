@@ -73,6 +73,10 @@ type testRestTransport struct {
 	payload []byte
 }
 
+func (c *testResponder) Send(recipients []string, plaintext []byte) error {
+	return nil
+}
+
 func (c *testResponder) Get(path string) ([]byte, error) {
 	if path != c.path || cts(path, "unknown") {
 		fmt.Println(path)
