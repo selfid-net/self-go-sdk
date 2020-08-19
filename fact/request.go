@@ -46,6 +46,7 @@ type FactRequest struct {
 	Description string
 	Facts       []Fact
 	Expiry      time.Duration
+	Async       bool
 }
 
 // FactResponse contains the details of the requested facts
@@ -137,6 +138,11 @@ func (s Service) Request(req *FactRequest) (*FactResponse, error) {
 
 	recipients, err := s.recipients(req.SelfID)
 	if err != nil {
+		return nil, err
+	}
+
+	if req.Async == true {
+		err := s.messaging.Send(recipients, payload)
 		return nil, err
 	}
 
