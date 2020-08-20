@@ -1,6 +1,6 @@
 # Deep link based information request
 
-Your app can request your users to share attested facts about themselves via a Deep link. To do this, you'll need to generate a qr request with the facts you want the user to respond with. You can find a list of updated valid facts and their respective sources [here](https://github.com/selfid-net/self-go-sdk/blob/master/fact/fact.go).
+Your app can request your users to share attested facts about themselves via a Deep link. To do this, you'll need to generate a qr request with the facts you want the user to respond with. You can find a list of updated valid facts and their respective sources [here](https://github.com/joinself/self-go-sdk/blob/master/fact/fact.go).
 
 
 As part of this process, you have to share the generated Deep link with your users, and wait for a response.

@@ -15,8 +15,8 @@ import (
 	"github.com/gogo/protobuf/proto"
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
-	"github.com/selfid-net/self-go-sdk/pkg/pqueue"
-	"github.com/selfid-net/self-go-sdk/pkg/protos/msgproto"
+	"github.com/joinself/self-go-sdk/pkg/pqueue"
+	"github.com/joinself/self-go-sdk/pkg/protos/msgproto"
 	"golang.org/x/crypto/ed25519"
 )
 

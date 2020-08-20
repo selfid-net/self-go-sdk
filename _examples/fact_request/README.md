@@ -1,6 +1,6 @@
 # SelfID based fact request
 
-Your app can request your users to share attested facts about themselves. To do this, you'll only need the identities _SelfID_ and the facts you want to request. You can find a list of updated valid facts and their respective sources [here](https://github.com/selfid-net/self-go-sdk/blob/master/fact/fact.go).
+Your app can request your users to share attested facts about themselves. To do this, you'll only need the identities _SelfID_ and the facts you want to request. You can find a list of updated valid facts and their respective sources [here](https://github.com/joinself/self-go-sdk/blob/master/fact/fact.go).
 
 ## Running this example
 

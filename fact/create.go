@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/selfid-net/self-go-sdk/pkg/ntp"
 	"github.com/google/uuid"
+	"github.com/joinself/self-go-sdk/pkg/ntp"
 	"gopkg.in/square/go-jose.v2"
 )
 

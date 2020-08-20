@@ -1,4 +1,4 @@
-module github.com/selfid-net/self-go-sdk
+module github.com/joinself/self-go-sdk
 
 go 1.13
 
@@ -8,8 +8,8 @@ require (
 	github.com/golang/protobuf v1.3.3
 	github.com/google/uuid v1.1.1
 	github.com/gorilla/websocket v1.4.1
+	github.com/joinself/self-crypto-go v0.0.0-20200820061019-830905aafda6 // indirect
 	github.com/lucasb-eyer/go-colorful v1.0.3
-	github.com/selfid-net/self-crypto-go v0.0.0-20200622170808-91d8a4d496e0
 	github.com/skip2/go-qrcode v0.0.0-20191027152451-9434209cb086
 	github.com/square/go-jose v2.4.1+incompatible
 	github.com/stretchr/testify v1.5.1

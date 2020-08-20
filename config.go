@@ -7,10 +7,10 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/selfid-net/self-go-sdk/pkg/crypto"
-	"github.com/selfid-net/self-go-sdk/pkg/messaging"
-	"github.com/selfid-net/self-go-sdk/pkg/pki"
-	"github.com/selfid-net/self-go-sdk/pkg/transport"
+	"github.com/joinself/self-go-sdk/pkg/crypto"
+	"github.com/joinself/self-go-sdk/pkg/messaging"
+	"github.com/joinself/self-go-sdk/pkg/pki"
+	"github.com/joinself/self-go-sdk/pkg/transport"
 	"golang.org/x/crypto/ed25519"
 )
 

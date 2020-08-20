@@ -7,10 +7,10 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	selfsdk "github.com/selfid-net/self-go-sdk"
-	"github.com/selfid-net/self-go-sdk/fact"
-	"github.com/selfid-net/self-go-sdk/messaging"
-	"github.com/selfid-net/self-go-sdk/pkg/ntp"
+	selfsdk "github.com/joinself/self-go-sdk"
+	"github.com/joinself/self-go-sdk/fact"
+	"github.com/joinself/self-go-sdk/messaging"
+	"github.com/joinself/self-go-sdk/pkg/ntp"
 )
 
 func main() {

@@ -7,8 +7,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/selfid-net/self-go-sdk/pkg/crypto"
-	"github.com/selfid-net/self-go-sdk/pkg/transport"
+	"github.com/joinself/self-go-sdk/pkg/crypto"
+	"github.com/joinself/self-go-sdk/pkg/transport"
 	"github.com/tidwall/gjson"
 	"golang.org/x/crypto/ed25519"
 )

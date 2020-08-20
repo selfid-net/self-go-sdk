@@ -5,8 +5,8 @@ import (
 	"os"
 	"time"
 
-	selfsdk "github.com/selfid-net/self-go-sdk"
-	"github.com/selfid-net/self-go-sdk/fact"
+	selfsdk "github.com/joinself/self-go-sdk"
+	"github.com/joinself/self-go-sdk/fact"
 )
 
 // expects 2 arguments - the Self ID you want to authenticate and the self ID of the intermediary to use
