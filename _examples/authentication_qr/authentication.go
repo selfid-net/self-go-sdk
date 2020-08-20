@@ -10,8 +10,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	selfsdk "github.com/selfid-net/self-go-sdk"
-	"github.com/selfid-net/self-go-sdk/authentication"
+	selfsdk "github.com/joinself/self-go-sdk"
+	"github.com/joinself/self-go-sdk/authentication"
 )
 
 func main() {

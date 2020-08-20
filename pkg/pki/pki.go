@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/selfid-net/self-go-sdk/pkg/transport"
+	"github.com/joinself/self-go-sdk/pkg/transport"
 	"golang.org/x/crypto/ed25519"
 )
 

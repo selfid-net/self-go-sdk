@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/selfid-net/self-go-sdk/pkg/protos/msgproto"
+	"github.com/joinself/self-go-sdk/pkg/protos/msgproto"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

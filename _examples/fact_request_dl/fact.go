@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	selfsdk "github.com/selfid-net/self-go-sdk"
-	"github.com/selfid-net/self-go-sdk/fact"
+	selfsdk "github.com/joinself/self-go-sdk"
+	"github.com/joinself/self-go-sdk/fact"
 )
 
 // expects 1 argument - the Self ID you want to authenticate

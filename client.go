@@ -3,10 +3,10 @@ package selfsdk
 import (
 	"time"
 
-	"github.com/selfid-net/self-go-sdk/authentication"
-	"github.com/selfid-net/self-go-sdk/fact"
-	"github.com/selfid-net/self-go-sdk/identity"
-	"github.com/selfid-net/self-go-sdk/messaging"
+	"github.com/joinself/self-go-sdk/authentication"
+	"github.com/joinself/self-go-sdk/fact"
+	"github.com/joinself/self-go-sdk/identity"
+	"github.com/joinself/self-go-sdk/messaging"
 )
 
 // RestTransport defines the interface required for the sdk to perform

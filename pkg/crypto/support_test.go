@@ -11,8 +11,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/selfid-net/self-crypto-go"
 	"github.com/google/uuid"
+	selfcrypto "github.com/joinself/self-crypto-go"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/crypto/ed25519"
 )

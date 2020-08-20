@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/selfid-net/self-go-sdk/pkg/ntp"
+	"github.com/joinself/self-go-sdk/pkg/ntp"
 	"github.com/square/go-jose"
 	"github.com/tidwall/sjson"
 )

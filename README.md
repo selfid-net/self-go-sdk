@@ -1,6 +1,6 @@
 # Self Go SDK
 
-[![GoDoc](https://godoc.org/github.com/selfid-net/self-go-sdk?status.svg)](https://godoc.org/github.com/selfid-net/self-go-sdk) [![Go Report Card](https://goreportcard.com/badge/github.com/selfid-net/self-go-sdk)](https://goreportcard.com/report/github.com/selfid-net/self-go-sdk) [![Build Status](https://travis-ci.com/selfid-net/self-go-sdk?branch=master)](https://travis-ci.com/selfid-net/self-go-sdk)
+[![GoDoc](https://godoc.org/github.com/joinself/self-go-sdk?status.svg)](https://godoc.org/github.com/joinself/self-go-sdk) [![Go Report Card](https://goreportcard.com/badge/github.com/joinself/self-go-sdk)](https://goreportcard.com/report/github.com/joinself/self-go-sdk) [![Build Status](https://travis-ci.com/joinself/self-go-sdk?branch=master)](https://travis-ci.com/joinself/self-go-sdk)
 
 
 The official self sdk for golang.
@@ -17,8 +17,8 @@ This sdk provides access to the following self services:
 
 ## Requirements
 
-- [libself_olm](github.com/selfid-net/olm)
-- [libself_omemo](github.com/selfid-net/omemo)
+- [libself_olm](github.com/joinself/olm)
+- [libself_omemo](github.com/joinself/omemo)
 - [go 1.13 or higher](golang.org)
 
 
@@ -38,7 +38,7 @@ $ rpm -Uvh http://download.selfid.net/omemo/libselfid-omemo-0.1.2-1.x86_64.rpm
 
 #### Mac
 ```sh
-$ brew tap selfid-net/crypto
+$ brew tap joinself/crypto
 $ brew install libself_olm libself_omemo
 ```
 
@@ -46,14 +46,14 @@ $ brew install libself_olm libself_omemo
 
 To install the go sdk:
 ```sh
-$ go get github.com/selfid-net/self-go-sdk
+$ go get github.com/joinself/self-go-sdk
 ```
 
 
 Using the credentials obtained from the [developer portal](developer.selfid.net), you can configure a new self client as follows:
 
 ```go
-import "github.com/selfid-net/self-go-sdk"
+import "github.com/joinself/self-go-sdk"
 
 func main() {
     cfg := selfsdk.Config{
@@ -74,7 +74,7 @@ The identities service provides functionality for looking up identities, devices
 To query an identity:
 
 ```go
-import "github.com/selfid-net/self-go-sdk"
+import "github.com/joinself/self-go-sdk"
 
 func main() {
     svc := client.Identities()
@@ -97,8 +97,8 @@ To directly ask an identity for facts:
 
 ```go
 import (
-    "github.com/selfid-net/self-go-sdk"
-    "github.com/selfid-net/self-go-sdk/fact"
+    "github.com/joinself/self-go-sdk"
+    "github.com/joinself/self-go-sdk/fact"
 )
 
 func main() {
@@ -128,7 +128,7 @@ To authenticate a user directly:
 
 ```go
 import (
-    "github.com/selfid-net/self-go-sdk"
+    "github.com/joinself/self-go-sdk"
 )
 
 func main() {
@@ -144,7 +144,7 @@ func main() {
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/selfid-net/self-go-sdk.
+Bug reports and pull requests are welcome on GitHub at https://github.com/joinself/self-go-sdk.
 
 
 ## License

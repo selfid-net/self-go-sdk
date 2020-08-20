@@ -9,8 +9,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/selfid-net/self-crypto-go"
-	"github.com/selfid-net/self-go-sdk/pkg/pki"
+	selfcrypto "github.com/joinself/self-crypto-go"
+	"github.com/joinself/self-go-sdk/pkg/pki"
 	"golang.org/x/crypto/ed25519"
 )
 

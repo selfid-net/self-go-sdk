@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/joinself/self-go-sdk/pkg/ntp"
 	"github.com/lucasb-eyer/go-colorful"
-	"github.com/selfid-net/self-go-sdk/pkg/ntp"
 	"github.com/skip2/go-qrcode"
 	"github.com/square/go-jose"
 	"github.com/tidwall/gjson"

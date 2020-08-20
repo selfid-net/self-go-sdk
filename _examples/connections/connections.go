@@ -4,7 +4,7 @@ import (
 	"log"
 	"os"
 
-	selfsdk "github.com/selfid-net/self-go-sdk"
+	selfsdk "github.com/joinself/self-go-sdk"
 )
 
 // expects 1 argument - the Self ID you want to permit
