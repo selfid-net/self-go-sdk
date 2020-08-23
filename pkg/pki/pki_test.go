@@ -8,36 +8,42 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestPKIGetIndividualPublicKeys(t *testing.T) {
+func TestPKIGetIndividualHistory(t *testing.T) {
 	cfg := Config{
 		Transport: newTestPKITransport(
-			"/v1/identities/01234567890/public_keys",
-			[]byte(`[{"id":"1", "key":"individual-public-key"}]`),
+			"/v1/identities/01234567890/history",
+			[]byte(`[{"payload": "-", "protected": "-", "signature": "-"}]`),
 		),
 	}
 
 	c, err := New(cfg)
 	require.Nil(t, err)
 
-	keys, err := c.GetPublicKeys("01234567890")
+	history, err := c.GetHistory("01234567890")
 	require.Nil(t, err)
-	assert.True(t, strings.Contains(string(keys), "individual-public-key"))
+	require.Len(t, history, 1)
+	assert.True(t, strings.Contains(string(history[0]), "payload"))
+	assert.True(t, strings.Contains(string(history[0]), "protected"))
+	assert.True(t, strings.Contains(string(history[0]), "signature"))
 }
 
-func TestPKIGetAppPublicKeys(t *testing.T) {
+func TestPKIGetAppHistory(t *testing.T) {
 	cfg := Config{
 		Transport: newTestPKITransport(
-			"/v1/apps/long-application-id/public_keys",
-			[]byte(`[{"id":"1", "key":"app-public-key"}]`),
+			"/v1/apps/long-application-id/history",
+			[]byte(`[{"payload": "-", "protected": "-", "signature": "-"}]`),
 		),
 	}
 
 	c, err := New(cfg)
 	require.Nil(t, err)
 
-	keys, err := c.GetPublicKeys("long-application-id")
+	history, err := c.GetHistory("long-application-id")
 	require.Nil(t, err)
-	assert.True(t, strings.Contains(string(keys), "app-public-key"))
+	require.Len(t, history, 1)
+	assert.True(t, strings.Contains(string(history[0]), "payload"))
+	assert.True(t, strings.Contains(string(history[0]), "protected"))
+	assert.True(t, strings.Contains(string(history[0]), "signature"))
 }
 
 func TestPKIGetIndividualDeviceKeys(t *testing.T) {

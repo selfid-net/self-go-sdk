@@ -8,7 +8,7 @@ require (
 	github.com/golang/protobuf v1.3.3
 	github.com/google/uuid v1.1.1
 	github.com/gorilla/websocket v1.4.1
-	github.com/joinself/self-crypto-go v0.0.0-20200820061019-830905aafda6 // indirect
+	github.com/joinself/self-crypto-go v0.0.0-20200820061019-830905aafda6
 	github.com/lucasb-eyer/go-colorful v1.0.3
 	github.com/skip2/go-qrcode v0.0.0-20191027152451-9434209cb086
 	github.com/square/go-jose v2.4.1+incompatible
@@ -17,5 +17,6 @@ require (
 	github.com/tidwall/sjson v1.0.4
 	golang.org/x/crypto v0.0.0-20200323165209-0ec3e9974c59
 	golang.org/x/net v0.0.0-20200222125558-5a598a2470a0 // indirect
+	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
 	gopkg.in/square/go-jose.v2 v2.4.1
 )

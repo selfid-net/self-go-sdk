@@ -64,7 +64,13 @@ func newRequestMessage(t *testing.T, selfID, cid string) []byte {
 
 	require.Nil(t, err)
 
-	signer, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: sk}, nil)
+	opts := &jose.SignerOptions{
+		ExtraHeaders: map[jose.HeaderKey]interface{}{
+			"kid": "1",
+		},
+	}
+
+	signer, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: sk}, opts)
 	require.Nil(t, err)
 
 	signedPayload, err := signer.Sign(m)
@@ -144,7 +150,13 @@ func testToken(id string) (string, ed25519.PrivateKey, ed25519.PublicKey) {
 		panic(err)
 	}
 
-	signer, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: priv}, nil)
+	opts := &jose.SignerOptions{
+		ExtraHeaders: map[jose.HeaderKey]interface{}{
+			"kid": "1",
+		},
+	}
+
+	signer, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: priv}, opts)
 	if err != nil {
 		panic(err)
 	}

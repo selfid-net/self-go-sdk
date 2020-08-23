@@ -2,6 +2,7 @@ package authentication
 
 import (
 	"encoding/base64"
+	"encoding/json"
 	"time"
 
 	"golang.org/x/crypto/ed25519"
@@ -24,17 +25,7 @@ type messagingClient interface {
 
 // PKIClient handles all interactions with selfs public key infrastructure
 type pkiClient interface {
-	GetPublicKeys(selfID string) ([]byte, error)
-}
-
-type publickey struct {
-	ID  int    `json:"id"`
-	Key string `json:"key"`
-}
-
-func (p publickey) pk() ed25519.PublicKey {
-	kd, _ := enc.DecodeString(p.Key)
-	return ed25519.PublicKey(kd)
+	GetHistory(selfID string) ([]json.RawMessage, error)
 }
 
 // Service handles all fact operations
@@ -44,6 +35,7 @@ type Service struct {
 	messaging   messagingClient
 	selfID      string
 	deviceID    string
+	keyID       string
 	environment string
 	expiry      time.Duration
 	sk          ed25519.PrivateKey
@@ -53,6 +45,7 @@ type Service struct {
 type Config struct {
 	SelfID      string
 	DeviceID    string
+	KeyID       string
 	Environment string
 	PrivateKey  ed25519.PrivateKey
 	Rest        restTransport
@@ -65,6 +58,7 @@ func NewService(config Config) *Service {
 	return &Service{
 		selfID:      config.SelfID,
 		deviceID:    config.DeviceID,
+		keyID:       config.KeyID,
 		environment: config.Environment,
 		sk:          config.PrivateKey,
 		api:         config.Rest,

@@ -19,7 +19,7 @@ var (
 )
 
 // GenerateToken generates a signed jwt token for use with self services
-func GenerateToken(selfID string, sk ed25519.PrivateKey) (string, error) {
+func GenerateToken(selfID, kid string, sk ed25519.PrivateKey) (string, error) {
 	claims, err := json.Marshal(map[string]interface{}{
 		"jti": uuid.New().String(),
 		"cid": uuid.New().String(),
@@ -30,7 +30,13 @@ func GenerateToken(selfID string, sk ed25519.PrivateKey) (string, error) {
 		"exp": ntp.TimeFunc().Add(time.Minute).Unix(),
 	})
 
-	signer, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: sk}, nil)
+	opts := &jose.SignerOptions{
+		ExtraHeaders: map[jose.HeaderKey]interface{}{
+			"kid": kid,
+		},
+	}
+
+	signer, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: sk}, opts)
 	if err != nil {
 		return "", err
 	}

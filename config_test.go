@@ -1,10 +1,11 @@
 package selfsdk
 
 import (
-	"crypto/ed25519"
 	"crypto/rand"
 	"encoding/base64"
 	"testing"
+
+	"golang.org/x/crypto/ed25519"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -69,6 +70,10 @@ func TestConfigValidate(t *testing.T) {
 	assert.NotNil(t, err)
 
 	cfg.StorageKey = "super-secret-encryption-key"
+	err = cfg.validate()
+	assert.NotNil(t, err)
+
+	cfg.SelfAppKeyID = "1"
 	err = cfg.validate()
 	assert.Nil(t, err)
 }

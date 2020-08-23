@@ -39,6 +39,7 @@ type Connectors struct {
 type Config struct {
 	SelfAppID            string
 	SelfAppSecret        string
+	SelfAppKeyID         string
 	StorageKey           string
 	DeviceID             string
 	StorageDir           string
@@ -70,6 +71,10 @@ func (c Config) validate() error {
 
 	if c.SelfAppSecret == "" {
 		return errors.New("config must specify an app secret key")
+	}
+
+	if c.SelfAppKeyID == "" {
+		return errors.New("config must specify an app key identifier")
 	}
 
 	if c.StorageKey == "" {
@@ -176,6 +181,7 @@ func (c Config) loadRestConnector() error {
 		},
 		APIURL:     c.APIURL,
 		SelfID:     c.SelfAppID,
+		KeyID:      c.SelfAppKeyID,
 		PrivateKey: c.sk,
 	}
 
@@ -198,6 +204,7 @@ func (c Config) loadWebsocketConnector() error {
 		MessagingURL: c.MessagingURL,
 		StorageDir:   c.StorageDir,
 		SelfID:       c.SelfAppID,
+		KeyID:        c.SelfAppKeyID,
 		DeviceID:     c.DeviceID,
 		PrivateKey:   c.sk,
 		TCPDeadline:  defaultTCPDeadline,

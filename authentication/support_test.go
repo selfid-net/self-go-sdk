@@ -2,13 +2,15 @@ package authentication
 
 import (
 	"crypto/rand"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"strings"
 	"testing"
 	"time"
 
+	"github.com/joinself/self-go-sdk/pkg/ntp"
+	"github.com/joinself/self-go-sdk/pkg/siggraph"
 	"github.com/square/go-jose"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/crypto/ed25519"
@@ -21,9 +23,9 @@ func setup(t *testing.T) (*testResponder, Config) {
 	require.Nil(t, err)
 
 	tr := testResponder{
-		pk:   pk,
-		path: "/v1/auth",
-		keys: make(map[string][]byte),
+		pk:      pk,
+		path:    "/v1/auth",
+		history: make(map[string][]json.RawMessage),
 	}
 
 	return &tr, Config{
@@ -38,7 +40,7 @@ func setup(t *testing.T) (*testResponder, Config) {
 
 type testResponder struct {
 	pk        ed25519.PublicKey
-	keys      map[string][]byte
+	history   map[string][]json.RawMessage
 	path      string
 	payload   []byte
 	req       map[string]string
@@ -79,25 +81,74 @@ func (c *testResponder) Send(recipients []string, plaintext []byte) error {
 
 func (c *testResponder) Get(path string) ([]byte, error) {
 	if path != c.path || cts(path, "unknown") {
-		fmt.Println(path)
 		return nil, errors.New("not found")
 	}
 
 	return c.payload, nil
 }
 
-func (c *testResponder) GetPublicKeys(selfID string) ([]byte, error) {
-	keys, ok := c.keys[selfID]
+func (c *testResponder) GetHistory(selfID string) ([]json.RawMessage, error) {
+	history, ok := c.history[selfID]
 	if !ok {
-		fmt.Println(c.keys)
-		fmt.Println(selfID)
 		return nil, errors.New("identity not found")
 	}
 
-	return keys, nil
+	return history, nil
 }
 
-func (c *testResponder) addpk(selfID string, pk ed25519.PublicKey) {
-	pkd := enc.EncodeToString(pk)
-	c.keys[selfID] = []byte(`[{"id": 1, "key": "` + pkd + `"}]`)
+func (c *testResponder) addpk(selfID string, sk ed25519.PrivateKey, pk ed25519.PublicKey) {
+	now := ntp.TimeFunc().Add(-(time.Hour * 356 * 24)).Unix()
+
+	rpk, _, _ := ed25519.GenerateKey(rand.Reader)
+
+	c.history[selfID] = []json.RawMessage{
+		testop(sk, "1", &siggraph.Operation{
+			Sequence:  0,
+			Version:   "1.0.0",
+			Previous:  "-",
+			Timestamp: now,
+			Actions: []siggraph.Action{
+				{
+					KID:           "1",
+					DID:           "1",
+					Type:          siggraph.TypeDeviceKey,
+					Action:        siggraph.ActionKeyAdd,
+					EffectiveFrom: now,
+					Key:           base64.RawURLEncoding.EncodeToString(pk),
+				},
+				{
+					KID:           "2",
+					Type:          siggraph.TypeRecoveryKey,
+					Action:        siggraph.ActionKeyAdd,
+					EffectiveFrom: now,
+					Key:           base64.RawURLEncoding.EncodeToString(rpk),
+				},
+			},
+		}),
+	}
+}
+
+func testop(sk ed25519.PrivateKey, kid string, op *siggraph.Operation) json.RawMessage {
+	data, err := json.Marshal(op)
+	if err != nil {
+		panic(err)
+	}
+
+	opts := &jose.SignerOptions{
+		ExtraHeaders: map[jose.HeaderKey]interface{}{
+			"kid": kid,
+		},
+	}
+
+	s, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: sk}, opts)
+	if err != nil {
+		panic(err)
+	}
+
+	jws, err := s.Sign(data)
+	if err != nil {
+		panic(err)
+	}
+
+	return json.RawMessage(jws.FullSerialize())
 }

@@ -27,7 +27,7 @@ func TestMessagingSubscribe(t *testing.T) {
 		Messaging:  m,
 	}
 
-	p.addpk("sender", pk)
+	p.addpk("sender", sk, pk)
 
 	payload, err := json.Marshal(map[string]string{
 		"typ": "test",
@@ -42,7 +42,13 @@ func TestMessagingSubscribe(t *testing.T) {
 
 	require.Nil(t, err)
 
-	signer, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: sk}, nil)
+	opts := &jose.SignerOptions{
+		ExtraHeaders: map[jose.HeaderKey]interface{}{
+			"kid": "1",
+		},
+	}
+
+	signer, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: sk}, opts)
 	require.Nil(t, err)
 
 	req, err := signer.Sign(payload)
@@ -80,7 +86,7 @@ func TestMessagingSubscribeEventType(t *testing.T) {
 		Messaging:  m,
 	}
 
-	p.addpk("sender", pk)
+	p.addpk("sender", sk, pk)
 
 	payload, err := json.Marshal(map[string]string{
 		"typ": "non-subscribed-type",
@@ -95,7 +101,13 @@ func TestMessagingSubscribeEventType(t *testing.T) {
 
 	require.Nil(t, err)
 
-	signer, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: sk}, nil)
+	opts := &jose.SignerOptions{
+		ExtraHeaders: map[jose.HeaderKey]interface{}{
+			"kid": "1",
+		},
+	}
+
+	signer, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: sk}, opts)
 	require.Nil(t, err)
 
 	req, err := signer.Sign(payload)
@@ -132,7 +144,7 @@ func TestMessagingSubscribeBadSignature(t *testing.T) {
 		Messaging:  m,
 	}
 
-	p.addpk("sender", pk)
+	p.addpk("sender", sk, pk)
 
 	payload, err := json.Marshal(map[string]string{
 		"typ": "non-subscribed-type",
@@ -147,7 +159,13 @@ func TestMessagingSubscribeBadSignature(t *testing.T) {
 
 	require.Nil(t, err)
 
-	signer, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: sk}, nil)
+	opts := &jose.SignerOptions{
+		ExtraHeaders: map[jose.HeaderKey]interface{}{
+			"kid": "1",
+		},
+	}
+
+	signer, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: sk}, opts)
 	require.Nil(t, err)
 
 	req, err := signer.Sign(payload)
@@ -182,7 +200,7 @@ func TestMessagingSubscribeBadIdentity(t *testing.T) {
 		Messaging:  m,
 	}
 
-	p.addpk("sender", pk)
+	p.addpk("sender", sk, pk)
 
 	payload, err := json.Marshal(map[string]string{
 		"typ": "test",
@@ -197,7 +215,13 @@ func TestMessagingSubscribeBadIdentity(t *testing.T) {
 
 	require.Nil(t, err)
 
-	signer, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: sk}, nil)
+	opts := &jose.SignerOptions{
+		ExtraHeaders: map[jose.HeaderKey]interface{}{
+			"kid": "1",
+		},
+	}
+
+	signer, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: sk}, opts)
 	require.Nil(t, err)
 
 	req, err := signer.Sign(payload)
@@ -232,7 +256,7 @@ func TestMessagingSubscribeExpiredMessage(t *testing.T) {
 		Messaging:  m,
 	}
 
-	p.addpk("sender", pk)
+	p.addpk("sender", sk, pk)
 
 	payload, err := json.Marshal(map[string]string{
 		"typ": "test",
@@ -247,7 +271,13 @@ func TestMessagingSubscribeExpiredMessage(t *testing.T) {
 
 	require.Nil(t, err)
 
-	signer, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: sk}, nil)
+	opts := &jose.SignerOptions{
+		ExtraHeaders: map[jose.HeaderKey]interface{}{
+			"kid": "1",
+		},
+	}
+
+	signer, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: sk}, opts)
 	require.Nil(t, err)
 
 	req, err := signer.Sign(payload)
@@ -282,7 +312,7 @@ func TestMessagingSubscribeFutureIssued(t *testing.T) {
 		Messaging:  m,
 	}
 
-	p.addpk("sender", pk)
+	p.addpk("sender", sk, pk)
 
 	payload, err := json.Marshal(map[string]string{
 		"typ": "test",
@@ -297,7 +327,13 @@ func TestMessagingSubscribeFutureIssued(t *testing.T) {
 
 	require.Nil(t, err)
 
-	signer, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: sk}, nil)
+	opts := &jose.SignerOptions{
+		ExtraHeaders: map[jose.HeaderKey]interface{}{
+			"kid": "1",
+		},
+	}
+
+	signer, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: sk}, opts)
 	require.Nil(t, err)
 
 	req, err := signer.Sign(payload)
@@ -333,7 +369,7 @@ func TestMessagingRequest(t *testing.T) {
 	}
 
 	m.senderpk = apk
-	p.addpk("receiver", pk)
+	p.addpk("receiver", sk, pk)
 
 	req, err := json.Marshal(map[string]string{
 		"typ": "test",
@@ -374,7 +410,13 @@ func TestMessagingRequest(t *testing.T) {
 
 		require.Nil(t, err)
 
-		signer, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: sk}, nil)
+		opts := &jose.SignerOptions{
+			ExtraHeaders: map[jose.HeaderKey]interface{}{
+				"kid": "1",
+			},
+		}
+
+		signer, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: sk}, opts)
 		require.Nil(t, err)
 
 		resp, err := signer.Sign(rpayload)
@@ -442,7 +484,7 @@ func TestMessagingRequestBadSignature(t *testing.T) {
 	}
 
 	m.senderpk = apk
-	p.addpk("receiver", pk)
+	p.addpk("receiver", sk, pk)
 
 	req, err := json.Marshal(map[string]string{
 		"typ": "test",
@@ -483,7 +525,13 @@ func TestMessagingRequestBadSignature(t *testing.T) {
 
 		require.Nil(t, err)
 
-		signer, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: sk}, nil)
+		opts := &jose.SignerOptions{
+			ExtraHeaders: map[jose.HeaderKey]interface{}{
+				"kid": "1",
+			},
+		}
+
+		signer, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: sk}, opts)
 		require.Nil(t, err)
 
 		resp, err := signer.Sign(rpayload)
@@ -516,7 +564,7 @@ func TestMessagingRequestBadIdentity(t *testing.T) {
 	}
 
 	m.senderpk = apk
-	p.addpk("receiver", pk)
+	p.addpk("receiver", sk, pk)
 
 	req, err := json.Marshal(map[string]string{
 		"typ": "test",
@@ -557,7 +605,13 @@ func TestMessagingRequestBadIdentity(t *testing.T) {
 
 		require.Nil(t, err)
 
-		signer, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: sk}, nil)
+		opts := &jose.SignerOptions{
+			ExtraHeaders: map[jose.HeaderKey]interface{}{
+				"kid": "1",
+			},
+		}
+
+		signer, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: sk}, opts)
 		require.Nil(t, err)
 
 		resp, err := signer.Sign(rpayload)
@@ -589,7 +643,7 @@ func TestMessagingRequestExpiredMessage(t *testing.T) {
 	}
 
 	m.senderpk = apk
-	p.addpk("receiver", pk)
+	p.addpk("receiver", sk, pk)
 
 	req, err := json.Marshal(map[string]string{
 		"typ": "test",
@@ -630,7 +684,13 @@ func TestMessagingRequestExpiredMessage(t *testing.T) {
 
 		require.Nil(t, err)
 
-		signer, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: sk}, nil)
+		opts := &jose.SignerOptions{
+			ExtraHeaders: map[jose.HeaderKey]interface{}{
+				"kid": "1",
+			},
+		}
+
+		signer, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: sk}, opts)
 		require.Nil(t, err)
 
 		resp, err := signer.Sign(rpayload)
@@ -662,7 +722,7 @@ func TestMessagingRequestFutureIssued(t *testing.T) {
 	}
 
 	m.senderpk = apk
-	p.addpk("receiver", pk)
+	p.addpk("receiver", sk, pk)
 
 	req, err := json.Marshal(map[string]string{
 		"typ": "test",
@@ -703,7 +763,13 @@ func TestMessagingRequestFutureIssued(t *testing.T) {
 
 		require.Nil(t, err)
 
-		signer, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: sk}, nil)
+		opts := &jose.SignerOptions{
+			ExtraHeaders: map[jose.HeaderKey]interface{}{
+				"kid": "1",
+			},
+		}
+
+		signer, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: sk}, opts)
 		require.Nil(t, err)
 
 		resp, err := signer.Sign(rpayload)

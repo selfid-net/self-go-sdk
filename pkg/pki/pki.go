@@ -1,6 +1,7 @@
 package pki
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 
@@ -55,20 +56,27 @@ func New(config Config) (*Client, error) {
 	return &c, nil
 }
 
-// GetPublicKeys gets an identities public keys
-func (c *Client) GetPublicKeys(selfID string) ([]byte, error) {
+// GetHistory gets an identities public keys
+func (c *Client) GetHistory(selfID string) ([]json.RawMessage, error) {
 	var path string
 
 	if len(selfID) > 11 {
-		path = fmt.Sprintf("/v1/apps/%s/public_keys", selfID)
+		path = fmt.Sprintf("/v1/apps/%s/history", selfID)
 	} else {
-		path = fmt.Sprintf("/v1/identities/%s/public_keys", selfID)
+		path = fmt.Sprintf("/v1/identities/%s/history", selfID)
 	}
 
-	return c.transport.Get(path)
+	var history []json.RawMessage
+
+	data, err := c.transport.Get(path)
+	if err != nil {
+		return nil, err
+	}
+
+	return history, json.Unmarshal(data, &history)
 }
 
-// GetDeviceKeys gets an identities one time device key
+// GetDeviceKey gets an identities one time device key
 func (c *Client) GetDeviceKey(selfID, deviceID string) ([]byte, error) {
 	var path string
 

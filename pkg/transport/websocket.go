@@ -39,6 +39,7 @@ type WebsocketConfig struct {
 	StorageDir   string
 	SelfID       string
 	DeviceID     string
+	KeyID        string
 	PrivateKey   ed25519.PrivateKey
 	TCPDeadline  time.Duration
 	InboxSize    int
@@ -223,7 +224,7 @@ func (c *Websocket) connect() error {
 		return errors.New("could not connect")
 	}
 
-	token, err := GenerateToken(c.config.SelfID, c.config.PrivateKey)
+	token, err := GenerateToken(c.config.SelfID, c.config.KeyID, c.config.PrivateKey)
 	if err != nil {
 		return err
 	}

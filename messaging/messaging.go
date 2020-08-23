@@ -1,6 +1,7 @@
 package messaging
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"log"
@@ -9,6 +10,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/joinself/self-go-sdk/pkg/ntp"
+	"github.com/joinself/self-go-sdk/pkg/siggraph"
 	"github.com/square/go-jose"
 	"github.com/tidwall/sjson"
 )
@@ -49,40 +51,38 @@ func (s *Service) Subscribe(messageType string, h func(m *Message)) {
 	s.messaging.Subscribe(messageType, func(sender string, payload []byte) {
 		selfID := strings.Split(sender, ":")[0]
 
-		pks, err := s.pki.GetPublicKeys(selfID)
-		if err != nil {
-			log.Println("messaging: message does not originate from a valid self id")
-			return
-		}
-
-		// TODO extract this into a reusable function
-
-		var keys []publickey
-
-		err = json.Unmarshal(pks, &keys)
-		if err != nil {
-			log.Println("messaging: could not find any valid public keys for sender")
-			return
-		}
-
 		jws, err := jose.ParseSigned(string(payload))
 		if err != nil {
 			log.Println("messaging: message does not contain a valid jws")
 			return
 		}
 
-		var verified bool
-		var msg []byte
-
-		for _, k := range keys {
-			msg, err = jws.Verify(k.pk())
-			if err == nil {
-				verified = true
-				break
-			}
+		history, err := s.pki.GetHistory(selfID)
+		if err != nil {
+			log.Println("messaging: ", err)
+			return
 		}
 
-		if !verified {
+		sg, err := siggraph.New(history)
+		if err != nil {
+			log.Println("messaging: ", err)
+			return
+		}
+
+		kid, err := getJWSKID(payload)
+		if err != nil {
+			log.Println("messaging: ", err)
+			return
+		}
+
+		pk, err := sg.ActiveKey(kid)
+		if err != nil {
+			log.Println("messaging: ", err)
+			return
+		}
+
+		msg, err := jws.Verify(pk)
+		if err != nil {
 			log.Println("messaging: message does not have a valid signature")
 			return
 		}
@@ -128,7 +128,13 @@ func (s *Service) serializeRequest(request []byte, cid string) (string, error) {
 		return "", err
 	}
 
-	signer, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: s.sk}, nil)
+	opts := &jose.SignerOptions{
+		ExtraHeaders: map[jose.HeaderKey]interface{}{
+			"kid": s.keyID,
+		},
+	}
+
+	signer, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: s.sk}, opts)
 	if err != nil {
 		return "", err
 	}
@@ -157,35 +163,33 @@ func (s *Service) Request(recipients []string, request []byte) ([]byte, error) {
 
 	selfID := strings.Split(sender, ":")[0]
 
-	pks, err := s.pki.GetPublicKeys(selfID)
-	if err != nil {
-		return nil, err
-	}
-
-	var keys []publickey
-
-	err = json.Unmarshal(pks, &keys)
-	if err != nil {
-		return nil, err
-	}
-
 	jws, err := jose.ParseSigned(string(response))
 	if err != nil {
 		return nil, err
 	}
 
-	var verified bool
-	var msg []byte
-
-	for _, k := range keys {
-		msg, err = jws.Verify(k.pk())
-		if err == nil {
-			verified = true
-			break
-		}
+	history, err := s.pki.GetHistory(selfID)
+	if err != nil {
+		return nil, err
 	}
 
-	if !verified {
+	sg, err := siggraph.New(history)
+	if err != nil {
+		return nil, err
+	}
+
+	kid, err := getJWSKID(response)
+	if err != nil {
+		return nil, err
+	}
+
+	pk, err := sg.ActiveKey(kid)
+	if err != nil {
+		return nil, err
+	}
+
+	msg, err := jws.Verify(pk)
+	if err != nil {
 		return nil, ErrResponseBadSignature
 	}
 
@@ -252,4 +256,38 @@ func (s *Service) Notify(recipient, body string) error {
 	}
 
 	return s.Send([]string{recipient}, cid, data)
+}
+
+func getKID(token string) (string, error) {
+	data, err := base64.RawURLEncoding.DecodeString(strings.Split(token, ".")[0])
+	if err != nil {
+		return "", err
+	}
+
+	hdr := make(map[string]string)
+
+	err = json.Unmarshal(data, &hdr)
+	if err != nil {
+		return "", err
+	}
+
+	kid := hdr["kid"]
+	if kid == "" {
+		return "", errors.New("token must specify an identifier for the signing key")
+	}
+
+	return kid, nil
+}
+
+func getJWSKID(payload []byte) (string, error) {
+	var jws struct {
+		Protected string `json:"protected"`
+	}
+
+	err := json.Unmarshal(payload, &jws)
+	if err != nil {
+		return "", err
+	}
+
+	return getKID(jws.Protected)
 }
