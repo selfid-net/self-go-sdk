@@ -39,7 +39,7 @@ func main() {
 	req := fact.DeepLinkFactRequest{
 		ConversationID: cid,
 		Description:    "info",
-		Callback:       "https://www.selfid.net",
+		Callback:       "https://www.joinself.com",
 		Facts: []fact.Fact{
 			{
 				Fact:    fact.FactPhone,

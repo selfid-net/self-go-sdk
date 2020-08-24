@@ -24,16 +24,16 @@ This sdk provides access to the following self services:
 
 #### Debian/Ubuntu
 ```sh
-$ curl -O http://download.selfid.net/olm/libselfid-olm_0.1.17_amd64.deb
-$ curl -O http://download.selfid.net/omemo/libselfid-omemo_0.1.2_amd64.deb
+$ curl -O http://download.joinself.com/olm/libselfid-olm_0.1.17_amd64.deb
+$ curl -O http://download.joinself.com/omemo/libselfid-omemo_0.1.2_amd64.deb
 $ apt install libsodium-dev
 $ apt install ./libselfid-olm_0.1.17_amd64.deb ./libselfid-omemo_0.1.2_amd64.deb
 ```
 
 #### Redhat/Centos
 ```sh
-$ rpm -Uvh http://download.selfid.net/olm/libselfid-olm-0.1.14-1.x86_64.rpm
-$ rpm -Uvh http://download.selfid.net/omemo/libselfid-omemo-0.1.2-1.x86_64.rpm
+$ rpm -Uvh http://download.joinself.com/olm/libselfid-olm-0.1.14-1.x86_64.rpm
+$ rpm -Uvh http://download.joinself.com/omemo/libselfid-omemo-0.1.2-1.x86_64.rpm
 ```
 
 #### Mac
@@ -50,7 +50,7 @@ $ go get github.com/joinself/self-go-sdk
 ```
 
 
-Using the credentials obtained from the [developer portal](developer.selfid.net), you can configure a new self client as follows:
+Using the credentials obtained from the [developer portal](developer.joinself.com), you can configure a new self client as follows:
 
 ```go
 import "github.com/joinself/self-go-sdk"

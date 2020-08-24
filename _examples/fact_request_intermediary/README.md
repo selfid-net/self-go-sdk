@@ -6,7 +6,7 @@ This reduces the liabilities of having to securely store user information and co
 
 ## Running this example
 
-In order to run this example, you must have a valid app id and private key. Self credentials are issued by the [Self Developer portal](https://developer.selfid.net/) when you create a new app.
+In order to run this example, you must have a valid app id and private key. Self credentials are issued by the [Self Developer portal](https://developer.joinself.com/) when you create a new app.
 
 Once you have your valid `SELF_APP_ID` and `SELF_APP_SECRET` you can run this example with:
 
@@ -21,7 +21,7 @@ Note you must provide a valid user self_id for `your_users_self_id`. This exampl
 
 This diagram shows how the intermediary witnessed fact request process works internally.
 
-![Diagram](https://storage.googleapis.com/static.selfid.net/images/intermediary_fact_request_diagram.png)
+![Diagram](https://storage.googleapis.com/static.joinself.com/images/intermediary_fact_request_diagram.png)
 
 1. Request intermediary to check an identities.facts. through the self SDK with the data you want to assert, like age > 18.
 2. SDK will send a fact request to the intermediary.

@@ -34,7 +34,7 @@ func main() {
 
 	req := authentication.DeepLinkAuthenticationRequest{
 		ConversationID: cid,
-		Callback:       "https://www.selfid.net",
+		Callback:       "https://www.joinself.com",
 		Expiry:         time.Minute * 5,
 	}
 

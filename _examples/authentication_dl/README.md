@@ -6,7 +6,7 @@ As part of this process, you have to share the generated deep link code with you
 
 ## Running this example
 
-In order to run this example, you must have a valid app id and private key. Self credentials are issued by the [Self Developer portal](https://developer.selfid.net/) when you create a new app.
+In order to run this example, you must have a valid app id and private key. Self credentials are issued by the [Self Developer portal](https://developer.joinself.com/) when you create a new app.
 
 Once you have your valid `SELF_APP_ID` and `SELF_APP_SECRET` you can run this example with:
 
@@ -20,7 +20,7 @@ Running this command will open the qr code in a browser, which you will need to 
 
 This diagram shows how does a Deep link based information request process works internally.
 
-![Diagram](https://storage.googleapis.com/static.selfid.net/images/di_facts_diagram.png)
+![Diagram](https://storage.googleapis.com/static.joinself.com/images/di_facts_diagram.png)
 
 
 1. Generate Self information request Deep Link

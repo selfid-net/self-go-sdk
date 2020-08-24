@@ -15,8 +15,8 @@ import (
 )
 
 var (
-	defaultAPIURL               = "https://api.selfid.net"
-	defaultMessagingURL         = "wss://messaging.selfid.net/v1/messaging"
+	defaultAPIURL               = "https://api.joinself.com"
+	defaultMessagingURL         = "wss://messaging.joinself.com/v1/messaging"
 	defaultReconnectionAttempts = 10
 	defaultTCPDeadline          = time.Second * 5
 	defaultRequestTimeout       = time.Second * 5
@@ -94,11 +94,11 @@ func (c *Config) load() error {
 
 	if c.Environment != "" {
 		if c.APIURL == "" {
-			c.APIURL = "https://api." + c.Environment + ".selfid.net"
+			c.APIURL = "https://api." + c.Environment + ".joinself.com"
 		}
 
 		if c.MessagingURL == "" {
-			c.MessagingURL = "wss://messaging." + c.Environment + ".selfid.net/v1/messaging"
+			c.MessagingURL = "wss://messaging." + c.Environment + ".joinself.com/v1/messaging"
 		}
 
 	}

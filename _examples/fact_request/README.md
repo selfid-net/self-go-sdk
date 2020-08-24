@@ -4,7 +4,7 @@ Your app can request your users to share attested facts about themselves. To do 
 
 ## Running this example
 
-In order to run this example, you must have a valid app id and private key. Self credentials are issued by the [Self Developer portal](https://developer.selfid.net/) when you create a new app.
+In order to run this example, you must have a valid app id and private key. Self credentials are issued by the [Self Developer portal](https://developer.joinself.com/) when you create a new app.
 
 Once you have your valid `SELF_APP_ID` and `SELF_APP_SECRET` you can run this example with:
 
