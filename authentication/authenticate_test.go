@@ -48,7 +48,13 @@ func TestAuthenticationRequest(t *testing.T) {
 
 		require.Nil(t, err)
 
-		s, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: sk}, nil)
+		opts := &jose.SignerOptions{
+			ExtraHeaders: map[jose.HeaderKey]interface{}{
+				"kid": "1",
+			},
+		}
+
+		s, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: sk}, opts)
 		require.Nil(t, err)
 
 		jws, err := s.Sign(resp)
@@ -56,7 +62,7 @@ func TestAuthenticationRequest(t *testing.T) {
 		return req["sub"], []byte(jws.FullSerialize()), err
 	}
 
-	tr.addpk("1234567890", pk)
+	tr.addpk("1234567890", sk, pk)
 	tr.path = "/v1/identities/1234567890/devices"
 	tr.payload = []byte(`["1", "2"]`)
 
@@ -70,7 +76,7 @@ func TestAuthenticationRequest(t *testing.T) {
 func TestAuthenticationRequestTimeout(t *testing.T) {
 	tr, cfg := setup(t)
 
-	pk, _, err := ed25519.GenerateKey(rand.Reader)
+	pk, sk, err := ed25519.GenerateKey(rand.Reader)
 	require.Nil(t, err)
 
 	var called bool
@@ -80,7 +86,7 @@ func TestAuthenticationRequestTimeout(t *testing.T) {
 		return "", nil, errors.New("request timeout")
 	}
 
-	tr.addpk("1234567890", pk)
+	tr.addpk("1234567890", sk, pk)
 	tr.path = "/v1/identities/1234567890/devices"
 	tr.payload = []byte(`["1", "2"]`)
 
@@ -129,7 +135,13 @@ func TestAuthenticationBadSignature(t *testing.T) {
 
 		require.Nil(t, err)
 
-		s, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: sk}, nil)
+		opts := &jose.SignerOptions{
+			ExtraHeaders: map[jose.HeaderKey]interface{}{
+				"kid": "1",
+			},
+		}
+
+		s, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: sk}, opts)
 		require.Nil(t, err)
 
 		jws, err := s.Sign(resp)
@@ -137,7 +149,7 @@ func TestAuthenticationBadSignature(t *testing.T) {
 		return req["sub"], []byte(jws.FullSerialize()), err
 	}
 
-	tr.addpk("1234567890", pk)
+	tr.addpk("1234567890", sk, pk)
 	tr.path = "/v1/identities/1234567890/devices"
 	tr.payload = []byte(`["1", "2"]`)
 
@@ -182,7 +194,13 @@ func TestAuthenticationBadIssuingIdentity(t *testing.T) {
 
 		require.Nil(t, err)
 
-		s, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: sk}, nil)
+		opts := &jose.SignerOptions{
+			ExtraHeaders: map[jose.HeaderKey]interface{}{
+				"kid": "1",
+			},
+		}
+
+		s, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: sk}, opts)
 		require.Nil(t, err)
 
 		jws, err := s.Sign(resp)
@@ -190,7 +208,7 @@ func TestAuthenticationBadIssuingIdentity(t *testing.T) {
 		return "some-other-individual", []byte(jws.FullSerialize()), err
 	}
 
-	tr.addpk("1234567890", pk)
+	tr.addpk("1234567890", sk, pk)
 	tr.path = "/v1/identities/1234567890/devices"
 	tr.payload = []byte(`["1", "2"]`)
 
@@ -235,7 +253,13 @@ func TestAuthenticationBadAudienceIdentity(t *testing.T) {
 
 		require.Nil(t, err)
 
-		s, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: sk}, nil)
+		opts := &jose.SignerOptions{
+			ExtraHeaders: map[jose.HeaderKey]interface{}{
+				"kid": "1",
+			},
+		}
+
+		s, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: sk}, opts)
 		require.Nil(t, err)
 
 		jws, err := s.Sign(resp)
@@ -243,7 +267,7 @@ func TestAuthenticationBadAudienceIdentity(t *testing.T) {
 		return req["sub"], []byte(jws.FullSerialize()), err
 	}
 
-	tr.addpk("1234567890", pk)
+	tr.addpk("1234567890", sk, pk)
 	tr.path = "/v1/identities/1234567890/devices"
 	tr.payload = []byte(`["1", "2"]`)
 
@@ -288,7 +312,13 @@ func TestAuthenticationRequestExpired(t *testing.T) {
 
 		require.Nil(t, err)
 
-		s, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: sk}, nil)
+		opts := &jose.SignerOptions{
+			ExtraHeaders: map[jose.HeaderKey]interface{}{
+				"kid": "1",
+			},
+		}
+
+		s, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: sk}, opts)
 		require.Nil(t, err)
 
 		jws, err := s.Sign(resp)
@@ -296,7 +326,7 @@ func TestAuthenticationRequestExpired(t *testing.T) {
 		return req["sub"], []byte(jws.FullSerialize()), err
 	}
 
-	tr.addpk("1234567890", pk)
+	tr.addpk("1234567890", sk, pk)
 	tr.path = "/v1/identities/1234567890/devices"
 	tr.payload = []byte(`["1", "2"]`)
 
@@ -341,7 +371,13 @@ func TestAuthenticationRequestIssuedInFuture(t *testing.T) {
 
 		require.Nil(t, err)
 
-		s, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: sk}, nil)
+		opts := &jose.SignerOptions{
+			ExtraHeaders: map[jose.HeaderKey]interface{}{
+				"kid": "1",
+			},
+		}
+
+		s, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: sk}, opts)
 		require.Nil(t, err)
 
 		jws, err := s.Sign(resp)
@@ -349,7 +385,7 @@ func TestAuthenticationRequestIssuedInFuture(t *testing.T) {
 		return req["sub"], []byte(jws.FullSerialize()), err
 	}
 
-	tr.addpk("1234567890", pk)
+	tr.addpk("1234567890", sk, pk)
 	tr.path = "/v1/identities/1234567890/devices"
 	tr.payload = []byte(`["1", "2"]`)
 

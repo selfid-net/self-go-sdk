@@ -13,7 +13,13 @@ import (
 func (s Service) Attest(selfID string, facts []Fact) ([]json.RawMessage, error) {
 	attestations := make([]json.RawMessage, len(facts))
 
-	signer, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: s.sk}, nil)
+	opts := &jose.SignerOptions{
+		ExtraHeaders: map[jose.HeaderKey]interface{}{
+			"kid": s.keyID,
+		},
+	}
+
+	signer, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: s.sk}, opts)
 	if err != nil {
 		return nil, err
 	}

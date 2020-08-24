@@ -39,8 +39,8 @@ func TestRequest(t *testing.T) {
 	apk, ask, err := ed25519.GenerateKey(rand.Reader)
 	require.Nil(t, err)
 
-	r.addpk("1234567890", ipk)
-	r.addpk("test-attester", apk)
+	r.addpk("1234567890", isk, ipk)
+	r.addpk("test-attester", ask, apk)
 	r.path = "/v1/identities/1234567890/devices"
 	r.payload = []byte(`["1", "2"]`)
 
@@ -91,7 +91,13 @@ func TestRequest(t *testing.T) {
 			"given_names": "pontiac",
 		})
 
-		s, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: ask}, nil)
+		opts := &jose.SignerOptions{
+			ExtraHeaders: map[jose.HeaderKey]interface{}{
+				"kid": "1",
+			},
+		}
+
+		s, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: ask}, opts)
 		require.Nil(t, err)
 
 		attestation, err := s.Sign(at)
@@ -108,7 +114,7 @@ func TestRequest(t *testing.T) {
 			"surname": "bandit",
 		})
 
-		s, err = jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: ask}, nil)
+		s, err = jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: ask}, opts)
 		require.Nil(t, err)
 
 		attestation, err = s.Sign(at)
@@ -119,7 +125,7 @@ func TestRequest(t *testing.T) {
 		resp, err := json.Marshal(m)
 		require.Nil(t, err)
 
-		s, err = jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: isk}, nil)
+		s, err = jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: isk}, opts)
 		require.Nil(t, err)
 
 		response, err := s.Sign(resp)
@@ -155,13 +161,13 @@ func TestRequestTimeout(t *testing.T) {
 		},
 	}
 
-	ipk, _, err := ed25519.GenerateKey(rand.Reader)
+	ipk, isk, err := ed25519.GenerateKey(rand.Reader)
 	require.Nil(t, err)
-	apk, _, err := ed25519.GenerateKey(rand.Reader)
+	apk, ask, err := ed25519.GenerateKey(rand.Reader)
 	require.Nil(t, err)
 
-	r.addpk("1234567890", ipk)
-	r.addpk("test-attester", apk)
+	r.addpk("1234567890", isk, ipk)
+	r.addpk("test-attester", ask, apk)
 	r.path = "/v1/identities/1234567890/devices"
 	r.payload = []byte(`["1", "2"]`)
 
@@ -228,8 +234,8 @@ func TestRequestBadAttestation(t *testing.T) {
 	apk, ask, err := ed25519.GenerateKey(rand.Reader)
 	require.Nil(t, err)
 
-	r.addpk("1234567890", ipk)
-	r.addpk("test-attester", apk)
+	r.addpk("1234567890", isk, ipk)
+	r.addpk("test-attester", ask, apk)
 	r.path = "/v1/identities/1234567890/devices"
 	r.payload = []byte(`["1", "2"]`)
 
@@ -280,7 +286,13 @@ func TestRequestBadAttestation(t *testing.T) {
 			"given_names": "pontiac",
 		})
 
-		s, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: ask}, nil)
+		opts := &jose.SignerOptions{
+			ExtraHeaders: map[jose.HeaderKey]interface{}{
+				"kid": "1",
+			},
+		}
+
+		s, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: ask}, opts)
 		require.Nil(t, err)
 
 		attestation, err := s.Sign(at)
@@ -297,7 +309,7 @@ func TestRequestBadAttestation(t *testing.T) {
 			"surname": "bandit",
 		})
 
-		s, err = jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: ask}, nil)
+		s, err = jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: ask}, opts)
 		require.Nil(t, err)
 
 		attestation, err = s.Sign(at)
@@ -308,7 +320,7 @@ func TestRequestBadAttestation(t *testing.T) {
 		resp, err := json.Marshal(m)
 		require.Nil(t, err)
 
-		s, err = jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: isk}, nil)
+		s, err = jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: isk}, opts)
 		require.Nil(t, err)
 
 		response, err := s.Sign(resp)
@@ -347,8 +359,8 @@ func TestRequestBadStatus(t *testing.T) {
 	apk, ask, err := ed25519.GenerateKey(rand.Reader)
 	require.Nil(t, err)
 
-	r.addpk("1234567890", ipk)
-	r.addpk("test-attester", apk)
+	r.addpk("1234567890", isk, ipk)
+	r.addpk("test-attester", ask, apk)
 	r.path = "/v1/identities/1234567890/devices"
 	r.payload = []byte(`["1", "2"]`)
 
@@ -399,7 +411,13 @@ func TestRequestBadStatus(t *testing.T) {
 			"given_names": "pontiac",
 		})
 
-		s, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: ask}, nil)
+		opts := &jose.SignerOptions{
+			ExtraHeaders: map[jose.HeaderKey]interface{}{
+				"kid": "1",
+			},
+		}
+
+		s, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: ask}, opts)
 		require.Nil(t, err)
 
 		attestation, err := s.Sign(at)
@@ -416,7 +434,7 @@ func TestRequestBadStatus(t *testing.T) {
 			"surname": "bandit",
 		})
 
-		s, err = jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: ask}, nil)
+		s, err = jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: ask}, opts)
 		require.Nil(t, err)
 
 		attestation, err = s.Sign(at)
@@ -427,7 +445,7 @@ func TestRequestBadStatus(t *testing.T) {
 		resp, err := json.Marshal(m)
 		require.Nil(t, err)
 
-		s, err = jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: isk}, nil)
+		s, err = jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: isk}, opts)
 		require.Nil(t, err)
 
 		response, err := s.Sign(resp)
@@ -468,8 +486,8 @@ func TestRequestBadAttestationSignature(t *testing.T) {
 	apk, _, err := ed25519.GenerateKey(rand.Reader)
 	require.Nil(t, err)
 
-	r.addpk("1234567890", ipk)
-	r.addpk("test-attester", apk)
+	r.addpk("1234567890", isk, ipk)
+	r.addpk("test-attester", ask, apk)
 	r.path = "/v1/identities/1234567890/devices"
 	r.payload = []byte(`["1", "2"]`)
 
@@ -520,7 +538,13 @@ func TestRequestBadAttestationSignature(t *testing.T) {
 			"given_names": "pontiac",
 		})
 
-		s, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: ask}, nil)
+		opts := &jose.SignerOptions{
+			ExtraHeaders: map[jose.HeaderKey]interface{}{
+				"kid": "1",
+			},
+		}
+
+		s, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: ask}, opts)
 		require.Nil(t, err)
 
 		attestation, err := s.Sign(at)
@@ -537,7 +561,7 @@ func TestRequestBadAttestationSignature(t *testing.T) {
 			"surname": "bandit",
 		})
 
-		s, err = jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: ask}, nil)
+		s, err = jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: ask}, opts)
 		require.Nil(t, err)
 
 		attestation, err = s.Sign(at)
@@ -548,7 +572,7 @@ func TestRequestBadAttestationSignature(t *testing.T) {
 		resp, err := json.Marshal(m)
 		require.Nil(t, err)
 
-		s, err = jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: isk}, nil)
+		s, err = jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: isk}, opts)
 		require.Nil(t, err)
 
 		response, err := s.Sign(resp)
@@ -589,8 +613,8 @@ func TestRequestBadSignature(t *testing.T) {
 	apk, ask, err := ed25519.GenerateKey(rand.Reader)
 	require.Nil(t, err)
 
-	r.addpk("1234567890", ipk)
-	r.addpk("test-attester", apk)
+	r.addpk("1234567890", isk, ipk)
+	r.addpk("test-attester", ask, apk)
 	r.path = "/v1/identities/1234567890/devices"
 	r.payload = []byte(`["1", "2"]`)
 
@@ -641,7 +665,13 @@ func TestRequestBadSignature(t *testing.T) {
 			"given_names": "pontiac",
 		})
 
-		s, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: ask}, nil)
+		opts := &jose.SignerOptions{
+			ExtraHeaders: map[jose.HeaderKey]interface{}{
+				"kid": "1",
+			},
+		}
+
+		s, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: ask}, opts)
 		require.Nil(t, err)
 
 		attestation, err := s.Sign(at)
@@ -658,7 +688,7 @@ func TestRequestBadSignature(t *testing.T) {
 			"surname": "bandit",
 		})
 
-		s, err = jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: ask}, nil)
+		s, err = jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: ask}, opts)
 		require.Nil(t, err)
 
 		attestation, err = s.Sign(at)
@@ -669,7 +699,7 @@ func TestRequestBadSignature(t *testing.T) {
 		resp, err := json.Marshal(m)
 		require.Nil(t, err)
 
-		s, err = jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: isk}, nil)
+		s, err = jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: isk}, opts)
 		require.Nil(t, err)
 
 		response, err := s.Sign(resp)
@@ -708,8 +738,8 @@ func TestRequestBadResponder(t *testing.T) {
 	apk, ask, err := ed25519.GenerateKey(rand.Reader)
 	require.Nil(t, err)
 
-	r.addpk("1234567890", ipk)
-	r.addpk("test-attester", apk)
+	r.addpk("1234567890", isk, ipk)
+	r.addpk("test-attester", ask, apk)
 	r.path = "/v1/identities/1234567890/devices"
 	r.payload = []byte(`["1", "2"]`)
 
@@ -760,7 +790,13 @@ func TestRequestBadResponder(t *testing.T) {
 			"given_names": "pontiac",
 		})
 
-		s, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: ask}, nil)
+		opts := &jose.SignerOptions{
+			ExtraHeaders: map[jose.HeaderKey]interface{}{
+				"kid": "1",
+			},
+		}
+
+		s, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: ask}, opts)
 		require.Nil(t, err)
 
 		attestation, err := s.Sign(at)
@@ -777,7 +813,7 @@ func TestRequestBadResponder(t *testing.T) {
 			"surname": "bandit",
 		})
 
-		s, err = jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: ask}, nil)
+		s, err = jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: ask}, opts)
 		require.Nil(t, err)
 
 		attestation, err = s.Sign(at)
@@ -788,7 +824,7 @@ func TestRequestBadResponder(t *testing.T) {
 		resp, err := json.Marshal(m)
 		require.Nil(t, err)
 
-		s, err = jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: isk}, nil)
+		s, err = jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: isk}, opts)
 		require.Nil(t, err)
 
 		response, err := s.Sign(resp)
@@ -827,8 +863,8 @@ func TestRequestBadIssuingIdentity(t *testing.T) {
 	apk, ask, err := ed25519.GenerateKey(rand.Reader)
 	require.Nil(t, err)
 
-	r.addpk("1234567890", ipk)
-	r.addpk("test-attester", apk)
+	r.addpk("1234567890", isk, ipk)
+	r.addpk("test-attester", ask, apk)
 	r.path = "/v1/identities/1234567890/devices"
 	r.payload = []byte(`["1", "2"]`)
 
@@ -879,7 +915,13 @@ func TestRequestBadIssuingIdentity(t *testing.T) {
 			"given_names": "pontiac",
 		})
 
-		s, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: ask}, nil)
+		opts := &jose.SignerOptions{
+			ExtraHeaders: map[jose.HeaderKey]interface{}{
+				"kid": "1",
+			},
+		}
+
+		s, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: ask}, opts)
 		require.Nil(t, err)
 
 		attestation, err := s.Sign(at)
@@ -896,7 +938,7 @@ func TestRequestBadIssuingIdentity(t *testing.T) {
 			"surname": "bandit",
 		})
 
-		s, err = jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: ask}, nil)
+		s, err = jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: ask}, opts)
 		require.Nil(t, err)
 
 		attestation, err = s.Sign(at)
@@ -907,7 +949,7 @@ func TestRequestBadIssuingIdentity(t *testing.T) {
 		resp, err := json.Marshal(m)
 		require.Nil(t, err)
 
-		s, err = jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: isk}, nil)
+		s, err = jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: isk}, opts)
 		require.Nil(t, err)
 
 		response, err := s.Sign(resp)
@@ -946,8 +988,8 @@ func TestRequestBadAudienceIdentity(t *testing.T) {
 	apk, ask, err := ed25519.GenerateKey(rand.Reader)
 	require.Nil(t, err)
 
-	r.addpk("1234567890", ipk)
-	r.addpk("test-attester", apk)
+	r.addpk("1234567890", isk, ipk)
+	r.addpk("test-attester", ask, apk)
 	r.path = "/v1/identities/1234567890/devices"
 	r.payload = []byte(`["1", "2"]`)
 
@@ -998,7 +1040,13 @@ func TestRequestBadAudienceIdentity(t *testing.T) {
 			"given_names": "pontiac",
 		})
 
-		s, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: ask}, nil)
+		opts := &jose.SignerOptions{
+			ExtraHeaders: map[jose.HeaderKey]interface{}{
+				"kid": "1",
+			},
+		}
+
+		s, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: ask}, opts)
 		require.Nil(t, err)
 
 		attestation, err := s.Sign(at)
@@ -1015,7 +1063,7 @@ func TestRequestBadAudienceIdentity(t *testing.T) {
 			"surname": "bandit",
 		})
 
-		s, err = jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: ask}, nil)
+		s, err = jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: ask}, opts)
 		require.Nil(t, err)
 
 		attestation, err = s.Sign(at)
@@ -1026,7 +1074,7 @@ func TestRequestBadAudienceIdentity(t *testing.T) {
 		resp, err := json.Marshal(m)
 		require.Nil(t, err)
 
-		s, err = jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: isk}, nil)
+		s, err = jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: isk}, opts)
 		require.Nil(t, err)
 
 		response, err := s.Sign(resp)
@@ -1065,8 +1113,8 @@ func TestRequestResponseExpired(t *testing.T) {
 	apk, ask, err := ed25519.GenerateKey(rand.Reader)
 	require.Nil(t, err)
 
-	r.addpk("1234567890", ipk)
-	r.addpk("test-attester", apk)
+	r.addpk("1234567890", isk, ipk)
+	r.addpk("test-attester", ask, apk)
 	r.path = "/v1/identities/1234567890/devices"
 	r.payload = []byte(`["1", "2"]`)
 
@@ -1117,7 +1165,13 @@ func TestRequestResponseExpired(t *testing.T) {
 			"given_names": "pontiac",
 		})
 
-		s, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: ask}, nil)
+		opts := &jose.SignerOptions{
+			ExtraHeaders: map[jose.HeaderKey]interface{}{
+				"kid": "1",
+			},
+		}
+
+		s, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: ask}, opts)
 		require.Nil(t, err)
 
 		attestation, err := s.Sign(at)
@@ -1134,7 +1188,7 @@ func TestRequestResponseExpired(t *testing.T) {
 			"surname": "bandit",
 		})
 
-		s, err = jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: ask}, nil)
+		s, err = jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: ask}, opts)
 		require.Nil(t, err)
 
 		attestation, err = s.Sign(at)
@@ -1145,7 +1199,7 @@ func TestRequestResponseExpired(t *testing.T) {
 		resp, err := json.Marshal(m)
 		require.Nil(t, err)
 
-		s, err = jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: isk}, nil)
+		s, err = jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: isk}, opts)
 		require.Nil(t, err)
 
 		response, err := s.Sign(resp)
@@ -1184,8 +1238,8 @@ func TestRequestResponseIssuedInFuture(t *testing.T) {
 	apk, ask, err := ed25519.GenerateKey(rand.Reader)
 	require.Nil(t, err)
 
-	r.addpk("1234567890", ipk)
-	r.addpk("test-attester", apk)
+	r.addpk("1234567890", isk, ipk)
+	r.addpk("test-attester", ask, apk)
 	r.path = "/v1/identities/1234567890/devices"
 	r.payload = []byte(`["1", "2"]`)
 
@@ -1236,7 +1290,13 @@ func TestRequestResponseIssuedInFuture(t *testing.T) {
 			"given_names": "pontiac",
 		})
 
-		s, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: ask}, nil)
+		opts := &jose.SignerOptions{
+			ExtraHeaders: map[jose.HeaderKey]interface{}{
+				"kid": "1",
+			},
+		}
+
+		s, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: ask}, opts)
 		require.Nil(t, err)
 
 		attestation, err := s.Sign(at)
@@ -1253,7 +1313,7 @@ func TestRequestResponseIssuedInFuture(t *testing.T) {
 			"surname": "bandit",
 		})
 
-		s, err = jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: ask}, nil)
+		s, err = jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: ask}, opts)
 		require.Nil(t, err)
 
 		attestation, err = s.Sign(at)
@@ -1264,7 +1324,7 @@ func TestRequestResponseIssuedInFuture(t *testing.T) {
 		resp, err := json.Marshal(m)
 		require.Nil(t, err)
 
-		s, err = jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: isk}, nil)
+		s, err = jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: isk}, opts)
 		require.Nil(t, err)
 
 		response, err := s.Sign(resp)
@@ -1300,7 +1360,7 @@ func TestRequestViaIntermediary(t *testing.T) {
 	ipk, isk, err := ed25519.GenerateKey(rand.Reader)
 	require.Nil(t, err)
 
-	r.addpk("intermediary", ipk)
+	r.addpk("intermediary", isk, ipk)
 	r.path = "/v1/apps/intermediary/devices"
 	r.payload = []byte(`["1", "2"]`)
 
@@ -1309,7 +1369,13 @@ func TestRequestViaIntermediary(t *testing.T) {
 	r.responder = func(recipients []string, req []byte) (string, []byte, error) {
 		called = true
 
-		signer, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: isk}, nil)
+		opts := &jose.SignerOptions{
+			ExtraHeaders: map[jose.HeaderKey]interface{}{
+				"kid": "1",
+			},
+		}
+
+		signer, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: isk}, opts)
 		require.Nil(t, err)
 
 		jws, err := jose.ParseSigned(string(req))
@@ -1399,10 +1465,10 @@ func TestRequestViaIntermediaryTimeout(t *testing.T) {
 		},
 	}
 
-	ipk, _, err := ed25519.GenerateKey(rand.Reader)
+	ipk, isk, err := ed25519.GenerateKey(rand.Reader)
 	require.Nil(t, err)
 
-	r.addpk("intermediary", ipk)
+	r.addpk("intermediary", isk, ipk)
 	r.path = "/v1/apps/intermediary/devices"
 	r.payload = []byte(`["1", "2"]`)
 
@@ -1440,7 +1506,7 @@ func TestRequestViaIntermediaryBadStatus(t *testing.T) {
 	ipk, isk, err := ed25519.GenerateKey(rand.Reader)
 	require.Nil(t, err)
 
-	r.addpk("intermediary", ipk)
+	r.addpk("intermediary", isk, ipk)
 	r.path = "/v1/apps/intermediary/devices"
 	r.payload = []byte(`["1", "2"]`)
 
@@ -1484,7 +1550,13 @@ func TestRequestViaIntermediaryBadStatus(t *testing.T) {
 		resp, err := json.Marshal(m)
 		require.Nil(t, err)
 
-		signer, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: isk}, nil)
+		opts := &jose.SignerOptions{
+			ExtraHeaders: map[jose.HeaderKey]interface{}{
+				"kid": "1",
+			},
+		}
+
+		signer, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: isk}, opts)
 		require.Nil(t, err)
 
 		response, err := signer.Sign(resp)
@@ -1522,7 +1594,7 @@ func TestRequestViaIntermediaryBadSignature(t *testing.T) {
 	ipk, _, err := ed25519.GenerateKey(rand.Reader)
 	require.Nil(t, err)
 
-	r.addpk("intermediary", ipk)
+	r.addpk("intermediary", isk, ipk)
 	r.path = "/v1/apps/intermediary/devices"
 	r.payload = []byte(`["1", "2"]`)
 
@@ -1531,7 +1603,13 @@ func TestRequestViaIntermediaryBadSignature(t *testing.T) {
 	r.responder = func(recipients []string, req []byte) (string, []byte, error) {
 		called = true
 
-		signer, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: isk}, nil)
+		opts := &jose.SignerOptions{
+			ExtraHeaders: map[jose.HeaderKey]interface{}{
+				"kid": "1",
+			},
+		}
+
+		signer, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: isk}, opts)
 		require.Nil(t, err)
 
 		jws, err := jose.ParseSigned(string(req))
@@ -1620,7 +1698,7 @@ func TestRequestViaIntermediaryBadResponder(t *testing.T) {
 	ipk, isk, err := ed25519.GenerateKey(rand.Reader)
 	require.Nil(t, err)
 
-	r.addpk("intermediary", ipk)
+	r.addpk("intermediary", isk, ipk)
 	r.path = "/v1/apps/intermediary/devices"
 	r.payload = []byte(`["1", "2"]`)
 
@@ -1629,7 +1707,13 @@ func TestRequestViaIntermediaryBadResponder(t *testing.T) {
 	r.responder = func(recipients []string, req []byte) (string, []byte, error) {
 		called = true
 
-		signer, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: isk}, nil)
+		opts := &jose.SignerOptions{
+			ExtraHeaders: map[jose.HeaderKey]interface{}{
+				"kid": "1",
+			},
+		}
+
+		signer, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: isk}, opts)
 		require.Nil(t, err)
 
 		jws, err := jose.ParseSigned(string(req))
@@ -1718,7 +1802,7 @@ func TestRequestViaIntermediaryBadIssuingIdentity(t *testing.T) {
 	ipk, isk, err := ed25519.GenerateKey(rand.Reader)
 	require.Nil(t, err)
 
-	r.addpk("intermediary", ipk)
+	r.addpk("intermediary", isk, ipk)
 	r.path = "/v1/apps/intermediary/devices"
 	r.payload = []byte(`["1", "2"]`)
 
@@ -1727,7 +1811,13 @@ func TestRequestViaIntermediaryBadIssuingIdentity(t *testing.T) {
 	r.responder = func(recipients []string, req []byte) (string, []byte, error) {
 		called = true
 
-		signer, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: isk}, nil)
+		opts := &jose.SignerOptions{
+			ExtraHeaders: map[jose.HeaderKey]interface{}{
+				"kid": "1",
+			},
+		}
+
+		signer, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: isk}, opts)
 		require.Nil(t, err)
 
 		jws, err := jose.ParseSigned(string(req))
@@ -1816,7 +1906,7 @@ func TestRequestViaIntermediaryBadAudienceIdentity(t *testing.T) {
 	ipk, isk, err := ed25519.GenerateKey(rand.Reader)
 	require.Nil(t, err)
 
-	r.addpk("intermediary", ipk)
+	r.addpk("intermediary", isk, ipk)
 	r.path = "/v1/apps/intermediary/devices"
 	r.payload = []byte(`["1", "2"]`)
 
@@ -1825,7 +1915,13 @@ func TestRequestViaIntermediaryBadAudienceIdentity(t *testing.T) {
 	r.responder = func(recipients []string, req []byte) (string, []byte, error) {
 		called = true
 
-		signer, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: isk}, nil)
+		opts := &jose.SignerOptions{
+			ExtraHeaders: map[jose.HeaderKey]interface{}{
+				"kid": "1",
+			},
+		}
+
+		signer, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: isk}, opts)
 		require.Nil(t, err)
 
 		jws, err := jose.ParseSigned(string(req))
@@ -1914,7 +2010,7 @@ func TestRequestViaIntermediaryBadSubjectIdentity(t *testing.T) {
 	ipk, isk, err := ed25519.GenerateKey(rand.Reader)
 	require.Nil(t, err)
 
-	r.addpk("intermediary", ipk)
+	r.addpk("intermediary", isk, ipk)
 	r.path = "/v1/apps/intermediary/devices"
 	r.payload = []byte(`["1", "2"]`)
 
@@ -1923,7 +2019,13 @@ func TestRequestViaIntermediaryBadSubjectIdentity(t *testing.T) {
 	r.responder = func(recipients []string, req []byte) (string, []byte, error) {
 		called = true
 
-		signer, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: isk}, nil)
+		opts := &jose.SignerOptions{
+			ExtraHeaders: map[jose.HeaderKey]interface{}{
+				"kid": "1",
+			},
+		}
+
+		signer, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: isk}, opts)
 		require.Nil(t, err)
 
 		jws, err := jose.ParseSigned(string(req))
@@ -2013,7 +2115,7 @@ func TestRequestViaIntermediaryResponseExpired(t *testing.T) {
 	ipk, isk, err := ed25519.GenerateKey(rand.Reader)
 	require.Nil(t, err)
 
-	r.addpk("intermediary", ipk)
+	r.addpk("intermediary", isk, ipk)
 	r.path = "/v1/apps/intermediary/devices"
 	r.payload = []byte(`["1", "2"]`)
 
@@ -2022,7 +2124,13 @@ func TestRequestViaIntermediaryResponseExpired(t *testing.T) {
 	r.responder = func(recipients []string, req []byte) (string, []byte, error) {
 		called = true
 
-		signer, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: isk}, nil)
+		opts := &jose.SignerOptions{
+			ExtraHeaders: map[jose.HeaderKey]interface{}{
+				"kid": "1",
+			},
+		}
+
+		signer, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: isk}, opts)
 		require.Nil(t, err)
 
 		jws, err := jose.ParseSigned(string(req))
@@ -2111,7 +2219,7 @@ func TestRequestViaIntermediaryResponseIssuedInFuture(t *testing.T) {
 	ipk, isk, err := ed25519.GenerateKey(rand.Reader)
 	require.Nil(t, err)
 
-	r.addpk("intermediary", ipk)
+	r.addpk("intermediary", isk, ipk)
 	r.path = "/v1/apps/intermediary/devices"
 	r.payload = []byte(`["1", "2"]`)
 
@@ -2120,7 +2228,13 @@ func TestRequestViaIntermediaryResponseIssuedInFuture(t *testing.T) {
 	r.responder = func(recipients []string, req []byte) (string, []byte, error) {
 		called = true
 
-		signer, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: isk}, nil)
+		opts := &jose.SignerOptions{
+			ExtraHeaders: map[jose.HeaderKey]interface{}{
+				"kid": "1",
+			},
+		}
+
+		signer, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: isk}, opts)
 		require.Nil(t, err)
 
 		jws, err := jose.ParseSigned(string(req))

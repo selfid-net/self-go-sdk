@@ -1,10 +1,11 @@
 package selfsdk
 
 import (
-	"crypto/ed25519"
 	"crypto/rand"
 	"encoding/base64"
 	"testing"
+
+	"golang.org/x/crypto/ed25519"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -60,7 +61,7 @@ func TestConfigValidate(t *testing.T) {
 	err = cfg.validate()
 	assert.NotNil(t, err)
 
-	cfg.SelfAppSecret = "private-key"
+	cfg.SelfAppSecret = "1:private-key"
 	err = cfg.validate()
 	assert.NotNil(t, err)
 
@@ -83,7 +84,7 @@ func TestConfigLoad(t *testing.T) {
 	cfg := Config{
 		SelfAppID:     "self-id",
 		DeviceID:      "device-id",
-		SelfAppSecret: base64.RawStdEncoding.EncodeToString(sk.Seed()),
+		SelfAppSecret: "1:" + base64.RawStdEncoding.EncodeToString(sk.Seed()),
 		StorageKey:    "super-secret-encryption-key",
 		StorageDir:    "/tmp/test",
 		Connectors: &Connectors{
@@ -114,7 +115,7 @@ func TestConfigLoadWithEnvironment(t *testing.T) {
 
 	cfg := Config{
 		SelfAppID:     "self-id",
-		SelfAppSecret: base64.RawStdEncoding.EncodeToString(sk.Seed()),
+		SelfAppSecret: "1:" + base64.RawStdEncoding.EncodeToString(sk.Seed()),
 		StorageKey:    "super-secret-encryption-key",
 		Environment:   "sandbox",
 		Connectors: &Connectors{

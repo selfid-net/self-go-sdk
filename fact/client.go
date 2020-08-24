@@ -2,6 +2,7 @@ package fact
 
 import (
 	"encoding/base64"
+	"encoding/json"
 	"time"
 
 	"golang.org/x/crypto/ed25519"
@@ -27,17 +28,7 @@ type messagingClient interface {
 }
 
 type pkiClient interface {
-	GetPublicKeys(selfID string) ([]byte, error)
-}
-
-type publickey struct {
-	ID  int    `json:"id"`
-	Key string `json:"key"`
-}
-
-func (p publickey) pk() ed25519.PublicKey {
-	kd, _ := enc.DecodeString(p.Key)
-	return ed25519.PublicKey(kd)
+	GetHistory(selfID string) ([]json.RawMessage, error)
 }
 
 type device struct {
@@ -48,6 +39,7 @@ type device struct {
 type Service struct {
 	selfID      string
 	deviceID    string
+	keyID       string
 	environment string
 	sk          ed25519.PrivateKey
 	api         restTransport
@@ -59,6 +51,7 @@ type Service struct {
 type Config struct {
 	SelfID      string
 	DeviceID    string
+	KeyID       string
 	Environment string
 	PrivateKey  ed25519.PrivateKey
 	Rest        restTransport
@@ -71,6 +64,7 @@ func NewService(cfg Config) *Service {
 	return &Service{
 		selfID:      cfg.SelfID,
 		deviceID:    cfg.DeviceID,
+		keyID:       cfg.KeyID,
 		environment: cfg.Environment,
 		sk:          cfg.PrivateKey,
 		api:         cfg.Rest,

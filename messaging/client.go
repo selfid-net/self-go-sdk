@@ -2,6 +2,7 @@ package messaging
 
 import (
 	"encoding/base64"
+	"encoding/json"
 	"time"
 
 	"golang.org/x/crypto/ed25519"
@@ -18,12 +19,13 @@ type messagingClient interface {
 }
 
 type pkiClient interface {
-	GetPublicKeys(selfID string) ([]byte, error)
+	GetHistory(selfID string) ([]json.RawMessage, error)
 }
 
 // Service handles all messaging operations
 type Service struct {
 	selfID    string
+	keyID     string
 	sk        ed25519.PrivateKey
 	pki       pkiClient
 	messaging messagingClient
@@ -32,19 +34,10 @@ type Service struct {
 // Config stores all configuration needed by the messaging service
 type Config struct {
 	SelfID     string
+	KeyID      string
 	PrivateKey ed25519.PrivateKey
 	PKI        pkiClient
 	Messaging  messagingClient
-}
-
-type publickey struct {
-	ID  int    `json:"id"`
-	Key string `json:"key"`
-}
-
-func (p publickey) pk() ed25519.PublicKey {
-	kd, _ := enc.DecodeString(p.Key)
-	return ed25519.PublicKey(kd)
 }
 
 type aclrule struct {
@@ -66,6 +59,7 @@ type jwsPayload struct {
 func NewService(cfg Config) *Service {
 	return &Service{
 		selfID:    cfg.SelfID,
+		keyID:     cfg.KeyID,
 		sk:        cfg.PrivateKey,
 		pki:       cfg.PKI,
 		messaging: cfg.Messaging,

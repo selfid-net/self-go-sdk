@@ -183,7 +183,7 @@ func TestCryptoClientDecrypt(t *testing.T) {
 	_, _, bstorage := setup(t, 1)
 
 	// setup alice
-	_, ask, err := ed25519.GenerateKey(rand.Reader)
+	apk, ask, err := ed25519.GenerateKey(rand.Reader)
 	require.Nil(t, err)
 
 	acfg := Config{
@@ -199,7 +199,7 @@ func TestCryptoClientDecrypt(t *testing.T) {
 	require.Nil(t, err)
 
 	// setup bob
-	_, bsk, err := ed25519.GenerateKey(rand.Reader)
+	bpk, bsk, err := ed25519.GenerateKey(rand.Reader)
 	require.Nil(t, err)
 
 	bcfg := Config{
@@ -215,14 +215,14 @@ func TestCryptoClientDecrypt(t *testing.T) {
 	require.Nil(t, err)
 
 	// publish alices public key
-	idks, err := ac.account.IdentityKeys()
+	_, err = ac.account.IdentityKeys()
 	require.Nil(t, err)
-	pki.pkeys["alice"] = []byte(`[{"id": 0, "key": "` + idks.Ed25519 + `"}]`)
+	pki.addpk("alice", ask, apk)
 
 	// publish bobs public key
-	idks, err = bc.account.IdentityKeys()
+	_, err = bc.account.IdentityKeys()
 	require.Nil(t, err)
-	pki.pkeys["bob"] = []byte(`[{"id": 0, "key": "` + idks.Ed25519 + `"}]`)
+	pki.addpk("bob", bsk, bpk)
 
 	// encrypt from alices session
 	ciphertext, err := ac.Encrypt([]string{"bob:1"}, []byte("hello"))
@@ -238,7 +238,7 @@ func TestCryptoClientExhaustPreKeys(t *testing.T) {
 	senders, pki, astorage := setup(t, 101)
 
 	// setup alice
-	_, ask, err := ed25519.GenerateKey(rand.Reader)
+	apk, ask, err := ed25519.GenerateKey(rand.Reader)
 	require.Nil(t, err)
 
 	acfg := Config{
@@ -254,13 +254,13 @@ func TestCryptoClientExhaustPreKeys(t *testing.T) {
 	require.Nil(t, err)
 
 	// publish alices public key
-	idks, err := ac.account.IdentityKeys()
+	_, err = ac.account.IdentityKeys()
 	require.Nil(t, err)
-	pki.pkeys["alice"] = []byte(`[{"id": 0, "key": "` + idks.Ed25519 + `"}]`)
+	pki.addpk("alice", ask, apk)
 
 	for _, sender := range senders {
 		// setup bob
-		_, bsk, err := ed25519.GenerateKey(rand.Reader)
+		bpk, bsk, err := ed25519.GenerateKey(rand.Reader)
 		require.Nil(t, err)
 
 		bcfg := Config{
@@ -276,9 +276,9 @@ func TestCryptoClientExhaustPreKeys(t *testing.T) {
 		require.Nil(t, err)
 
 		// publish bobs public key
-		idks, err := bc.account.IdentityKeys()
+		_, err = bc.account.IdentityKeys()
 		require.Nil(t, err)
-		pki.pkeys[sender.selfID()] = []byte(`[{"id": 0, "key": "` + idks.Ed25519 + `"}]`)
+		pki.addpk(sender.selfID(), bsk, bpk)
 
 		// encrypt from senders session
 		ciphertext, err := bc.Encrypt([]string{"alice:1"}, []byte("hello"))

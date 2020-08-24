@@ -1,6 +1,7 @@
 package selfsdk
 
 import (
+	"encoding/json"
 	"time"
 
 	"github.com/joinself/self-go-sdk/authentication"
@@ -42,7 +43,7 @@ type MessagingClient interface {
 // PKIClient defines the interface required for the sdk to perform
 // retrieving identity and device public keys from self
 type PKIClient interface {
-	GetPublicKeys(selfID string) ([]byte, error)
+	GetHistory(selfID string) ([]json.RawMessage, error)
 	GetDeviceKey(selfID, deviceID string) ([]byte, error)
 	SetDeviceKeys(selfID, deviceID string, pkb []byte) error
 }
@@ -94,6 +95,7 @@ func (c *Client) FactService() *fact.Service {
 	cfg := fact.Config{
 		SelfID:      c.config.SelfAppID,
 		DeviceID:    c.config.DeviceID,
+		KeyID:       c.config.kid,
 		Environment: c.config.Environment,
 		PrivateKey:  c.config.sk,
 		Rest:        c.connectors.Rest,
@@ -117,6 +119,7 @@ func (c *Client) AuthenticationService() *authentication.Service {
 	cfg := authentication.Config{
 		SelfID:      c.config.SelfAppID,
 		DeviceID:    c.config.DeviceID,
+		KeyID:       c.config.kid,
 		Environment: c.config.Environment,
 		PrivateKey:  c.config.sk,
 		Rest:        c.connectors.Rest,
@@ -132,6 +135,7 @@ func (c *Client) MessagingService() *messaging.Service {
 	cfg := messaging.Config{
 		SelfID:     c.config.SelfAppID,
 		PrivateKey: c.config.sk,
+		KeyID:      c.config.kid,
 		PKI:        c.connectors.PKI,
 		Messaging:  c.connectors.Messaging,
 	}

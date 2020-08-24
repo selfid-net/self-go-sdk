@@ -26,7 +26,13 @@ func (c Service) PermitConnection(selfID string) error {
 		return err
 	}
 
-	signer, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: c.sk}, nil)
+	opts := &jose.SignerOptions{
+		ExtraHeaders: map[jose.HeaderKey]interface{}{
+			"kid": c.keyID,
+		},
+	}
+
+	signer, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: c.sk}, opts)
 	if err != nil {
 		return err
 	}
@@ -60,7 +66,13 @@ func (c Service) RevokeConnection(selfID string) error {
 		return err
 	}
 
-	signer, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: c.sk}, nil)
+	opts := &jose.SignerOptions{
+		ExtraHeaders: map[jose.HeaderKey]interface{}{
+			"kid": c.keyID,
+		},
+	}
+
+	signer, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: c.sk}, opts)
 	if err != nil {
 		return err
 	}

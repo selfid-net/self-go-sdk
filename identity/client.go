@@ -1,5 +1,7 @@
 package identity
 
+import "encoding/json"
+
 // restTransport handles all interactions with the self api
 type restTransport interface {
 	Get(path string) ([]byte, error)
@@ -7,7 +9,7 @@ type restTransport interface {
 
 // PKIClient handles all interactions with handling public keys
 type pkiClient interface {
-	GetPublicKeys(selfID string) ([]byte, error)
+	GetHistory(selfID string) ([]json.RawMessage, error)
 }
 
 // Service handles all fact operations

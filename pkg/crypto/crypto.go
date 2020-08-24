@@ -11,6 +11,7 @@ import (
 
 	selfcrypto "github.com/joinself/self-crypto-go"
 	"github.com/joinself/self-go-sdk/pkg/pki"
+	"github.com/joinself/self-go-sdk/pkg/siggraph"
 	"golang.org/x/crypto/ed25519"
 )
 
@@ -18,21 +19,14 @@ var defaultPreKeyBundleSize = 100
 
 type prekeys []prekey
 
-type pubkeys []pubkey
-
 type prekey struct {
 	ID  string `json:"id"`
 	Key string `json:"key"`
 }
 
-type pubkey struct {
-	ID  int    `json:"id"`
-	Key string `json:"key"`
-}
-
 // PKI the public key infrastructure provider used to retrieve and store keys
 type PKI interface {
-	GetPublicKeys(selfID string) ([]byte, error)
+	GetHistory(selfID string) ([]json.RawMessage, error)
 	GetDeviceKey(selfID, deviceID string) ([]byte, error)
 	SetDeviceKeys(selfID, deviceID string, pkb []byte) error
 }
@@ -271,7 +265,6 @@ func (c *Client) publishPreKeys(a *selfcrypto.Account) error {
 
 func (c *Client) createOutboundSession(recipient string) (*selfcrypto.Session, error) {
 	var prk prekey
-	var pks pubkeys
 
 	identity, device := getIDs(recipient)
 
@@ -285,18 +278,17 @@ func (c *Client) createOutboundSession(recipient string) (*selfcrypto.Session, e
 		return nil, err
 	}
 
-	pksd, err := c.pki.GetPublicKeys(identity)
+	history, err := c.pki.GetHistory(identity)
 	if err != nil {
 		return nil, err
 	}
 
-	err = json.Unmarshal(pksd, &pks)
+	sg, err := siggraph.New(history)
 	if err != nil {
 		return nil, err
 	}
 
-	// TODO : support getting the right public key when devices > 1
-	pkd, err := base64.RawStdEncoding.DecodeString(pks[0].Key)
+	pkd, err := sg.ActiveDevice(device)
 	if err != nil {
 		return nil, err
 	}

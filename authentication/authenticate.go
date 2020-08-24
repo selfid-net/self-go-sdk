@@ -9,6 +9,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/joinself/self-go-sdk/pkg/ntp"
+	"github.com/joinself/self-go-sdk/pkg/siggraph"
 	"github.com/lucasb-eyer/go-colorful"
 	"github.com/skip2/go-qrcode"
 	"github.com/square/go-jose"
@@ -220,29 +221,28 @@ func (s *Service) authenticationResponse(selfID string, resp []byte) error {
 		return ErrResponseIssuedTooSoon
 	}
 
-	var keys []publickey
-
-	keyData, err := s.pki.GetPublicKeys(selfID)
+	history, err := s.pki.GetHistory(selfID)
 	if err != nil {
 		return err
 	}
 
-	err = json.Unmarshal(keyData, &keys)
+	sg, err := siggraph.New(history)
 	if err != nil {
 		return err
 	}
 
-	var verified bool
-
-	for _, k := range keys {
-		_, err = jws.Verify(k.pk())
-		if err == nil {
-			verified = true
-			break
-		}
+	kid, err := getJWSKID(resp)
+	if err != nil {
+		return err
 	}
 
-	if !verified {
+	pk, err := sg.ActiveKey(kid)
+	if err != nil {
+		return err
+	}
+
+	_, err = jws.Verify(pk)
+	if err != nil {
 		return ErrResponseBadSignature
 	}
 
@@ -278,7 +278,13 @@ func (s *Service) authenticationPayload(cid, selfID string, exp time.Duration) (
 		return nil, err
 	}
 
-	signer, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: s.sk}, nil)
+	opts := &jose.SignerOptions{
+		ExtraHeaders: map[jose.HeaderKey]interface{}{
+			"kid": s.keyID,
+		},
+	}
+
+	signer, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: s.sk}, opts)
 	if err != nil {
 		return nil, err
 	}
@@ -318,4 +324,38 @@ func (s Service) recipients(selfID string) ([]string, error) {
 	}
 
 	return devices, nil
+}
+
+func getKID(token string) (string, error) {
+	data, err := base64.RawURLEncoding.DecodeString(strings.Split(token, ".")[0])
+	if err != nil {
+		return "", err
+	}
+
+	hdr := make(map[string]string)
+
+	err = json.Unmarshal(data, &hdr)
+	if err != nil {
+		return "", err
+	}
+
+	kid := hdr["kid"]
+	if kid == "" {
+		return "", errors.New("token must specify an identifier for the signing key")
+	}
+
+	return kid, nil
+}
+
+func getJWSKID(payload []byte) (string, error) {
+	var jws struct {
+		Protected string `json:"protected"`
+	}
+
+	err := json.Unmarshal(payload, &jws)
+	if err != nil {
+		return "", err
+	}
+
+	return getKID(jws.Protected)
 }

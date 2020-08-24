@@ -7,12 +7,6 @@ var (
 	IdentityTypeApp        = "app"
 )
 
-// PublicKey the public curve25519 key of a self identity
-type PublicKey struct {
-	ID  int    `json:"id"`
-	Key string `json:"key"`
-}
-
 // User identity -> Individual?
 // Would be nice to have a way to refer/represent different classes of app or user identity
 // so Identity can be either an [Individual, App, Asset], etc.
@@ -21,15 +15,16 @@ type PublicKey struct {
 type Identity interface {
 	SelfID() string
 	Type() string
-	PublicKeys() []PublicKey
+	History() []json.RawMessage
 }
 
 // replace this with whatever we decide for (individual, person, user, human)
 
 // Individual represnts all information about an individual identity
 type Individual struct {
-	selfID     string
-	publicKeys []PublicKey
+	selfID       string
+	identityType string
+	history      []json.RawMessage
 }
 
 // SelfID the self ID of the identity
@@ -42,15 +37,16 @@ func (id Individual) Type() string {
 	return IdentityTypeIndividual
 }
 
-// PublicKeys the public keys of the identity
-func (id Individual) PublicKeys() []PublicKey {
-	return id.publicKeys
+// History the public key history of an identity
+func (id Individual) History() []json.RawMessage {
+	return id.history
 }
 
 // App represents all information about an app identity
 type App struct {
-	selfID     string
-	publicKeys []PublicKey
+	selfID       string
+	identityType string
+	history      []json.RawMessage
 }
 
 // SelfID the self ID of the identity
@@ -63,9 +59,9 @@ func (id App) Type() string {
 	return IdentityTypeIndividual
 }
 
-// PublicKeys the public keys of the identity
-func (id App) PublicKeys() []PublicKey {
-	return id.publicKeys
+// History the public key history of an identity
+func (id App) History() []json.RawMessage {
+	return id.history
 }
 
 // Device represents an identities device
@@ -115,9 +111,9 @@ func (s Service) GetDevices(selfID string) ([]Device, error) {
 	return devices, json.Unmarshal(resp, &devices)
 }
 
-// GetPublicKeys gets the public keys of an identity
-func (s Service) GetPublicKeys(selfID string) ([]PublicKey, error) {
-	var keys []PublicKey
+// GetHistory gets the public key history of an identity
+func (s Service) GetHistory(selfID string) ([]json.RawMessage, error) {
+	var keys []json.RawMessage
 
 	var resp []byte
 	var err error

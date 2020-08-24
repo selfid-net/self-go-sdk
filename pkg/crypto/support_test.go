@@ -10,9 +10,12 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/google/uuid"
 	selfcrypto "github.com/joinself/self-crypto-go"
+	"github.com/joinself/self-go-sdk/pkg/siggraph"
+	"github.com/square/go-jose"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/crypto/ed25519"
 )
@@ -53,21 +56,37 @@ func setup(t *testing.T, recipients int) (map[string]recipient, *testPKI, *testS
 
 		a.MarkKeysAsPublished()
 
-		// store the identities public key
-		pks := pubkeys{
-			{
-				ID:  0,
-				Key: base64.RawStdEncoding.EncodeToString(pk),
-			},
-		}
-
-		pki.pkeys[id], err = json.Marshal(pks)
-		require.Nil(t, err)
+		pki.addpk(id, sk, pk)
 
 		rcp[id+":1"] = recipient{id: id + ":1", account: a, pk: pk, sk: sk}
 	}
 
 	return rcp, pki, newTestStorage(t)
+}
+
+func testop(sk ed25519.PrivateKey, kid string, op *siggraph.Operation) json.RawMessage {
+	data, err := json.Marshal(op)
+	if err != nil {
+		panic(err)
+	}
+
+	opts := &jose.SignerOptions{
+		ExtraHeaders: map[jose.HeaderKey]interface{}{
+			"kid": kid,
+		},
+	}
+
+	s, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: sk}, opts)
+	if err != nil {
+		panic(err)
+	}
+
+	jws, err := s.Sign(data)
+	if err != nil {
+		panic(err)
+	}
+
+	return json.RawMessage(jws.FullSerialize())
 }
 
 func recipients(r map[string]recipient) []string {
@@ -138,21 +157,21 @@ func createTestDirectory(t *testing.T) string {
 }
 
 type testPKI struct {
-	dkoff map[string]int
-	dkeys map[string][]byte
-	pkeys map[string][]byte
+	dkoff   map[string]int
+	dkeys   map[string][]byte
+	history map[string][]json.RawMessage
 }
 
 func newTestPKI(t *testing.T) *testPKI {
 	return &testPKI{
-		dkoff: make(map[string]int),
-		dkeys: make(map[string][]byte),
-		pkeys: make(map[string][]byte),
+		dkoff:   make(map[string]int),
+		dkeys:   make(map[string][]byte),
+		history: make(map[string][]json.RawMessage),
 	}
 }
 
-func (p *testPKI) GetPublicKeys(selfID string) ([]byte, error) {
-	return p.pkeys[selfID], nil
+func (p *testPKI) GetHistory(selfID string) ([]json.RawMessage, error) {
+	return p.history[selfID], nil
 }
 
 func (p *testPKI) GetDeviceKey(selfID, deviceID string) ([]byte, error) {
@@ -177,6 +196,38 @@ func (p *testPKI) GetDeviceKey(selfID, deviceID string) ([]byte, error) {
 func (p *testPKI) SetDeviceKeys(selfID, deviceID string, pkb []byte) error {
 	p.dkeys[selfID+":"+deviceID] = pkb
 	return nil
+}
+
+func (p *testPKI) addpk(selfID string, sk ed25519.PrivateKey, pk ed25519.PublicKey) {
+	now := time.Now().Unix()
+
+	rpk, _, _ := ed25519.GenerateKey(rand.Reader)
+
+	p.history[selfID] = []json.RawMessage{
+		testop(sk, "1", &siggraph.Operation{
+			Sequence:  0,
+			Version:   "1.0.0",
+			Previous:  "-",
+			Timestamp: now,
+			Actions: []siggraph.Action{
+				{
+					KID:           "1",
+					DID:           "1",
+					Type:          siggraph.TypeDeviceKey,
+					Action:        siggraph.ActionKeyAdd,
+					EffectiveFrom: now,
+					Key:           base64.RawURLEncoding.EncodeToString(pk),
+				},
+				{
+					KID:           "2",
+					Type:          siggraph.TypeRecoveryKey,
+					Action:        siggraph.ActionKeyAdd,
+					EffectiveFrom: now,
+					Key:           base64.RawURLEncoding.EncodeToString(rpk),
+				},
+			},
+		}),
+	}
 }
 
 type testStorage struct {

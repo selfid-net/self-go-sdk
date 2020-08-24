@@ -15,6 +15,7 @@ import (
 // RestConfig configuration for connecting to selfs api
 type RestConfig struct {
 	SelfID     string
+	KeyID      string
 	PrivateKey ed25519.PrivateKey
 	APIURL     string
 	Client     *http.Client
@@ -64,7 +65,7 @@ func (c *Rest) request(method, path string, data []byte, headers map[string]stri
 		return nil, err
 	}
 
-	token, err := GenerateToken(c.config.SelfID, c.config.PrivateKey)
+	token, err := GenerateToken(c.config.SelfID, c.config.KeyID, c.config.PrivateKey)
 	if err != nil {
 		return nil, err
 	}
