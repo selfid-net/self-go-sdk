@@ -95,7 +95,7 @@ func (c *Client) FactService() *fact.Service {
 	cfg := fact.Config{
 		SelfID:      c.config.SelfAppID,
 		DeviceID:    c.config.DeviceID,
-		KeyID:       c.config.SelfAppKeyID,
+		KeyID:       c.config.kid,
 		Environment: c.config.Environment,
 		PrivateKey:  c.config.sk,
 		Rest:        c.connectors.Rest,
@@ -119,7 +119,7 @@ func (c *Client) AuthenticationService() *authentication.Service {
 	cfg := authentication.Config{
 		SelfID:      c.config.SelfAppID,
 		DeviceID:    c.config.DeviceID,
-		KeyID:       c.config.SelfAppKeyID,
+		KeyID:       c.config.kid,
 		Environment: c.config.Environment,
 		PrivateKey:  c.config.sk,
 		Rest:        c.connectors.Rest,
@@ -135,7 +135,7 @@ func (c *Client) MessagingService() *messaging.Service {
 	cfg := messaging.Config{
 		SelfID:     c.config.SelfAppID,
 		PrivateKey: c.config.sk,
-		KeyID:      c.config.SelfAppKeyID,
+		KeyID:      c.config.kid,
 		PKI:        c.connectors.PKI,
 		Messaging:  c.connectors.Messaging,
 	}

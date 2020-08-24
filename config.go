@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/joinself/self-go-sdk/pkg/crypto"
@@ -39,7 +40,6 @@ type Connectors struct {
 type Config struct {
 	SelfAppID            string
 	SelfAppSecret        string
-	SelfAppKeyID         string
 	StorageKey           string
 	DeviceID             string
 	StorageDir           string
@@ -51,6 +51,7 @@ type Config struct {
 	RequestTimeout       time.Duration
 	EnableEncryption     bool
 	Connectors           *Connectors
+	kid                  string
 	sk                   ed25519.PrivateKey
 }
 
@@ -73,8 +74,8 @@ func (c Config) validate() error {
 		return errors.New("config must specify an app secret key")
 	}
 
-	if c.SelfAppKeyID == "" {
-		return errors.New("config must specify an app key identifier")
+	if len(strings.Split(c.SelfAppSecret, ":")) < 2 {
+		return errors.New("config must specify an app key with an identifier prefix")
 	}
 
 	if c.StorageKey == "" {
@@ -128,12 +129,15 @@ func (c *Config) load() error {
 		c.RequestTimeout = defaultRequestTimeout
 	}
 
-	skData, err := decoder.DecodeString(c.SelfAppSecret)
+	kp := strings.Split(c.SelfAppSecret, ":")
+
+	skData, err := decoder.DecodeString(kp[1])
 	if err != nil {
 		return errors.New("could not decode private key")
 	}
 
 	c.sk = ed25519.NewKeyFromSeed(skData)
+	c.kid = kp[0]
 
 	// loading connectors should be done in order due to dependencies
 
@@ -181,7 +185,7 @@ func (c Config) loadRestConnector() error {
 		},
 		APIURL:     c.APIURL,
 		SelfID:     c.SelfAppID,
-		KeyID:      c.SelfAppKeyID,
+		KeyID:      c.kid,
 		PrivateKey: c.sk,
 	}
 
@@ -204,7 +208,7 @@ func (c Config) loadWebsocketConnector() error {
 		MessagingURL: c.MessagingURL,
 		StorageDir:   c.StorageDir,
 		SelfID:       c.SelfAppID,
-		KeyID:        c.SelfAppKeyID,
+		KeyID:        c.kid,
 		DeviceID:     c.DeviceID,
 		PrivateKey:   c.sk,
 		TCPDeadline:  defaultTCPDeadline,

@@ -61,7 +61,7 @@ func TestConfigValidate(t *testing.T) {
 	err = cfg.validate()
 	assert.NotNil(t, err)
 
-	cfg.SelfAppSecret = "private-key"
+	cfg.SelfAppSecret = "1:private-key"
 	err = cfg.validate()
 	assert.NotNil(t, err)
 
@@ -70,10 +70,6 @@ func TestConfigValidate(t *testing.T) {
 	assert.NotNil(t, err)
 
 	cfg.StorageKey = "super-secret-encryption-key"
-	err = cfg.validate()
-	assert.NotNil(t, err)
-
-	cfg.SelfAppKeyID = "1"
 	err = cfg.validate()
 	assert.Nil(t, err)
 }
@@ -88,7 +84,7 @@ func TestConfigLoad(t *testing.T) {
 	cfg := Config{
 		SelfAppID:     "self-id",
 		DeviceID:      "device-id",
-		SelfAppSecret: base64.RawStdEncoding.EncodeToString(sk.Seed()),
+		SelfAppSecret: "1:" + base64.RawStdEncoding.EncodeToString(sk.Seed()),
 		StorageKey:    "super-secret-encryption-key",
 		StorageDir:    "/tmp/test",
 		Connectors: &Connectors{
@@ -119,7 +115,7 @@ func TestConfigLoadWithEnvironment(t *testing.T) {
 
 	cfg := Config{
 		SelfAppID:     "self-id",
-		SelfAppSecret: base64.RawStdEncoding.EncodeToString(sk.Seed()),
+		SelfAppSecret: "1:" + base64.RawStdEncoding.EncodeToString(sk.Seed()),
 		StorageKey:    "super-secret-encryption-key",
 		Environment:   "sandbox",
 		Connectors: &Connectors{
