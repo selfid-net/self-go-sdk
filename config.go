@@ -129,6 +129,10 @@ func (c *Config) load() error {
 		c.RequestTimeout = defaultRequestTimeout
 	}
 
+	if len(strings.Split(c.SelfAppSecret, ":")) < 2 {
+		c.SelfAppSecret = "1:" + c.SelfAppSecret
+	}
+
 	kp := strings.Split(c.SelfAppSecret, ":")
 
 	skData, err := decoder.DecodeString(kp[1])
