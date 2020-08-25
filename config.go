@@ -75,7 +75,7 @@ func (c Config) validate() error {
 	}
 
 	if len(strings.Split(c.SelfAppSecret, ":")) < 2 {
-		return errors.New("config must specify an app key with an identifier prefix")
+		c.SelfAppSecret = "1:" + c.SelfAppSecret
 	}
 
 	if c.StorageKey == "" {
