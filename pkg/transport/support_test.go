@@ -13,7 +13,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/gogo/protobuf/proto"
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 	"github.com/joinself/self-go-sdk/pkg/ntp"
@@ -21,6 +20,7 @@ import (
 	"github.com/square/go-jose"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/crypto/ed25519"
+	"google.golang.org/protobuf/proto"
 )
 
 var token string
