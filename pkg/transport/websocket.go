@@ -72,6 +72,7 @@ type event struct {
 	id   string
 	data []byte
 	err  chan error
+	cb   func(err error)
 }
 
 // NewWebsocket creates a new websocket connection
@@ -117,7 +118,7 @@ func NewWebsocket(config WebsocketConfig) (*Websocket, error) {
 	return &c, c.connect()
 }
 
-// Send send a message to a given recipient. recipient is a combination of "selfID:deviceID"
+// Send send a message to given recipients. recipient is a combination of "selfID:deviceID"
 func (c *Websocket) Send(recipients []string, data []byte) error {
 	for _, r := range recipients {
 		id := uuid.New().String()
@@ -148,6 +149,33 @@ func (c *Websocket) Send(recipients []string, data []byte) error {
 	}
 
 	return nil
+}
+
+// SendAsync send a message to given recipients with a callback to handle the server response
+func (c *Websocket) SendAsync(recipients []string, data []byte, callback func(err error)) {
+	for _, r := range recipients {
+		id := uuid.New().String()
+
+		m, err := proto.Marshal(&msgproto.Message{
+			Id:         id,
+			Sender:     c.config.messagingID,
+			Recipient:  r,
+			Ciphertext: data,
+		})
+
+		if err != nil {
+			callback(err)
+			return
+		}
+
+		e := event{
+			id:   id,
+			data: m,
+			cb:   callback,
+		}
+
+		c.queue.Push(priorityMessage, &e)
+	}
 }
 
 // Receive receive a message
@@ -224,6 +252,15 @@ func (c *Websocket) connect() error {
 		return errors.New("could not connect")
 	}
 
+	var connected bool
+
+	defer func(success *bool) {
+		if !(*success) {
+			// if it failed to reconnect, set the connection status to closed
+			atomic.CompareAndSwapInt32(&c.closed, 0, 1)
+		}
+	}(&connected)
+
 	token, err := GenerateToken(c.config.SelfID, c.config.KeyID, c.config.PrivateKey)
 	if err != nil {
 		return err
@@ -274,6 +311,8 @@ func (c *Websocket) connect() error {
 	default:
 		return errors.New("unknown authentication response")
 	}
+
+	connected = true
 
 	ws.SetPongHandler(c.pongHandler)
 
@@ -336,9 +375,9 @@ func (c *Websocket) reader() {
 
 			if n.Type == msgproto.MsgType_ACK {
 				pch.(*event).err <- nil
+			} else {
+				pch.(*event).err <- errors.New(n.Error)
 			}
-
-			pch.(*event).err <- errors.New(n.Error)
 		case msgproto.MsgType_ACL:
 			a := m.(*msgproto.AccessControlList)
 
@@ -387,7 +426,11 @@ func (c *Websocket) writer() {
 
 			err = c.ws.WriteMessage(websocket.BinaryMessage, ev.data)
 			if err != nil {
-				ev.err <- err
+				if ev.cb != nil {
+					ev.cb(err)
+				} else {
+					ev.err <- err
+				}
 				continue
 			}
 		}
