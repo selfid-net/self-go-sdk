@@ -4,8 +4,7 @@ go 1.13
 
 require (
 	github.com/beevik/ntp v0.2.0
-	github.com/gogo/protobuf v1.3.1
-	github.com/golang/protobuf v1.3.3
+	github.com/golang/protobuf v1.4.1
 	github.com/google/uuid v1.1.1
 	github.com/gorilla/websocket v1.4.1
 	github.com/joinself/self-crypto-go v0.0.0-20200820061019-830905aafda6
@@ -17,6 +16,6 @@ require (
 	github.com/tidwall/sjson v1.0.4
 	golang.org/x/crypto v0.0.0-20200323165209-0ec3e9974c59
 	golang.org/x/net v0.0.0-20200222125558-5a598a2470a0 // indirect
-	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
+	google.golang.org/protobuf v1.25.0
 	gopkg.in/square/go-jose.v2 v2.4.1
 )

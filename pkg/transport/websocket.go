@@ -12,12 +12,12 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/gogo/protobuf/proto"
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 	"github.com/joinself/self-go-sdk/pkg/pqueue"
 	"github.com/joinself/self-go-sdk/pkg/protos/msgproto"
 	"golang.org/x/crypto/ed25519"
+	"google.golang.org/protobuf/proto"
 )
 
 const (
@@ -241,7 +241,7 @@ func (c *Websocket) connect() error {
 		Type:   msgproto.MsgType_AUTH,
 		Token:  token,
 		Device: c.config.DeviceID,
-		Offset: uint64(c.offset),
+		Offset: c.offset,
 	}
 
 	data, err := proto.Marshal(&auth)
