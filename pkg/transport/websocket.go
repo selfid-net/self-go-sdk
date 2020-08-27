@@ -373,10 +373,18 @@ func (c *Websocket) reader() {
 
 			c.responses.Delete(n.Id)
 
-			if n.Type == msgproto.MsgType_ACK {
-				pch.(*event).err <- nil
+			var rerr error
+
+			if n.Type == msgproto.MsgType_ERR {
+				rerr = errors.New(n.Error)
+			}
+
+			rev := pch.(*event)
+
+			if rev.cb != nil {
+				rev.cb(rerr)
 			} else {
-				pch.(*event).err <- errors.New(n.Error)
+				rev.err <- rerr
 			}
 		case msgproto.MsgType_ACL:
 			a := m.(*msgproto.AccessControlList)
