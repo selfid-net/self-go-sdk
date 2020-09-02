@@ -24,16 +24,16 @@ This sdk provides access to the following self services:
 
 #### Debian/Ubuntu
 ```sh
-$ curl -O http://download.selfid.net/olm/libself-olm_0.1.17_amd64.deb
-$ curl -O http://download.selfid.net/omemo/libself-omemo_0.1.2_amd64.deb
+$ curl -O http://download.joinself.com/olm/libself-olm_0.1.17_amd64.deb
+$ curl -O http://download.joinself.com/omemo/libself-omemo_0.1.2_amd64.deb
 $ apt install libsodium-dev
 $ apt install ./libself-olm_0.1.17_amd64.deb ./libself-omemo_0.1.2_amd64.deb
 ```
 
 #### Redhat/Centos
 ```sh
-$ rpm -Uvh http://download.selfid.net/olm/libself-olm-0.1.14-1.x86_64.rpm
-$ rpm -Uvh http://download.selfid.net/omemo/libself-omemo-0.1.2-1.x86_64.rpm
+$ rpm -Uvh http://download.joinself.com/olm/libself-olm-0.1.14-1.x86_64.rpm
+$ rpm -Uvh http://download.joinself.com/omemo/libself-omemo-0.1.2-1.x86_64.rpm
 ```
 
 #### Mac
