@@ -20,7 +20,7 @@ Running this command will open the qr code in a browser, which you will need to 
 
 This diagram shows how does a Deep link based information request process works internally.
 
-![Diagram](https://storage.googleapis.com/static.joinself.com/images/di_facts_diagram.png)
+![Diagram](https://static.joinself.com/images/di_facts_diagram.png)
 
 
 1. Generate Self information request Deep Link

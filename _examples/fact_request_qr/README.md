@@ -19,7 +19,7 @@ $ SELF_APP_ID=XXXXX SELF_APP_SECRET=XXXXXXXX go run fact.go
 
 This diagram shows how the Self fact request process works when using a qr code.
 
-![Diagram](https://storage.googleapis.com/static.joinself.com/images/fact_request_qr_diagram.png)
+![Diagram](https://static.joinself.com/images/fact_request_qr_diagram.png)
 
 
 1. Generate Self fact request QR code

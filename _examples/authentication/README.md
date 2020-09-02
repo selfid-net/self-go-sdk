@@ -21,7 +21,7 @@ Note you must provide a valid user self_id for `your_users_self_id`. This exampl
 
 This diagram shows how the Self authentication process works.
 
-![Diagram](https://storage.googleapis.com/static.joinself.com/images/authentication_diagram.png)
+![Diagram](https://static.joinself.com/images/authentication_diagram.png)
 
 1. Request specific identity authentication through self-sdk
 2. Self-SDK will send the authentication request to the specified users devices.
