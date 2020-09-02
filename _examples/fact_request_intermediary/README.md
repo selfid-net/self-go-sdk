@@ -21,7 +21,7 @@ Note you must provide a valid user self_id for `your_users_self_id`. This exampl
 
 This diagram shows how the intermediary witnessed fact request process works internally.
 
-![Diagram](https://storage.googleapis.com/static.joinself.com/images/intermediary_fact_request_diagram.png)
+![Diagram](https://static.joinself.com/images/intermediary_fact_request_diagram.png)
 
 1. Request intermediary to check an identities.facts. through the self SDK with the data you want to assert, like age > 18.
 2. SDK will send a fact request to the intermediary.

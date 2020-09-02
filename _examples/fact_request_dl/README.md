@@ -19,7 +19,7 @@ $ SELF_APP_ID=XXXXX SELF_APP_SECRET=XXXXXXXX go run fact.go
 
 This diagram shows how does a Deep link based information request process works internally.
 
-![Diagram](https://storage.googleapis.com/static.joinself.com/images/di_facts_diagram.png)
+![Diagram](https://static.joinself.com/images/di_facts_diagram.png)
 
 
 1. Generate Self information request Deep Link
