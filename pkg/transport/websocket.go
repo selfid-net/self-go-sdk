@@ -79,8 +79,12 @@ type event struct {
 func NewWebsocket(config WebsocketConfig) (*Websocket, error) {
 	config.load()
 
-	offsetFile := filepath.Join(config.StorageDir, config.SelfID+":"+config.DeviceID+".offset")
+	err := os.MkdirAll(config.StorageDir, os.ModePerm)
+	if err != nil {
+		return nil, err
+	}
 
+	offsetFile := filepath.Join(config.StorageDir, config.SelfID+":"+config.DeviceID+".offset")
 	fd, err := os.OpenFile(offsetFile, os.O_CREATE|os.O_RDWR, 0766)
 	if err != nil {
 		return nil, err
