@@ -4,7 +4,6 @@ import (
 	"log"
 	"os"
 
-	"github.com/davecgh/go-spew/spew"
 	selfsdk "github.com/joinself/self-go-sdk"
 )
 
@@ -49,7 +48,6 @@ func main() {
 	// list all connections
 	connections, err := ms.ListConnections()
 	if err != nil {
-		spew.Dump(err)
 		log.Fatal("listing connections returned with: ", err)
 	}
 
