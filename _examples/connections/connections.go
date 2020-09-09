@@ -28,26 +28,27 @@ func main() {
 		panic("you must specify a self id as an argument")
 	}
 
-	log.Println("blocking user")
-
 	ms := client.MessagingService()
 
+	log.Println("revoking connection")
 	// revoke a connection
 	err = ms.RevokeConnection(os.Args[1])
 	if err != nil {
-		log.Fatal("acl command returned with: ", err)
+		log.Fatal("revoke connection returned with: ", err)
 	}
 
+	log.Println("permitting connection")
 	// permit a connection
 	err = ms.PermitConnection(os.Args[1])
 	if err != nil {
-		log.Fatal("acl command returned with: ", err)
+		log.Fatal("permitting connection returned with: ", err)
 	}
 
+	log.Println("listing connections")
 	// list all connections
 	connections, err := ms.ListConnections()
 	if err != nil {
-		log.Fatal("acl command returned with: ", err)
+		log.Fatal("listing connections returned with: ", err)
 	}
 
 	log.Println("connected to:", connections)
