@@ -1,11 +1,16 @@
+variables:
+  DOCKER_HOST: tcp://docker:2375
+  DOCKER_TLS_CERTDIR: ""
+
 default:
   image: golang:1.14.4-buster
 
 stages:
-  - Test
-  - Release
+  - pre-test
+  - test
+  - release
 
-.setup: &setup |
+.setup-unit-test: &setup-unit-test |
   apt-get update
   apt-get -y install libsodium-dev
   tmpdir=$(mktemp -d)
@@ -14,7 +19,7 @@ stages:
   apt-get -y install ${tmpdir}/libself-olm_0.1.14_amd64.deb
   apt-get -y install ${tmpdir}/libself-omemo_0.1.1_amd64.deb
 
-.new_version: &new_version |
+.new-version: &new-version |
   if [[ $(git tag) == "" ]]; then
     version="0.1.0"
   else
@@ -32,7 +37,7 @@ stages:
     esac
   fi
 
-.git_release: &git_release |
+.git-release: &git-release |
   subject=$(git log -n 1 --format=%s)
   body=$(git log -n 1 --format=%b | grep -E '^\*|^-' | sed 's/^*/-/g') || true
 
@@ -47,7 +52,7 @@ stages:
   git push origin ${version}
   hub release create -m "${version}" -m "${release_notes}" ${version}
 
-.slack_notify: &slack_notify |
+.slack-notify: &slack-notify |
   if [[ -z ${body} ]]; then
     slack chat send "New release <https://github.com/joinself/${CI_PROJECT_NAME}|${CI_PROJECT_NAME}> <https://github.com/joinself/${CI_PROJECT_NAME}/commits/${version}|${version}>\n\n- ${subject}" '#ci'
   else
@@ -58,21 +63,33 @@ before_script:
   - export SCRIPTS_DIR=$(mktemp -d)
   - git clone -q --depth 1 "${SCRIPTS_REPO}" "${SCRIPTS_DIR}"
 
-test:
-  stage: Test
+license-check:
+  stage: pre-test
+  image: docker:stable-git
+  services:
+    - docker:19.03.2-dind
   script:
-    - *setup
+    - ${SCRIPTS_DIR}/git-setup
+    - ${SCRIPTS_DIR}/license-check
+  allow_failure: true
+  only:
+    - branches
+
+unit-test:
+  stage: test
+  script:
+    - *setup-unit-test
     - go test -v ./...
   only:
     - branches
 
 release:
-  stage: Release
+  stage: release
   image: aldgateventuresbot/deploy
   script:
     - ${SCRIPTS_DIR}/git-setup
-    - *new_version
-    - *git_release
-    - *slack_notify
+    - *new-version
+    - *git-release
+    - *slack-notify
   only:
     - master
