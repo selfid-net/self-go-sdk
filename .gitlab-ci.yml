@@ -15,7 +15,7 @@ stages:
   apt-get -y install ${tmpdir}/libself-olm_0.1.14_amd64.deb
   apt-get -y install ${tmpdir}/libself-omemo_0.1.1_amd64.deb
 
-.new_version: &new_version |
+.new-version: &new-version |
   if [[ $(git tag) == "" ]]; then
     version="0.1.0"
   else
@@ -33,7 +33,7 @@ stages:
     esac
   fi
 
-.git_release: &git_release |
+.git-release: &git-release |
   subject=$(git log -n 1 --format=%s)
   body=$(git log -n 1 --format=%b | grep -E '^\*|^-' | sed 's/^*/-/g') || true
 
@@ -48,7 +48,7 @@ stages:
   git push origin ${version}
   hub release create -m "${version}" -m "${release_notes}" ${version}
 
-.slack_notify: &slack_notify |
+.slack-notify: &slack-notify |
   if [[ -z ${body} ]]; then
     slack chat send "New release <https://github.com/joinself/${CI_PROJECT_NAME}|${CI_PROJECT_NAME}> <https://github.com/joinself/${CI_PROJECT_NAME}/commits/${version}|${version}>\n\n- ${subject}" '#ci'
   else
@@ -84,8 +84,8 @@ release:
   image: aldgateventuresbot/deploy
   script:
     - ${SCRIPTS_DIR}/git-setup
-    - *new_version
-    - *git_release
-    - *slack_notify
+    - *new-version
+    - *git-release
+    - *slack-notify
   only:
     - master
