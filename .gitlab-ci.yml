@@ -1,7 +1,3 @@
-variables:
-  DOCKER_HOST: tcp://docker:2375
-  DOCKER_TLS_CERTDIR: ""
-
 default:
   image: golang:1.14.4-buster
 
@@ -9,6 +5,11 @@ stages:
   - pre-test
   - test
   - release
+
+.license-check: &license-check |
+  git clone https://${GITHUB_TOKEN}:@github.com/aldgate-ventures/license-finder.git
+  source ~/.profile
+  license_finder --decisions_file ./license-finder/dependency_decisions.yml
 
 .setup-unit-test: &setup-unit-test |
   apt-get update
@@ -65,12 +66,10 @@ before_script:
 
 license-check:
   stage: pre-test
-  image: docker:stable-git
-  services:
-    - docker:19.03.2-dind
+  image: licensefinder/license_finder
   script:
     - ${SCRIPTS_DIR}/git-setup
-    - ${SCRIPTS_DIR}/license-check
+    - *license-check
   allow_failure: true
   only:
     - branches
