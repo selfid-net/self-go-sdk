@@ -2,10 +2,11 @@ default:
   image: golang:1.14.4-buster
 
 stages:
-  - Test
-  - Release
+  - pre-test
+  - test
+  - release
 
-.setup: &setup |
+.setup-unit-test: &setup-unit-test |
   apt-get update
   apt-get -y install libsodium-dev
   tmpdir=$(mktemp -d)
@@ -58,16 +59,28 @@ before_script:
   - export SCRIPTS_DIR=$(mktemp -d)
   - git clone -q --depth 1 "${SCRIPTS_REPO}" "${SCRIPTS_DIR}"
 
-test:
-  stage: Test
+license-check:
+  stage: pre-test
+  image: docker:stable-git
+  services:
+    - docker:19.03.2-dind
   script:
-    - *setup
+    - ${SCRIPTS_DIR}/git-setup
+    - ${SCRIPTS_DIR}/license-check
+  allow_failure: true
+  only:
+    - branches
+
+unit-test:
+  stage: test
+  script:
+    - *setup-unit-test
     - go test -v ./...
   only:
     - branches
 
 release:
-  stage: Release
+  stage: release
   image: aldgateventuresbot/deploy
   script:
     - ${SCRIPTS_DIR}/git-setup
