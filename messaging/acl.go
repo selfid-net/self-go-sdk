@@ -91,7 +91,7 @@ func (c Service) RevokeConnection(selfID string) error {
 
 // ListConnections lists all self IDs that are permitted to send messages
 func (c Service) ListConnections() ([]string, error) {
-	var rules []aclrule
+	var rules []string
 
 	resp, err := c.messaging.Command("acl.list", nil)
 	if err != nil {
@@ -103,11 +103,5 @@ func (c Service) ListConnections() ([]string, error) {
 		return nil, err
 	}
 
-	permitted := make([]string, len(rules))
-
-	for i, r := range rules {
-		permitted[i] = r.Source
-	}
-
-	return permitted, nil
+	return rules, nil
 }
