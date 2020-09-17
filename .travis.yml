@@ -11,4 +11,4 @@ before_install:
 
 go:
   - "1.13"
-  - master
+  - "1.15"
