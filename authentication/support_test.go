@@ -47,7 +47,7 @@ type testResponder struct {
 	responder func(req map[string]string) (string, []byte, error)
 }
 
-func (c *testResponder) Request(recipients []string, cid string, data []byte) (string, []byte, error) {
+func (c *testResponder) Request(recipients []string, cid string, data []byte, timeout time.Duration) (string, []byte, error) {
 	var req map[string]string
 
 	jws, err := jose.ParseSigned(string(data))

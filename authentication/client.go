@@ -17,7 +17,7 @@ type restTransport interface {
 
 // MessagingClient handles all interactions with self messaging and its users
 type messagingClient interface {
-	Request(recipients []string, cid string, data []byte) (string, []byte, error)
+	Request(recipients []string, cid string, data []byte, timeout time.Duration) (string, []byte, error)
 	Register(cid string)
 	Send(recipients []string, data []byte) error
 	Wait(cid string, timeout time.Duration) (string, []byte, error)

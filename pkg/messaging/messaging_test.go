@@ -61,7 +61,7 @@ func TestMessagingRequest(t *testing.T) {
 		ws.in <- &testEvent{sender: "alice:1", data: []byte(decoder.EncodeToString(resp))}
 	}()
 
-	_, response, err := c.Request([]string{"alice:1"}, "1", []byte(`{"payload":"eyJjaWQiOiAiMSJ9"}`))
+	_, response, err := c.Request([]string{"alice:1"}, "1", []byte(`{"payload":"eyJjaWQiOiAiMSJ9"}`), 0)
 	require.Nil(t, err)
 	assert.NotNil(t, response)
 }

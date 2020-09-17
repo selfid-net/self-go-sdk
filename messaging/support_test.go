@@ -33,7 +33,7 @@ func (c *testMessaging) Send(recipients []string, data []byte) error {
 	return c.sendError
 }
 
-func (c *testMessaging) Request(recipients []string, cid string, data []byte) (string, []byte, error) {
+func (c *testMessaging) Request(recipients []string, cid string, data []byte, timeout time.Duration) (string, []byte, error) {
 	if c.responder == nil {
 		return "", nil, errors.New("request timeout")
 	}

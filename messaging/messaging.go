@@ -156,7 +156,7 @@ func (s *Service) Request(recipients []string, request []byte) ([]byte, error) {
 		return nil, err
 	}
 
-	sender, response, err := s.messaging.Request(recipients, cid, []byte(plaintext))
+	sender, response, err := s.messaging.Request(recipients, cid, []byte(plaintext), 0)
 	if err != nil {
 		return nil, err
 	}
