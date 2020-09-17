@@ -40,11 +40,6 @@ type Config struct {
 	Messaging  messagingClient
 }
 
-type aclrule struct {
-	Source  string    `json:"acl_source"`
-	Expires time.Time `json:"acl_exp"`
-}
-
 type jwsPayload struct {
 	ID           string    `json:"jti"`
 	Conversation string    `json:"cid"`

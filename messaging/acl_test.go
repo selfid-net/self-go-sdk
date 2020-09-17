@@ -100,10 +100,10 @@ func TestMessagingListConnections(t *testing.T) {
 
 	s := NewService(cfg)
 
-	m.in, err = json.Marshal([]aclrule{
-		{Source: "app-1"},
-		{Source: "app-2"},
-		{Source: "app-3"},
+	m.in, err = json.Marshal([]string{
+		"app-1",
+		"app-2",
+		"app-3",
 	})
 
 	permitted, err := s.ListConnections()
