@@ -32,7 +32,7 @@ type WebsocketTransport interface {
 // operations against self's messaging service
 type MessagingClient interface {
 	Send(recipients []string, plaintext []byte) error
-	Request(recipients []string, cid string, data []byte) (string, []byte, error)
+	Request(recipients []string, cid string, data []byte, timeout time.Duration) (string, []byte, error)
 	Register(cid string)
 	Wait(cid string, timeout time.Duration) (string, []byte, error)
 	Subscribe(msgType string, sub func(sender string, payload []byte))

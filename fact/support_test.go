@@ -55,7 +55,7 @@ func (c *testResponder) Wait(cid string, timeout time.Duration) (string, []byte,
 	return c.responder(c.recipients, c.request)
 }
 
-func (c *testResponder) Request(recipients []string, cid string, data []byte) (string, []byte, error) {
+func (c *testResponder) Request(recipients []string, cid string, data []byte, timeout time.Duration) (string, []byte, error) {
 	c.recipients = recipients
 	return c.responder(recipients, data)
 }

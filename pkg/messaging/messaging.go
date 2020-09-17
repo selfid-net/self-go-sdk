@@ -111,15 +111,13 @@ func (c *Client) Send(recipients []string, plaintext []byte) error {
 }
 
 // Request sends a request to a specified identity and blocks until response is received
-func (c *Client) Request(recipients []string, cid string, data []byte) (string, []byte, error) {
-	c.Register(cid)
-
+func (c *Client) Request(recipients []string, cid string, data []byte, timeout time.Duration) (string, []byte, error) {
 	err := c.Send(recipients, data)
 	if err != nil {
 		return "", nil, err
 	}
 
-	return c.Wait(cid, 0)
+	return c.Wait(cid, timeout)
 }
 
 // Register registers a conversation

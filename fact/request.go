@@ -152,7 +152,7 @@ func (s Service) Request(req *FactRequest) (*FactResponse, error) {
 		return nil, err
 	}
 
-	responder, response, err := s.messaging.Request(recipients, cid, payload)
+	responder, response, err := s.messaging.Request(recipients, cid, payload, req.Expiry)
 	if err != nil {
 		return nil, err
 	}
@@ -227,7 +227,7 @@ func (s Service) RequestViaIntermediary(req *IntermediaryFactRequest) (*Intermed
 		return nil, err
 	}
 
-	responder, response, err := s.messaging.Request(recipients, cid, payload)
+	responder, response, err := s.messaging.Request(recipients, cid, payload, req.Expiry)
 	if err != nil {
 		return nil, err
 	}

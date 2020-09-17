@@ -68,7 +68,7 @@ func (s Service) Request(selfID string) error {
 		return err
 	}
 
-	_, resp, err := s.messaging.Request(recipients, cid, req)
+	_, resp, err := s.messaging.Request(recipients, cid, req, s.expiry)
 	if err != nil {
 		return err
 	}
