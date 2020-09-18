@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	defaultRequestTimeout = time.Minute * 5
+	defaultRequestTimeout = time.Minute * 15
 
 	enc = base64.RawStdEncoding
 )
