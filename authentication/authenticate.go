@@ -153,13 +153,13 @@ func (s *Service) GenerateDeepLink(req *DeepLinkAuthenticationRequest) (string, 
 
 	s.messaging.Register(req.ConversationID)
 
-	url := "https://selfid.page.link/?link=" + req.Callback + "%3Fqr=" + base64.RawStdEncoding.EncodeToString(payload)
+	url := "https://joinself.page.link/?link=" + req.Callback + "%3Fqr=" + base64.RawStdEncoding.EncodeToString(payload)
 	if s.environment == "" {
-		return url + "&apn=net.selfid.app", nil
+		return url + "&apn=com.joinself.app", nil
 	} else if s.environment == "development" {
-		return url + "&apn=net.selfid.app.dev", nil
+		return url + "&apn=com.joinself.app.dev", nil
 	}
-	return url + "&apn=net.selfid.app." + s.environment, nil
+	return url + "&apn=com.joinself.app." + s.environment, nil
 }
 
 // WaitForResponse waits for a response from a qr code authentication request
