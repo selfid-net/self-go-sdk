@@ -79,6 +79,8 @@ func (c *testResponder) Send(recipients []string, plaintext []byte) error {
 	return nil
 }
 
+func (c *testResponder) Subscribe(msgType string, sub func(sender string, payload []byte)) {}
+
 func (c *testResponder) Get(path string) ([]byte, error) {
 	if path != c.path || cts(path, "unknown") {
 		return nil, errors.New("not found")

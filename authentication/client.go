@@ -21,6 +21,7 @@ type messagingClient interface {
 	Register(cid string)
 	Send(recipients []string, data []byte) error
 	Wait(cid string, timeout time.Duration) (string, []byte, error)
+	Subscribe(msgType string, sub func(sender string, payload []byte))
 }
 
 // PKIClient handles all interactions with selfs public key infrastructure

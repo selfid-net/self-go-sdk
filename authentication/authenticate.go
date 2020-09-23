@@ -16,6 +16,9 @@ import (
 )
 
 var (
+	RequestAuthentication  = "identities.authenticate.req"
+	ResponseAuthentication = "identities.authenticate.resp"
+
 	ErrMissingConversationID      = errors.New("qr request must specify a unique conversation id")
 	ErrRequestTimeout             = errors.New("request timeout")
 	ErrResponseBadType            = errors.New("received response is not an authentication response")
@@ -172,6 +175,11 @@ func (s *Service) WaitForResponse(cid string, exp time.Duration) error {
 	selfID := strings.Split(responder, ":")[0]
 
 	return s.authenticationResponse(selfID, resp)
+}
+
+// Subscribe subscribes to fact request responses
+func (s *Service) Subscribe(sub func(sender string, payload []byte)) {
+	s.messaging.Subscribe(ResponseAuthentication, sub)
 }
 
 func (s *Service) authenticationResponse(selfID string, resp []byte) error {

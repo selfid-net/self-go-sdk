@@ -344,6 +344,11 @@ func (s Service) WaitForResponse(cid string, exp time.Duration) (*QRFactResponse
 	return &QRFactResponse{Responder: responder, Facts: facts}, nil
 }
 
+// Subscribe subscribes to fact request responses
+func (s Service) Subscribe(sub func(sender string, payload []byte)) {
+	s.messaging.Subscribe(ResponseInformation, sub)
+}
+
 func (s *Service) factResponse(issuer, subject string, response []byte) ([]Fact, error) {
 	history, err := s.pki.GetHistory(issuer)
 	if err != nil {

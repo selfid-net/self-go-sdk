@@ -25,6 +25,7 @@ type messagingClient interface {
 	Send(recipients []string, data []byte) error
 	Register(cid string)
 	Wait(cid string, timeout time.Duration) (string, []byte, error)
+	Subscribe(msgType string, sub func(sender string, payload []byte))
 }
 
 type pkiClient interface {
