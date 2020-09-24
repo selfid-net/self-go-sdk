@@ -63,7 +63,7 @@ func TestRequest(t *testing.T) {
 		assert.NotEmpty(t, m.Conversation)
 		assert.NotZero(t, m.IssuedAt)
 		assert.NotZero(t, m.ExpiresAt)
-		assert.Equal(t, "identities.facts.query.req", m.Type)
+		assert.Equal(t, RequestInformation, m.Type)
 		assert.Equal(t, "test", m.Issuer)
 		assert.Equal(t, fr.SelfID, m.Subject)
 		assert.Equal(t, fr.SelfID, m.Audience)
@@ -74,7 +74,7 @@ func TestRequest(t *testing.T) {
 		assert.Equal(t, FactSurname, m.Facts[1].Fact)
 		assert.Equal(t, []string{SourceDrivingLicense}, m.Facts[1].Sources)
 
-		m.Type = "identities.facts.query.resp"
+		m.Type = ResponseInformation
 		m.Issuer = fr.SelfID
 		m.Subject = fr.SelfID
 		m.Audience = "test"
@@ -190,7 +190,7 @@ func TestRequestTimeout(t *testing.T) {
 		assert.NotEmpty(t, m.Conversation)
 		assert.NotZero(t, m.IssuedAt)
 		assert.NotZero(t, m.ExpiresAt)
-		assert.Equal(t, "identities.facts.query.req", m.Type)
+		assert.Equal(t, RequestInformation, m.Type)
 		assert.Equal(t, "test", m.Issuer)
 		assert.Equal(t, fr.SelfID, m.Subject)
 		assert.Equal(t, fr.SelfID, m.Audience)
@@ -258,7 +258,7 @@ func TestRequestBadAttestation(t *testing.T) {
 		assert.NotEmpty(t, m.Conversation)
 		assert.NotZero(t, m.IssuedAt)
 		assert.NotZero(t, m.ExpiresAt)
-		assert.Equal(t, "identities.facts.query.req", m.Type)
+		assert.Equal(t, RequestInformation, m.Type)
 		assert.Equal(t, "test", m.Issuer)
 		assert.Equal(t, fr.SelfID, m.Subject)
 		assert.Equal(t, fr.SelfID, m.Audience)
@@ -269,7 +269,7 @@ func TestRequestBadAttestation(t *testing.T) {
 		assert.Equal(t, FactSurname, m.Facts[1].Fact)
 		assert.Equal(t, []string{SourceDrivingLicense}, m.Facts[1].Sources)
 
-		m.Type = "identities.facts.query.resp"
+		m.Type = ResponseInformation
 		m.Issuer = fr.SelfID
 		m.Subject = fr.SelfID
 		m.Audience = "test"
@@ -383,7 +383,7 @@ func TestRequestBadStatus(t *testing.T) {
 		assert.NotEmpty(t, m.Conversation)
 		assert.NotZero(t, m.IssuedAt)
 		assert.NotZero(t, m.ExpiresAt)
-		assert.Equal(t, "identities.facts.query.req", m.Type)
+		assert.Equal(t, RequestInformation, m.Type)
 		assert.Equal(t, "test", m.Issuer)
 		assert.Equal(t, fr.SelfID, m.Subject)
 		assert.Equal(t, fr.SelfID, m.Audience)
@@ -394,7 +394,7 @@ func TestRequestBadStatus(t *testing.T) {
 		assert.Equal(t, FactSurname, m.Facts[1].Fact)
 		assert.Equal(t, []string{SourceDrivingLicense}, m.Facts[1].Sources)
 
-		m.Type = "identities.facts.query.resp"
+		m.Type = ResponseInformation
 		m.Issuer = fr.SelfID
 		m.Subject = fr.SelfID
 		m.Audience = "test"
@@ -510,7 +510,7 @@ func TestRequestBadAttestationSignature(t *testing.T) {
 		assert.NotEmpty(t, m.Conversation)
 		assert.NotZero(t, m.IssuedAt)
 		assert.NotZero(t, m.ExpiresAt)
-		assert.Equal(t, "identities.facts.query.req", m.Type)
+		assert.Equal(t, RequestInformation, m.Type)
 		assert.Equal(t, "test", m.Issuer)
 		assert.Equal(t, fr.SelfID, m.Subject)
 		assert.Equal(t, fr.SelfID, m.Audience)
@@ -521,7 +521,7 @@ func TestRequestBadAttestationSignature(t *testing.T) {
 		assert.Equal(t, FactSurname, m.Facts[1].Fact)
 		assert.Equal(t, []string{SourceDrivingLicense}, m.Facts[1].Sources)
 
-		m.Type = "identities.facts.query.resp"
+		m.Type = ResponseInformation
 		m.Issuer = fr.SelfID
 		m.Subject = fr.SelfID
 		m.Audience = "test"
@@ -637,7 +637,7 @@ func TestRequestBadSignature(t *testing.T) {
 		assert.NotEmpty(t, m.Conversation)
 		assert.NotZero(t, m.IssuedAt)
 		assert.NotZero(t, m.ExpiresAt)
-		assert.Equal(t, "identities.facts.query.req", m.Type)
+		assert.Equal(t, RequestInformation, m.Type)
 		assert.Equal(t, "test", m.Issuer)
 		assert.Equal(t, fr.SelfID, m.Subject)
 		assert.Equal(t, fr.SelfID, m.Audience)
@@ -648,7 +648,7 @@ func TestRequestBadSignature(t *testing.T) {
 		assert.Equal(t, FactSurname, m.Facts[1].Fact)
 		assert.Equal(t, []string{SourceDrivingLicense}, m.Facts[1].Sources)
 
-		m.Type = "identities.facts.query.resp"
+		m.Type = ResponseInformation
 		m.Issuer = fr.SelfID
 		m.Subject = fr.SelfID
 		m.Audience = "test"
@@ -762,7 +762,7 @@ func TestRequestBadResponder(t *testing.T) {
 		assert.NotEmpty(t, m.Conversation)
 		assert.NotZero(t, m.IssuedAt)
 		assert.NotZero(t, m.ExpiresAt)
-		assert.Equal(t, "identities.facts.query.req", m.Type)
+		assert.Equal(t, RequestInformation, m.Type)
 		assert.Equal(t, "test", m.Issuer)
 		assert.Equal(t, fr.SelfID, m.Subject)
 		assert.Equal(t, fr.SelfID, m.Audience)
@@ -773,7 +773,7 @@ func TestRequestBadResponder(t *testing.T) {
 		assert.Equal(t, FactSurname, m.Facts[1].Fact)
 		assert.Equal(t, []string{SourceDrivingLicense}, m.Facts[1].Sources)
 
-		m.Type = "identities.facts.query.resp"
+		m.Type = ResponseInformation
 		m.Issuer = fr.SelfID
 		m.Subject = fr.SelfID
 		m.Audience = "test"
@@ -887,7 +887,7 @@ func TestRequestBadIssuingIdentity(t *testing.T) {
 		assert.NotEmpty(t, m.Conversation)
 		assert.NotZero(t, m.IssuedAt)
 		assert.NotZero(t, m.ExpiresAt)
-		assert.Equal(t, "identities.facts.query.req", m.Type)
+		assert.Equal(t, RequestInformation, m.Type)
 		assert.Equal(t, "test", m.Issuer)
 		assert.Equal(t, fr.SelfID, m.Subject)
 		assert.Equal(t, fr.SelfID, m.Audience)
@@ -898,7 +898,7 @@ func TestRequestBadIssuingIdentity(t *testing.T) {
 		assert.Equal(t, FactSurname, m.Facts[1].Fact)
 		assert.Equal(t, []string{SourceDrivingLicense}, m.Facts[1].Sources)
 
-		m.Type = "identities.facts.query.resp"
+		m.Type = ResponseInformation
 		m.Issuer = "bad"
 		m.Subject = "bad"
 		m.Audience = "test"
@@ -1012,7 +1012,7 @@ func TestRequestBadAudienceIdentity(t *testing.T) {
 		assert.NotEmpty(t, m.Conversation)
 		assert.NotZero(t, m.IssuedAt)
 		assert.NotZero(t, m.ExpiresAt)
-		assert.Equal(t, "identities.facts.query.req", m.Type)
+		assert.Equal(t, RequestInformation, m.Type)
 		assert.Equal(t, "test", m.Issuer)
 		assert.Equal(t, fr.SelfID, m.Subject)
 		assert.Equal(t, fr.SelfID, m.Audience)
@@ -1023,7 +1023,7 @@ func TestRequestBadAudienceIdentity(t *testing.T) {
 		assert.Equal(t, FactSurname, m.Facts[1].Fact)
 		assert.Equal(t, []string{SourceDrivingLicense}, m.Facts[1].Sources)
 
-		m.Type = "identities.facts.query.resp"
+		m.Type = ResponseInformation
 		m.Issuer = fr.SelfID
 		m.Subject = fr.SelfID
 		m.Audience = "bad"
@@ -1137,7 +1137,7 @@ func TestRequestResponseExpired(t *testing.T) {
 		assert.NotEmpty(t, m.Conversation)
 		assert.NotZero(t, m.IssuedAt)
 		assert.NotZero(t, m.ExpiresAt)
-		assert.Equal(t, "identities.facts.query.req", m.Type)
+		assert.Equal(t, RequestInformation, m.Type)
 		assert.Equal(t, "test", m.Issuer)
 		assert.Equal(t, fr.SelfID, m.Subject)
 		assert.Equal(t, fr.SelfID, m.Audience)
@@ -1148,7 +1148,7 @@ func TestRequestResponseExpired(t *testing.T) {
 		assert.Equal(t, FactSurname, m.Facts[1].Fact)
 		assert.Equal(t, []string{SourceDrivingLicense}, m.Facts[1].Sources)
 
-		m.Type = "identities.facts.query.resp"
+		m.Type = ResponseInformation
 		m.Issuer = fr.SelfID
 		m.Subject = fr.SelfID
 		m.Audience = "test"
@@ -1262,7 +1262,7 @@ func TestRequestResponseIssuedInFuture(t *testing.T) {
 		assert.NotEmpty(t, m.Conversation)
 		assert.NotZero(t, m.IssuedAt)
 		assert.NotZero(t, m.ExpiresAt)
-		assert.Equal(t, "identities.facts.query.req", m.Type)
+		assert.Equal(t, RequestInformation, m.Type)
 		assert.Equal(t, "test", m.Issuer)
 		assert.Equal(t, fr.SelfID, m.Subject)
 		assert.Equal(t, fr.SelfID, m.Audience)
@@ -1273,7 +1273,7 @@ func TestRequestResponseIssuedInFuture(t *testing.T) {
 		assert.Equal(t, FactSurname, m.Facts[1].Fact)
 		assert.Equal(t, []string{SourceDrivingLicense}, m.Facts[1].Sources)
 
-		m.Type = "identities.facts.query.resp"
+		m.Type = ResponseInformation
 		m.Issuer = fr.SelfID
 		m.Subject = fr.SelfID
 		m.Audience = "test"
@@ -1392,7 +1392,7 @@ func TestRequestViaIntermediary(t *testing.T) {
 		assert.NotEmpty(t, m.Conversation)
 		assert.NotZero(t, m.IssuedAt)
 		assert.NotZero(t, m.ExpiresAt)
-		assert.Equal(t, "identities.facts.query.req", m.Type)
+		assert.Equal(t, RequestInformation, m.Type)
 		assert.Equal(t, "test", m.Issuer)
 		assert.Equal(t, fr.SelfID, m.Subject)
 		assert.Equal(t, fr.Intermediary, m.Audience)
@@ -1403,7 +1403,7 @@ func TestRequestViaIntermediary(t *testing.T) {
 		assert.Equal(t, "<=", m.Facts[0].Operator)
 		assert.Equal(t, fr.Facts[0].ExpectedValue, m.Facts[0].ExpectedValue)
 
-		m.Type = "identities.facts.query.resp"
+		m.Type = ResponseInformation
 		m.Issuer = fr.Intermediary
 		m.Audience = "test"
 		m.IssuedAt = ntp.TimeFunc()
@@ -1529,7 +1529,7 @@ func TestRequestViaIntermediaryBadStatus(t *testing.T) {
 		assert.NotEmpty(t, m.Conversation)
 		assert.NotZero(t, m.IssuedAt)
 		assert.NotZero(t, m.ExpiresAt)
-		assert.Equal(t, "identities.facts.query.req", m.Type)
+		assert.Equal(t, RequestInformation, m.Type)
 		assert.Equal(t, "test", m.Issuer)
 		assert.Equal(t, fr.SelfID, m.Subject)
 		assert.Equal(t, fr.Intermediary, m.Audience)
@@ -1540,7 +1540,7 @@ func TestRequestViaIntermediaryBadStatus(t *testing.T) {
 		assert.Equal(t, "<=", m.Facts[0].Operator)
 		assert.Equal(t, fr.Facts[0].ExpectedValue, m.Facts[0].ExpectedValue)
 
-		m.Type = "identities.facts.query.resp"
+		m.Type = ResponseInformation
 		m.Issuer = fr.Intermediary
 		m.Audience = "test"
 		m.IssuedAt = ntp.TimeFunc()
@@ -1626,7 +1626,7 @@ func TestRequestViaIntermediaryBadSignature(t *testing.T) {
 		assert.NotEmpty(t, m.Conversation)
 		assert.NotZero(t, m.IssuedAt)
 		assert.NotZero(t, m.ExpiresAt)
-		assert.Equal(t, "identities.facts.query.req", m.Type)
+		assert.Equal(t, RequestInformation, m.Type)
 		assert.Equal(t, "test", m.Issuer)
 		assert.Equal(t, fr.SelfID, m.Subject)
 		assert.Equal(t, fr.Intermediary, m.Audience)
@@ -1637,7 +1637,7 @@ func TestRequestViaIntermediaryBadSignature(t *testing.T) {
 		assert.Equal(t, "<=", m.Facts[0].Operator)
 		assert.Equal(t, fr.Facts[0].ExpectedValue, m.Facts[0].ExpectedValue)
 
-		m.Type = "identities.facts.query.resp"
+		m.Type = ResponseInformation
 		m.Issuer = fr.Intermediary
 		m.Audience = "test"
 		m.IssuedAt = ntp.TimeFunc()
@@ -1730,7 +1730,7 @@ func TestRequestViaIntermediaryBadResponder(t *testing.T) {
 		assert.NotEmpty(t, m.Conversation)
 		assert.NotZero(t, m.IssuedAt)
 		assert.NotZero(t, m.ExpiresAt)
-		assert.Equal(t, "identities.facts.query.req", m.Type)
+		assert.Equal(t, RequestInformation, m.Type)
 		assert.Equal(t, "test", m.Issuer)
 		assert.Equal(t, fr.SelfID, m.Subject)
 		assert.Equal(t, fr.Intermediary, m.Audience)
@@ -1741,7 +1741,7 @@ func TestRequestViaIntermediaryBadResponder(t *testing.T) {
 		assert.Equal(t, "<=", m.Facts[0].Operator)
 		assert.Equal(t, fr.Facts[0].ExpectedValue, m.Facts[0].ExpectedValue)
 
-		m.Type = "identities.facts.query.resp"
+		m.Type = ResponseInformation
 		m.Issuer = fr.Intermediary
 		m.Audience = "test"
 		m.IssuedAt = ntp.TimeFunc()
@@ -1834,7 +1834,7 @@ func TestRequestViaIntermediaryBadIssuingIdentity(t *testing.T) {
 		assert.NotEmpty(t, m.Conversation)
 		assert.NotZero(t, m.IssuedAt)
 		assert.NotZero(t, m.ExpiresAt)
-		assert.Equal(t, "identities.facts.query.req", m.Type)
+		assert.Equal(t, RequestInformation, m.Type)
 		assert.Equal(t, "test", m.Issuer)
 		assert.Equal(t, fr.SelfID, m.Subject)
 		assert.Equal(t, fr.Intermediary, m.Audience)
@@ -1845,7 +1845,7 @@ func TestRequestViaIntermediaryBadIssuingIdentity(t *testing.T) {
 		assert.Equal(t, "<=", m.Facts[0].Operator)
 		assert.Equal(t, fr.Facts[0].ExpectedValue, m.Facts[0].ExpectedValue)
 
-		m.Type = "identities.facts.query.resp"
+		m.Type = ResponseInformation
 		m.Issuer = "bad"
 		m.Audience = "test"
 		m.IssuedAt = ntp.TimeFunc()
@@ -1938,7 +1938,7 @@ func TestRequestViaIntermediaryBadAudienceIdentity(t *testing.T) {
 		assert.NotEmpty(t, m.Conversation)
 		assert.NotZero(t, m.IssuedAt)
 		assert.NotZero(t, m.ExpiresAt)
-		assert.Equal(t, "identities.facts.query.req", m.Type)
+		assert.Equal(t, RequestInformation, m.Type)
 		assert.Equal(t, "test", m.Issuer)
 		assert.Equal(t, fr.SelfID, m.Subject)
 		assert.Equal(t, fr.Intermediary, m.Audience)
@@ -1949,7 +1949,7 @@ func TestRequestViaIntermediaryBadAudienceIdentity(t *testing.T) {
 		assert.Equal(t, "<=", m.Facts[0].Operator)
 		assert.Equal(t, fr.Facts[0].ExpectedValue, m.Facts[0].ExpectedValue)
 
-		m.Type = "identities.facts.query.resp"
+		m.Type = ResponseInformation
 		m.Issuer = fr.Intermediary
 		m.Audience = "bad"
 		m.IssuedAt = ntp.TimeFunc()
@@ -2042,7 +2042,7 @@ func TestRequestViaIntermediaryBadSubjectIdentity(t *testing.T) {
 		assert.NotEmpty(t, m.Conversation)
 		assert.NotZero(t, m.IssuedAt)
 		assert.NotZero(t, m.ExpiresAt)
-		assert.Equal(t, "identities.facts.query.req", m.Type)
+		assert.Equal(t, RequestInformation, m.Type)
 		assert.Equal(t, "test", m.Issuer)
 		assert.Equal(t, fr.SelfID, m.Subject)
 		assert.Equal(t, fr.Intermediary, m.Audience)
@@ -2053,7 +2053,7 @@ func TestRequestViaIntermediaryBadSubjectIdentity(t *testing.T) {
 		assert.Equal(t, "<=", m.Facts[0].Operator)
 		assert.Equal(t, fr.Facts[0].ExpectedValue, m.Facts[0].ExpectedValue)
 
-		m.Type = "identities.facts.query.resp"
+		m.Type = ResponseInformation
 		m.Issuer = fr.Intermediary
 		m.Subject = "bad"
 		m.Audience = "test"
@@ -2147,7 +2147,7 @@ func TestRequestViaIntermediaryResponseExpired(t *testing.T) {
 		assert.NotEmpty(t, m.Conversation)
 		assert.NotZero(t, m.IssuedAt)
 		assert.NotZero(t, m.ExpiresAt)
-		assert.Equal(t, "identities.facts.query.req", m.Type)
+		assert.Equal(t, RequestInformation, m.Type)
 		assert.Equal(t, "test", m.Issuer)
 		assert.Equal(t, fr.SelfID, m.Subject)
 		assert.Equal(t, fr.Intermediary, m.Audience)
@@ -2158,7 +2158,7 @@ func TestRequestViaIntermediaryResponseExpired(t *testing.T) {
 		assert.Equal(t, "<=", m.Facts[0].Operator)
 		assert.Equal(t, fr.Facts[0].ExpectedValue, m.Facts[0].ExpectedValue)
 
-		m.Type = "identities.facts.query.resp"
+		m.Type = ResponseInformation
 		m.Issuer = fr.Intermediary
 		m.Audience = "test"
 		m.IssuedAt = ntp.TimeFunc().Add(-time.Hour)
@@ -2251,7 +2251,7 @@ func TestRequestViaIntermediaryResponseIssuedInFuture(t *testing.T) {
 		assert.NotEmpty(t, m.Conversation)
 		assert.NotZero(t, m.IssuedAt)
 		assert.NotZero(t, m.ExpiresAt)
-		assert.Equal(t, "identities.facts.query.req", m.Type)
+		assert.Equal(t, RequestInformation, m.Type)
 		assert.Equal(t, "test", m.Issuer)
 		assert.Equal(t, fr.SelfID, m.Subject)
 		assert.Equal(t, fr.Intermediary, m.Audience)
@@ -2262,7 +2262,7 @@ func TestRequestViaIntermediaryResponseIssuedInFuture(t *testing.T) {
 		assert.Equal(t, "<=", m.Facts[0].Operator)
 		assert.Equal(t, fr.Facts[0].ExpectedValue, m.Facts[0].ExpectedValue)
 
-		m.Type = "identities.facts.query.resp"
+		m.Type = ResponseInformation
 		m.Issuer = fr.Intermediary
 		m.Subject = fr.Intermediary
 		m.Audience = "test"

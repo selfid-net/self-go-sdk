@@ -143,6 +143,8 @@ func (c *Client) Wait(cid string, timeout time.Duration) (string, []byte, error)
 }
 
 // Subscribe subscribes to a given message type
+// @param {String} message type to subscribe to [authentication.RequestAuthentication|
+// authentication.ResponseAuthentication|fact.RequestInformation|fact.ResponseInformation]
 func (c *Client) Subscribe(msgType string, sub func(sender string, payload []byte)) {
 	c.subscriptions.Store(msgType, sub)
 }
