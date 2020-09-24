@@ -293,10 +293,6 @@ func (s Service) GenerateQRCode(req *QRFactRequest) ([]byte, error) {
 	q.BackgroundColor, _ = colorful.Hex(req.QRConfig.BackgroundColor)
 	q.ForegroundColor, _ = colorful.Hex(req.QRConfig.ForegroundColor)
 
-	if req.ConversationID != "-" {
-		s.messaging.Register(req.ConversationID)
-	}
-
 	return q.PNG(req.QRConfig.Size)
 }
 
@@ -315,8 +311,6 @@ func (s Service) GenerateDeepLink(req *DeepLinkFactRequest) (string, error) {
 	if err != nil {
 		return "", err
 	}
-
-	s.messaging.Register(req.ConversationID)
 
 	url := "https://selfid.page.link/?link=" + req.Callback + "%3Fqr=" + base64.RawStdEncoding.EncodeToString(payload)
 	if s.environment == "" {
@@ -345,8 +339,22 @@ func (s Service) WaitForResponse(cid string, exp time.Duration) (*QRFactResponse
 }
 
 // Subscribe subscribes to fact request responses
-func (s Service) Subscribe(sub func(sender string, payload []byte)) {
-	s.messaging.Subscribe(ResponseInformation, sub)
+func (s Service) Subscribe(sub func(sender string, res *QRFactResponse)) {
+	s.messaging.Subscribe(ResponseInformation, func(sender string, payload []byte) {
+		selfID := strings.Split(sender, ":")[0]
+
+		facts, err := s.factResponse(selfID, selfID, payload)
+		if err != nil {
+			return
+		}
+
+		res, err := QRFactResponse{Responder: sender, Facts: facts}, nil
+		if err != nil {
+			return
+		}
+
+		sub(selfID, &res)
+	})
 }
 
 func (s *Service) factResponse(issuer, subject string, response []byte) ([]Fact, error) {

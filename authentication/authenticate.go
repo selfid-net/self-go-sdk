@@ -130,8 +130,6 @@ func (s *Service) GenerateQRCode(req *QRAuthenticationRequest) ([]byte, error) {
 	q.BackgroundColor, _ = colorful.Hex(req.QRConfig.BackgroundColor)
 	q.ForegroundColor, _ = colorful.Hex(req.QRConfig.ForegroundColor)
 
-	s.messaging.Register(req.ConversationID)
-
 	return q.PNG(req.QRConfig.Size)
 }
 
@@ -153,8 +151,6 @@ func (s *Service) GenerateDeepLink(req *DeepLinkAuthenticationRequest) (string, 
 	if err != nil {
 		return "", err
 	}
-
-	s.messaging.Register(req.ConversationID)
 
 	url := "https://joinself.page.link/?link=" + req.Callback + "%3Fqr=" + base64.RawStdEncoding.EncodeToString(payload)
 	if s.environment == "" {
@@ -178,8 +174,12 @@ func (s *Service) WaitForResponse(cid string, exp time.Duration) error {
 }
 
 // Subscribe subscribes to fact request responses
-func (s *Service) Subscribe(sub func(sender string, payload []byte)) {
-	s.messaging.Subscribe(ResponseAuthentication, sub)
+func (s *Service) Subscribe(sub func(sender string, authenticated bool)) {
+	s.messaging.Subscribe(ResponseAuthentication, func(sender string, payload []byte) {
+		selfID := strings.Split(sender, ":")[0]
+		err := s.authenticationResponse(selfID, payload)
+		sub(selfID, (err == nil))
+	})
 }
 
 func (s *Service) authenticationResponse(selfID string, resp []byte) error {
