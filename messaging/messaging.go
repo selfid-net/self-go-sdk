@@ -110,7 +110,7 @@ func (s *Service) Subscribe(messageType string, h func(m *Message)) {
 			return
 		}
 
-		if mp.IssuedAt.After(ntp.TimeFunc()) {
+		if mp.IssuedAt.Add(-time.Second * 5).After(ntp.TimeFunc()) {
 			log.Println("messaging:", ErrMessageIssuedTooSoon.Error())
 			return
 		}
