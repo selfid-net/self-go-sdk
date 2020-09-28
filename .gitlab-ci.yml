@@ -84,7 +84,7 @@ unit-test:
 
 release:
   stage: release
-  image: aldgateventuresbot/deploy
+  image: eu.gcr.io/principal-oxide-204416/deploy
   script:
     - ${SCRIPTS_DIR}/git-setup
     - *new-version
