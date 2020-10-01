@@ -76,7 +76,8 @@ func (s Service) Request(selfID string) error {
 		return err
 	}
 
-	return s.authenticationResponse(selfID, resp)
+	_, err = s.authenticationResponse(selfID, resp)
+	return err
 }
 
 // RequestAsync prompts a user to authenticate via biometrics but
@@ -170,97 +171,100 @@ func (s *Service) WaitForResponse(cid string, exp time.Duration) error {
 
 	selfID := strings.Split(responder, ":")[0]
 
-	return s.authenticationResponse(selfID, resp)
+	_, err = s.authenticationResponse(selfID, resp)
+	return err
 }
 
 // Subscribe subscribes to fact request responses
-func (s *Service) Subscribe(sub func(sender string, authenticated bool)) {
+func (s *Service) Subscribe(sub func(sender, cid string, authenticated bool)) {
 	s.messaging.Subscribe(ResponseAuthentication, func(sender string, payload []byte) {
 		selfID := strings.Split(sender, ":")[0]
-		err := s.authenticationResponse(selfID, payload)
-		sub(selfID, (err == nil))
+		cid, err := s.authenticationResponse(selfID, payload)
+		sub(selfID, cid, (err == nil))
 	})
 }
 
-func (s *Service) authenticationResponse(selfID string, resp []byte) error {
+func (s *Service) authenticationResponse(selfID string, resp []byte) (string, error) {
 	var payload map[string]string
+	cid := ""
 
 	jws, err := jose.ParseSigned(string(resp))
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	err = json.Unmarshal(jws.UnsafePayloadWithoutVerification(), &payload)
 	if err != nil {
-		return err
+		return cid, err
 	}
+	cid = payload["cid"]
 
 	if payload["typ"] != ResponseAuthentication {
-		return ErrResponseBadType
+		return cid, ErrResponseBadType
 	}
 
 	if payload["aud"] != s.selfID {
-		return ErrResponseBadAudience
+		return cid, ErrResponseBadAudience
 	}
 
 	if payload["iss"] != selfID {
-		return ErrResponseBadIssuer
+		return cid, ErrResponseBadIssuer
 	}
 
 	if payload["sub"] != selfID {
-		return ErrResponseBadSubject
+		return cid, ErrResponseBadSubject
 	}
 
 	exp, err := time.Parse(time.RFC3339, payload["exp"])
 	if err != nil {
-		return ErrInvalidExpiry
+		return cid, ErrInvalidExpiry
 	}
 
 	if ntp.After(exp) {
-		return ErrResponseExpired
+		return cid, ErrResponseExpired
 	}
 
 	iat, err := time.Parse(time.RFC3339, payload["iat"])
 	if err != nil {
-		return ErrInvalidIssuedAt
+		return cid, ErrInvalidIssuedAt
 	}
 
 	if ntp.Before(iat) {
-		return ErrResponseIssuedTooSoon
+		return cid, ErrResponseIssuedTooSoon
 	}
 
 	history, err := s.pki.GetHistory(selfID)
 	if err != nil {
-		return err
+		return cid, err
 	}
 
 	sg, err := siggraph.New(history)
 	if err != nil {
-		return err
+		return cid, err
 	}
 
 	kid, err := getJWSKID(resp)
 	if err != nil {
-		return err
+		return cid, err
 	}
 
 	pk, err := sg.ActiveKey(kid)
 	if err != nil {
-		return err
+		return cid, err
 	}
 
 	_, err = jws.Verify(pk)
 	if err != nil {
-		return ErrResponseBadSignature
+		return cid, ErrResponseBadSignature
 	}
 
 	switch payload["status"] {
 	case "accepted":
-		return nil
+		return cid, nil
 	case "rejected":
-		return ErrResponseStatusRejected
+		return cid, ErrResponseStatusRejected
 	default:
-		return ErrResponseBadStatus
+		return cid, ErrResponseBadStatus
 	}
 }
 
