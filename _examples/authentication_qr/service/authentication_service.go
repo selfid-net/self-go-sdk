@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net"
 	"net/http"
@@ -59,9 +58,8 @@ func main() {
 
 	log.Println("waiting for response")
 
-	client.AuthenticationService().Subscribe(func(sender string, authenticated bool) {
-		fmt.Println(sender)
-		fmt.Println(authenticated)
+	client.AuthenticationService().Subscribe(func(sender, cid string, authenticated bool) {
+		log.Println("cid: " + cid)
 		if authenticated {
 			log.Println("authentication accepted by " + sender)
 		} else {
