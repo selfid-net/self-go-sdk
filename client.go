@@ -37,6 +37,8 @@ type MessagingClient interface {
 	Wait(cid string, timeout time.Duration) (string, []byte, error)
 	Subscribe(msgType string, sub func(sender string, payload []byte))
 	Command(command string, payload []byte) ([]byte, error)
+	IsPermittingConnectionsFrom(selfid string) bool
+	ListConnections() ([]string, error)
 	Close() error
 }
 

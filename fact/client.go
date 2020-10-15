@@ -26,6 +26,7 @@ type messagingClient interface {
 	Register(cid string)
 	Wait(cid string, timeout time.Duration) (string, []byte, error)
 	Subscribe(msgType string, sub func(sender string, payload []byte))
+	IsPermittingConnectionsFrom(selfid string) bool
 }
 
 type pkiClient interface {

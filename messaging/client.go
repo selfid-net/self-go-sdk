@@ -16,6 +16,7 @@ type messagingClient interface {
 	Request(recipients []string, cid string, data []byte, timeout time.Duration) (string, []byte, error)
 	Subscribe(msgType string, sub func(sender string, payload []byte))
 	Command(command string, payload []byte) ([]byte, error)
+	ListConnections() ([]string, error)
 }
 
 type pkiClient interface {

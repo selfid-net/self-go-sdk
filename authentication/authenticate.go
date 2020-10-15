@@ -34,6 +34,7 @@ var (
 	ErrResponseStatusRejected     = errors.New("authentication was rejected")
 	ErrMissingConversationIDForDL = errors.New("deep link request must specify a unique conversation id")
 	ErrMissingCallback            = errors.New("deep link request must specify a callback url")
+	ErrNotConnected               = errors.New("you're not permitting connections from the specifed recipient")
 )
 
 // QRAuthenticationRequest specifies options in a qr code authentication request
@@ -59,6 +60,10 @@ type QRConfig struct {
 
 // Request prompts a user to authenticate via biometrics
 func (s Service) Request(selfID string) error {
+	if !s.messaging.IsPermittingConnectionsFrom(selfID) {
+		return ErrNotConnected
+	}
+
 	cid := uuid.New().String()
 
 	req, err := s.authenticationPayload(cid, selfID, s.expiry)
@@ -83,6 +88,10 @@ func (s Service) Request(selfID string) error {
 // RequestAsync prompts a user to authenticate via biometrics but
 // does not wait for the response.
 func (s Service) RequestAsync(selfID, cid string) error {
+	if !s.messaging.IsPermittingConnectionsFrom(selfID) {
+		return ErrNotConnected
+	}
+
 	req, err := s.authenticationPayload(cid, selfID, s.expiry)
 	if err != nil {
 		return err
