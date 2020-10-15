@@ -39,6 +39,7 @@ var (
 	ErrMissingCallback              = errors.New("deep link request must specify a callback url")
 	ErrFactRequestCID               = errors.New("cid not provided")
 	ErrSigningKeyInvalid            = errors.New("signing key was invalid at the time the attestation was issued")
+	ErrNotConnected                 = errors.New("you're not permitting connections from the specifed recipient")
 
 	ServiceSelfIntermediary = "self_intermediary"
 )
@@ -140,6 +141,10 @@ func (s Service) Request(req *FactRequest) (*FactResponse, error) {
 		req.Expiry = defaultRequestTimeout
 	}
 
+	if !s.messaging.IsPermittingConnectionsFrom(req.SelfID) {
+		return nil, ErrNotConnected
+	}
+
 	cid := uuid.New().String()
 
 	payload, err := s.factPayload(cid, req.SelfID, req.SelfID, req.Description, req.Facts, nil, req.Expiry)
@@ -188,6 +193,10 @@ func (s Service) RequestAsync(req *FactRequestAsync) error {
 
 	if req.CID == "" {
 		return ErrFactRequestCID
+	}
+
+	if !s.messaging.IsPermittingConnectionsFrom(req.SelfID) {
+		return ErrNotConnected
 	}
 
 	payload, err := s.factPayload(req.CID, req.SelfID, req.SelfID, req.Description, req.Facts, nil, req.Expiry)

@@ -91,17 +91,5 @@ func (c Service) RevokeConnection(selfID string) error {
 
 // ListConnections lists all self IDs that are permitted to send messages
 func (c Service) ListConnections() ([]string, error) {
-	var rules []string
-
-	resp, err := c.messaging.Command("acl.list", nil)
-	if err != nil {
-		return nil, err
-	}
-
-	err = json.Unmarshal(resp, &rules)
-	if err != nil {
-		return nil, err
-	}
-
-	return rules, nil
+	return c.messaging.ListConnections()
 }

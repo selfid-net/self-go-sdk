@@ -2,6 +2,7 @@ package messaging
 
 import (
 	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"log"
 	"sync"
@@ -157,6 +158,37 @@ func (c *Client) Command(command string, payload []byte) ([]byte, error) {
 // Close gracefully closes down the messaging cient
 func (c *Client) Close() error {
 	return nil
+}
+
+// ListConnections lists all self IDs that are permitted to send messages
+func (c *Client) ListConnections() ([]string, error) {
+	var rules []string
+
+	resp, err := c.Command("acl.list", nil)
+	if err != nil {
+		return nil, err
+	}
+
+	err = json.Unmarshal(resp, &rules)
+	if err != nil {
+		return nil, err
+	}
+
+	return rules, nil
+}
+
+// IsPermittingConnectionsFrom checks if the current connection is permitting connections from
+func (c *Client) IsPermittingConnectionsFrom(selfid string) bool {
+	conns, err := c.ListConnections()
+	if err != nil {
+		return false
+	}
+	for _, c := range conns {
+		if c == selfid || c == "*" {
+			return true
+		}
+	}
+	return false
 }
 
 func (c *Client) reader() {

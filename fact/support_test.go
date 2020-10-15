@@ -67,6 +67,10 @@ func (c *testResponder) Send(recipients []string, plaintext []byte) error {
 
 func (c *testResponder) Subscribe(msgType string, sub func(sender string, payload []byte)) {}
 
+func (c *testResponder) IsPermittingConnectionsFrom(selfid string) bool {
+	return true
+}
+
 func (c *testResponder) Get(path string) ([]byte, error) {
 	if path != c.path || cts(path, "unknown") {
 		return nil, errors.New("not found")
