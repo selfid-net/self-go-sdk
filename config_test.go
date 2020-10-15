@@ -121,6 +121,7 @@ func TestConfigLoadWithEnvironment(t *testing.T) {
 		Connectors: &Connectors{
 			Rest:      &trt,
 			Websocket: &twt,
+			Crypto:    &debugCryptoClient{},
 		},
 	}
 

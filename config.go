@@ -49,7 +49,6 @@ type Config struct {
 	ReconnectionAttempts int
 	TCPDeadline          time.Duration
 	RequestTimeout       time.Duration
-	EnableEncryption     bool
 	Connectors           *Connectors
 	kid                  string
 	sk                   ed25519.PrivateKey
@@ -272,11 +271,6 @@ func (c Config) loadPKIConnector() error {
 
 func (c Config) loadCryptoConnector() error {
 	if c.Connectors.Crypto != nil {
-		return nil
-	}
-
-	if !c.EnableEncryption {
-		c.Connectors.Crypto = &debugCryptoClient{}
 		return nil
 	}
 
