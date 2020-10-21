@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"math/big"
 	"strings"
@@ -16,6 +17,10 @@ import (
 )
 
 var defaultPreKeyBundleSize = 100
+
+var (
+	ErrInvalidGroupMessageRecipient = errors.New("group message does not contain a recipient header for this identity")
+)
 
 type prekeys []prekey
 
@@ -311,7 +316,12 @@ func (c *Client) createInboundSession(recipient string, ciphertext []byte) (*sel
 		return nil, err
 	}
 
-	s, err := selfcrypto.CreateInboundSession(c.account, recipient, m.Recipients[c.address])
+	otkm, ok := m.Recipients[c.address]
+	if !ok {
+		return nil, ErrInvalidGroupMessageRecipient
+	}
+
+	s, err := selfcrypto.CreateInboundSession(c.account, recipient, otkm)
 	if err != nil {
 		return nil, err
 	}
