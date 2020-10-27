@@ -120,9 +120,9 @@ func (s Service) GetHistory(selfID string) ([]json.RawMessage, error) {
 
 	switch classifySelfID(selfID) {
 	case IdentityTypeIndividual:
-		resp, err = s.api.Get("/v1/identities/" + selfID + "/public_keys/")
+		resp, err = s.api.Get("/v1/identities/" + selfID + "/history/")
 	case IdentityTypeApp:
-		resp, err = s.api.Get("/v1/apps/" + selfID + "/public_keys/")
+		resp, err = s.api.Get("/v1/apps/" + selfID + "/history/")
 	}
 
 	if err != nil {

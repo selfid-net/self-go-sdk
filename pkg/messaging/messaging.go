@@ -202,7 +202,7 @@ func (c *Client) reader() {
 		plaintext, err := c.crypto.Decrypt(sender, ciphertext)
 		if err != nil {
 			log.Println("messaging:", err)
-			return
+			continue
 		}
 
 		encPayload := gjson.GetBytes(plaintext, "payload").String()
