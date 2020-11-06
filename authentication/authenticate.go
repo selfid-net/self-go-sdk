@@ -35,6 +35,7 @@ var (
 	ErrMissingConversationIDForDL = errors.New("deep link request must specify a unique conversation id")
 	ErrMissingCallback            = errors.New("deep link request must specify a callback url")
 	ErrNotConnected               = errors.New("you're not permitting connections from the specifed recipient")
+	ErrNotEnoughCredits           = errors.New("your credits have expired, please log in to the developer portal and top up your account")
 )
 
 // QRAuthenticationRequest specifies options in a qr code authentication request
@@ -60,6 +61,10 @@ type QRConfig struct {
 
 // Request prompts a user to authenticate via biometrics
 func (s Service) Request(selfID string) error {
+	if !s.paidActions() {
+		return ErrNotEnoughCredits
+	}
+
 	if !s.messaging.IsPermittingConnectionsFrom(selfID) {
 		return ErrNotConnected
 	}
@@ -88,6 +93,10 @@ func (s Service) Request(selfID string) error {
 // RequestAsync prompts a user to authenticate via biometrics but
 // does not wait for the response.
 func (s Service) RequestAsync(selfID, cid string) error {
+	if !s.paidActions() {
+		return ErrNotEnoughCredits
+	}
+
 	if !s.messaging.IsPermittingConnectionsFrom(selfID) {
 		return ErrNotConnected
 	}
@@ -345,6 +354,28 @@ func (s Service) recipients(selfID string) ([]string, error) {
 	}
 
 	return devices, nil
+}
+
+// builds a list of all devices associated with an identity
+func (s Service) paidActions() bool {
+	var resp []byte
+	var err error
+
+	resp, err = s.api.Get("/v1/apps/" + s.selfID)
+	if err != nil {
+		return false
+	}
+
+	var app struct {
+		PaidActions bool `json:"paid_actions"`
+	}
+
+	err = json.Unmarshal(resp, &app)
+	if err != nil {
+		return false
+	}
+
+	return app.PaidActions
 }
 
 func getKID(token string) (string, error) {

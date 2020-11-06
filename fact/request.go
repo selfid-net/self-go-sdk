@@ -40,6 +40,7 @@ var (
 	ErrFactRequestCID               = errors.New("cid not provided")
 	ErrSigningKeyInvalid            = errors.New("signing key was invalid at the time the attestation was issued")
 	ErrNotConnected                 = errors.New("you're not permitting connections from the specifed recipient")
+	ErrNotEnoughCredits             = errors.New("your credits have expired, please log in to the developer portal and top up your account")
 
 	ServiceSelfIntermediary = "self_intermediary"
 )
@@ -141,6 +142,10 @@ func (s Service) Request(req *FactRequest) (*FactResponse, error) {
 		req.Expiry = defaultRequestTimeout
 	}
 
+	if !s.paidActions() {
+		return nil, ErrNotEnoughCredits
+	}
+
 	if !s.messaging.IsPermittingConnectionsFrom(req.SelfID) {
 		return nil, ErrNotConnected
 	}
@@ -193,6 +198,10 @@ func (s Service) RequestAsync(req *FactRequestAsync) error {
 
 	if req.CID == "" {
 		return ErrFactRequestCID
+	}
+
+	if !s.paidActions() {
+		return ErrNotEnoughCredits
 	}
 
 	if !s.messaging.IsPermittingConnectionsFrom(req.SelfID) {
@@ -565,6 +574,28 @@ func (s Service) recipients(selfID string) ([]string, error) {
 	}
 
 	return devices, nil
+}
+
+// builds a list of all devices associated with an identity
+func (s Service) paidActions() bool {
+	var resp []byte
+	var err error
+
+	resp, err = s.api.Get("/v1/apps/" + s.selfID)
+	if err != nil {
+		return false
+	}
+
+	var app struct {
+		PaidActions bool `json:"paid_actions"`
+	}
+
+	err = json.Unmarshal(resp, &app)
+	if err != nil {
+		return false
+	}
+
+	return app.PaidActions
 }
 
 func getKID(token string) (string, error) {
