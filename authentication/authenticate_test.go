@@ -65,6 +65,7 @@ func TestAuthenticationRequest(t *testing.T) {
 	tr.addpk("1234567890", sk, pk)
 	tr.path = "/v1/identities/1234567890/devices"
 	tr.payload = []byte(`["1", "2"]`)
+	tr.secondaryPaths["/v1/apps/test"] = []byte(`{"paid_actions":true}`)
 
 	c := NewService(cfg)
 
@@ -89,6 +90,7 @@ func TestAuthenticationRequestTimeout(t *testing.T) {
 	tr.addpk("1234567890", sk, pk)
 	tr.path = "/v1/identities/1234567890/devices"
 	tr.payload = []byte(`["1", "2"]`)
+	tr.secondaryPaths["/v1/apps/test"] = []byte(`{"paid_actions":true}`)
 
 	c := NewService(cfg)
 	c.expiry = time.Millisecond
@@ -152,6 +154,7 @@ func TestAuthenticationBadSignature(t *testing.T) {
 	tr.addpk("1234567890", sk, pk)
 	tr.path = "/v1/identities/1234567890/devices"
 	tr.payload = []byte(`["1", "2"]`)
+	tr.secondaryPaths["/v1/apps/test"] = []byte(`{"paid_actions":true}`)
 
 	c := NewService(cfg)
 
@@ -211,6 +214,7 @@ func TestAuthenticationBadIssuingIdentity(t *testing.T) {
 	tr.addpk("1234567890", sk, pk)
 	tr.path = "/v1/identities/1234567890/devices"
 	tr.payload = []byte(`["1", "2"]`)
+	tr.secondaryPaths["/v1/apps/test"] = []byte(`{"paid_actions":true}`)
 
 	c := NewService(cfg)
 
@@ -270,6 +274,7 @@ func TestAuthenticationBadAudienceIdentity(t *testing.T) {
 	tr.addpk("1234567890", sk, pk)
 	tr.path = "/v1/identities/1234567890/devices"
 	tr.payload = []byte(`["1", "2"]`)
+	tr.secondaryPaths["/v1/apps/test"] = []byte(`{"paid_actions":true}`)
 
 	c := NewService(cfg)
 
@@ -329,6 +334,7 @@ func TestAuthenticationRequestExpired(t *testing.T) {
 	tr.addpk("1234567890", sk, pk)
 	tr.path = "/v1/identities/1234567890/devices"
 	tr.payload = []byte(`["1", "2"]`)
+	tr.secondaryPaths["/v1/apps/test"] = []byte(`{"paid_actions":true}`)
 
 	c := NewService(cfg)
 
@@ -388,6 +394,7 @@ func TestAuthenticationRequestIssuedInFuture(t *testing.T) {
 	tr.addpk("1234567890", sk, pk)
 	tr.path = "/v1/identities/1234567890/devices"
 	tr.payload = []byte(`["1", "2"]`)
+	tr.secondaryPaths["/v1/apps/test"] = []byte(`{"paid_actions":true}`)
 
 	c := NewService(cfg)
 
