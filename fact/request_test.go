@@ -43,6 +43,7 @@ func TestRequest(t *testing.T) {
 	r.addpk("test-attester", ask, apk)
 	r.path = "/v1/identities/1234567890/devices"
 	r.payload = []byte(`["1", "2"]`)
+	r.secondaryPaths["/v1/apps/test"] = []byte(`{"paid_actions":true}`)
 
 	var called bool
 
@@ -170,6 +171,7 @@ func TestRequestTimeout(t *testing.T) {
 	r.addpk("test-attester", ask, apk)
 	r.path = "/v1/identities/1234567890/devices"
 	r.payload = []byte(`["1", "2"]`)
+	r.secondaryPaths["/v1/apps/test"] = []byte(`{"paid_actions":true}`)
 
 	var called bool
 
@@ -238,6 +240,7 @@ func TestRequestBadAttestation(t *testing.T) {
 	r.addpk("test-attester", ask, apk)
 	r.path = "/v1/identities/1234567890/devices"
 	r.payload = []byte(`["1", "2"]`)
+	r.secondaryPaths["/v1/apps/test"] = []byte(`{"paid_actions":true}`)
 
 	var called bool
 
@@ -363,6 +366,7 @@ func TestRequestBadStatus(t *testing.T) {
 	r.addpk("test-attester", ask, apk)
 	r.path = "/v1/identities/1234567890/devices"
 	r.payload = []byte(`["1", "2"]`)
+	r.secondaryPaths["/v1/apps/test"] = []byte(`{"paid_actions":true}`)
 
 	var called bool
 
@@ -490,6 +494,7 @@ func TestRequestBadAttestationSignature(t *testing.T) {
 	r.addpk("test-attester", ask, apk)
 	r.path = "/v1/identities/1234567890/devices"
 	r.payload = []byte(`["1", "2"]`)
+	r.secondaryPaths["/v1/apps/test"] = []byte(`{"paid_actions":true}`)
 
 	var called bool
 
@@ -617,6 +622,7 @@ func TestRequestBadSignature(t *testing.T) {
 	r.addpk("test-attester", ask, apk)
 	r.path = "/v1/identities/1234567890/devices"
 	r.payload = []byte(`["1", "2"]`)
+	r.secondaryPaths["/v1/apps/test"] = []byte(`{"paid_actions":true}`)
 
 	var called bool
 
@@ -742,6 +748,7 @@ func TestRequestBadResponder(t *testing.T) {
 	r.addpk("test-attester", ask, apk)
 	r.path = "/v1/identities/1234567890/devices"
 	r.payload = []byte(`["1", "2"]`)
+	r.secondaryPaths["/v1/apps/test"] = []byte(`{"paid_actions":true}`)
 
 	var called bool
 
@@ -867,6 +874,7 @@ func TestRequestBadIssuingIdentity(t *testing.T) {
 	r.addpk("test-attester", ask, apk)
 	r.path = "/v1/identities/1234567890/devices"
 	r.payload = []byte(`["1", "2"]`)
+	r.secondaryPaths["/v1/apps/test"] = []byte(`{"paid_actions":true}`)
 
 	var called bool
 
@@ -992,6 +1000,7 @@ func TestRequestBadAudienceIdentity(t *testing.T) {
 	r.addpk("test-attester", ask, apk)
 	r.path = "/v1/identities/1234567890/devices"
 	r.payload = []byte(`["1", "2"]`)
+	r.secondaryPaths["/v1/apps/test"] = []byte(`{"paid_actions":true}`)
 
 	var called bool
 
@@ -1117,6 +1126,7 @@ func TestRequestResponseExpired(t *testing.T) {
 	r.addpk("test-attester", ask, apk)
 	r.path = "/v1/identities/1234567890/devices"
 	r.payload = []byte(`["1", "2"]`)
+	r.secondaryPaths["/v1/apps/test"] = []byte(`{"paid_actions":true}`)
 
 	var called bool
 
@@ -1242,6 +1252,7 @@ func TestRequestResponseIssuedInFuture(t *testing.T) {
 	r.addpk("test-attester", ask, apk)
 	r.path = "/v1/identities/1234567890/devices"
 	r.payload = []byte(`["1", "2"]`)
+	r.secondaryPaths["/v1/apps/test"] = []byte(`{"paid_actions":true}`)
 
 	var called bool
 
@@ -1363,6 +1374,7 @@ func TestRequestViaIntermediary(t *testing.T) {
 	r.addpk("intermediary", isk, ipk)
 	r.path = "/v1/apps/intermediary/devices"
 	r.payload = []byte(`["1", "2"]`)
+	r.secondaryPaths["/v1/apps/test"] = []byte(`{"paid_actions":true}`)
 
 	var called bool
 
@@ -1471,6 +1483,7 @@ func TestRequestViaIntermediaryTimeout(t *testing.T) {
 	r.addpk("intermediary", isk, ipk)
 	r.path = "/v1/apps/intermediary/devices"
 	r.payload = []byte(`["1", "2"]`)
+	r.secondaryPaths["/v1/apps/test"] = []byte(`{"paid_actions":true}`)
 
 	var called bool
 
@@ -1509,6 +1522,7 @@ func TestRequestViaIntermediaryBadStatus(t *testing.T) {
 	r.addpk("intermediary", isk, ipk)
 	r.path = "/v1/apps/intermediary/devices"
 	r.payload = []byte(`["1", "2"]`)
+	r.secondaryPaths["/v1/apps/test"] = []byte(`{"paid_actions":true}`)
 
 	var called bool
 
@@ -1597,6 +1611,7 @@ func TestRequestViaIntermediaryBadSignature(t *testing.T) {
 	r.addpk("intermediary", isk, ipk)
 	r.path = "/v1/apps/intermediary/devices"
 	r.payload = []byte(`["1", "2"]`)
+	r.secondaryPaths["/v1/apps/test"] = []byte(`{"paid_actions":true}`)
 
 	var called bool
 
@@ -1701,6 +1716,7 @@ func TestRequestViaIntermediaryBadResponder(t *testing.T) {
 	r.addpk("intermediary", isk, ipk)
 	r.path = "/v1/apps/intermediary/devices"
 	r.payload = []byte(`["1", "2"]`)
+	r.secondaryPaths["/v1/apps/test"] = []byte(`{"paid_actions":true}`)
 
 	var called bool
 
@@ -1805,6 +1821,7 @@ func TestRequestViaIntermediaryBadIssuingIdentity(t *testing.T) {
 	r.addpk("intermediary", isk, ipk)
 	r.path = "/v1/apps/intermediary/devices"
 	r.payload = []byte(`["1", "2"]`)
+	r.secondaryPaths["/v1/apps/test"] = []byte(`{"paid_actions":true}`)
 
 	var called bool
 
@@ -1909,6 +1926,7 @@ func TestRequestViaIntermediaryBadAudienceIdentity(t *testing.T) {
 	r.addpk("intermediary", isk, ipk)
 	r.path = "/v1/apps/intermediary/devices"
 	r.payload = []byte(`["1", "2"]`)
+	r.secondaryPaths["/v1/apps/test"] = []byte(`{"paid_actions":true}`)
 
 	var called bool
 
@@ -2013,6 +2031,7 @@ func TestRequestViaIntermediaryBadSubjectIdentity(t *testing.T) {
 	r.addpk("intermediary", isk, ipk)
 	r.path = "/v1/apps/intermediary/devices"
 	r.payload = []byte(`["1", "2"]`)
+	r.secondaryPaths["/v1/apps/test"] = []byte(`{"paid_actions":true}`)
 
 	var called bool
 
@@ -2118,6 +2137,7 @@ func TestRequestViaIntermediaryResponseExpired(t *testing.T) {
 	r.addpk("intermediary", isk, ipk)
 	r.path = "/v1/apps/intermediary/devices"
 	r.payload = []byte(`["1", "2"]`)
+	r.secondaryPaths["/v1/apps/test"] = []byte(`{"paid_actions":true}`)
 
 	var called bool
 
@@ -2222,6 +2242,7 @@ func TestRequestViaIntermediaryResponseIssuedInFuture(t *testing.T) {
 	r.addpk("intermediary", isk, ipk)
 	r.path = "/v1/apps/intermediary/devices"
 	r.payload = []byte(`["1", "2"]`)
+	r.secondaryPaths["/v1/apps/test"] = []byte(`{"paid_actions":true}`)
 
 	var called bool
 

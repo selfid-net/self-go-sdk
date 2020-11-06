@@ -23,9 +23,10 @@ func setup(t *testing.T) (*testResponder, Config) {
 	require.Nil(t, err)
 
 	tr := testResponder{
-		pk:      pk,
-		path:    "/v1/auth",
-		history: make(map[string][]json.RawMessage),
+		pk:             pk,
+		path:           "/v1/auth",
+		history:        make(map[string][]json.RawMessage),
+		secondaryPaths: make(map[string][]byte),
 	}
 
 	return &tr, Config{
@@ -39,13 +40,14 @@ func setup(t *testing.T) (*testResponder, Config) {
 }
 
 type testResponder struct {
-	pk         ed25519.PublicKey
-	history    map[string][]json.RawMessage
-	path       string
-	payload    []byte
-	recipients []string
-	request    []byte
-	responder  func(recipients []string, data []byte) (string, []byte, error)
+	pk             ed25519.PublicKey
+	history        map[string][]json.RawMessage
+	path           string
+	secondaryPaths map[string][]byte
+	payload        []byte
+	recipients     []string
+	request        []byte
+	responder      func(recipients []string, data []byte) (string, []byte, error)
 }
 
 func (c *testResponder) Register(cid string) {
@@ -72,6 +74,11 @@ func (c *testResponder) IsPermittingConnectionsFrom(selfid string) bool {
 }
 
 func (c *testResponder) Get(path string) ([]byte, error) {
+	val, ok := c.secondaryPaths[path]
+	if ok {
+		return val, nil
+	}
+
 	if path != c.path || cts(path, "unknown") {
 		return nil, errors.New("not found")
 	}
