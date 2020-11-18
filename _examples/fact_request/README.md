@@ -20,7 +20,7 @@ If the identity has no attested facts matching the criteria of the request, they
 
 This diagram shows how the fact request process works.
 
-![Diagram](https://storage.googleapis.com/self-public/images/fact_request_diagram.png)
+![Diagram](https://static.joinself.com/images/fact_request_diagram.png)
 
 
 1. Request information through the self SDK.
