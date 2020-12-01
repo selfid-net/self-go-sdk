@@ -138,6 +138,7 @@ func (c *Client) MessagingService() *messaging.Service {
 		SelfID:     c.config.SelfAppID,
 		PrivateKey: c.config.sk,
 		KeyID:      c.config.kid,
+		Rest:       c.connectors.Rest,
 		PKI:        c.connectors.PKI,
 		Messaging:  c.connectors.Messaging,
 	}

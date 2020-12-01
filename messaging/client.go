@@ -10,6 +10,11 @@ import (
 
 var enc = base64.RawStdEncoding
 
+// restTransport handles all interactions with the self api
+type restTransport interface {
+	Get(path string) ([]byte, error)
+}
+
 // messagingClient handles all interactions with self messaging and its users
 type messagingClient interface {
 	Send(recipients []string, data []byte) error
@@ -28,6 +33,7 @@ type Service struct {
 	selfID    string
 	keyID     string
 	sk        ed25519.PrivateKey
+	api       restTransport
 	pki       pkiClient
 	messaging messagingClient
 }
@@ -39,6 +45,7 @@ type Config struct {
 	PrivateKey ed25519.PrivateKey
 	PKI        pkiClient
 	Messaging  messagingClient
+	Rest       restTransport
 }
 
 type jwsPayload struct {
@@ -57,6 +64,7 @@ func NewService(cfg Config) *Service {
 		selfID:    cfg.SelfID,
 		keyID:     cfg.KeyID,
 		sk:        cfg.PrivateKey,
+		api:       cfg.Rest,
 		pki:       cfg.PKI,
 		messaging: cfg.Messaging,
 	}

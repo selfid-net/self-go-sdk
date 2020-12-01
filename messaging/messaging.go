@@ -234,28 +234,62 @@ func (s *Service) Send(recipients []string, conversationID string, body []byte) 
 	return s.messaging.Send(recipients, []byte(plaintext))
 }
 
-// Notify sends a notification to the given recipient
-func (s *Service) Notify(recipient, body string) error {
+// Notify sends a notification to a given self ID
+func (s *Service) Notify(selfID, content string) error {
 	cid := uuid.New().String()
+
 	req := infoNotification{
 		ID:           uuid.New().String(),
 		Conversation: cid,
 		Type:         "identities.notify",
 		Issuer:       s.selfID,
-		Subject:      recipient,
-		Audience:     recipient,
+		Subject:      selfID,
+		Audience:     selfID,
 		IssuedAt:     ntp.TimeFunc(),
 		ExpiresAt:    ntp.TimeFunc().Add(time.Hour * 24),
-		Description:  body,
+		Description:  content,
 	}
 
 	data, err := json.Marshal(req)
 	if err != nil {
-		log.Println(err)
 		return err
 	}
 
-	return s.Send([]string{recipient}, cid, data)
+	recipients, err := s.recipients(selfID)
+	if err != nil {
+		return err
+	}
+
+	return s.Send(recipients, cid, data)
+}
+
+// builds a list of all devices associated with an identity
+func (s *Service) recipients(selfID string) ([]string, error) {
+	var resp []byte
+	var err error
+
+	if len(selfID) > 11 {
+		resp, err = s.api.Get("/v1/apps/" + selfID + "/devices")
+	} else {
+		resp, err = s.api.Get("/v1/identities/" + selfID + "/devices")
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	var devices []string
+
+	err = json.Unmarshal(resp, &devices)
+	if err != nil {
+		return nil, err
+	}
+
+	for i := range devices {
+		devices[i] = selfID + ":" + devices[i]
+	}
+
+	return devices, nil
 }
 
 func getKID(token string) (string, error) {
