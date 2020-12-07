@@ -15,20 +15,26 @@ var (
 	SourcePassport       = "passport"
 	SourceDrivingLicense = "driving_license"
 	SourceUserSpecified  = "user_specified"
+	SourceIDCard         = "id_card"
 
-	FactEmail            = "email_address"
-	FactPhone            = "phone_number"
-	FactDisplayName      = "display_name"
-	FactGivenNames       = "given_names"
-	FactSurname          = "surname"
-	FactSex              = "sex"
-	FactIssuingAuthority = "issuing_authority"
-	FactNationality      = "nationality"
-	FactAddress          = "address"
-	FactPlaceOfBirth     = "place_of_birth"
-	FactDateOfBirth      = "date_of_birth"
-	FactDateOfIssuance   = "date_of_issuance"
-	FactDateOfExpiration = "date_of_expiration"
+	FactEmail             = "email_address"
+	FactPhone             = "phone_number"
+	FactDisplayName       = "display_name"
+	FactGivenNames        = "given_names"
+	FactSurname           = "surname"
+	FactSex               = "sex"
+	FactIssuingAuthority  = "issuing_authority"
+	FactNationality       = "nationality"
+	FactAddress           = "address"
+	FactPlaceOfBirth      = "place_of_birth"
+	FactDateOfBirth       = "date_of_birth"
+	FactDateOfIssuance    = "date_of_issuance"
+	FactDateOfExpiration  = "date_of_expiration"
+	FactValidFrom         = "valid_from"
+	FactValidTo           = "valid_to"
+	FactCategories        = "categories"
+	FactSortCode          = "sort_code"
+	FactCountryOfIssuance = "country_of_issuance"
 
 	OperatorEqual              = "=="
 	OperatorDifferent          = "!="
@@ -103,7 +109,7 @@ func (f *Fact) validate() error {
 	}
 
 	for _, s := range f.Sources {
-		if s != SourcePassport || s != SourceDrivingLicense || s != SourceUserSpecified {
+		if s != SourcePassport || s != SourceDrivingLicense || s != SourceUserSpecified || s != SourceIDCard {
 			return ErrFactInvalidSource
 		}
 	}
