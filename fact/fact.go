@@ -56,6 +56,36 @@ var (
 	ErrFactInvalidSource       = errors.New("provided fact does not specify a valid source")
 	ErrFactInvalidOperator     = errors.New("provided fact does not specify a valid operator")
 	ErrFactInvalidFactToSource = errors.New("provided source does not support given fact")
+
+	sourcePassportFacts = map[string]struct{}{
+		FactDocumentNumber:    struct{}{},
+		FactSurname:           struct{}{},
+		FactGivenNames:        struct{}{},
+		FactDateOfBirth:       struct{}{},
+		FactDateOfExpiration:  struct{}{},
+		FactSex:               struct{}{},
+		FactNationality:       struct{}{},
+		FactCountryOfIssuance: struct{}{},
+	}
+
+	sourceDLFacts = map[string]struct{}{
+		FactDocumentNumber:    struct{}{},
+		FactSurname:           struct{}{},
+		FactGivenNames:        struct{}{},
+		FactDateOfBirth:       struct{}{},
+		FactDateOfIssuance:    struct{}{},
+		FactDateOfExpiration:  struct{}{},
+		FactAddress:           struct{}{},
+		FactIssuingAuthority:  struct{}{},
+		FactPlaceOfBirth:      struct{}{},
+		FactCountryOfIssuance: struct{}{},
+	}
+
+	sourceUserFacts = map[string]struct{}{
+		FactDisplayName: struct{}{},
+		FactEmail:       struct{}{},
+		FactPhone:       struct{}{},
+	}
 )
 
 // Fact specific details about the fact
@@ -116,46 +146,19 @@ func (f *Fact) validate() error {
 		}
 
 		if s == SourcePassport || s == SourceIDCard {
-			sourceFacts := map[string]interface{}{
-				FactDocumentNumber:    nil,
-				FactSurname:           nil,
-				FactGivenNames:        nil,
-				FactDateOfBirth:       nil,
-				FactDateOfExpiration:  nil,
-				FactSex:               nil,
-				FactNationality:       nil,
-				FactCountryOfIssuance: nil,
-			}
-			if _, ok := sourceFacts[f.Fact]; !ok {
+			if _, ok := sourcePassportFacts[f.Fact]; !ok {
 				return ErrFactInvalidFactToSource
 			}
 		}
 
 		if s == SourceDrivingLicense {
-			sourceFacts := map[string]interface{}{
-				FactDocumentNumber:    nil,
-				FactSurname:           nil,
-				FactGivenNames:        nil,
-				FactDateOfBirth:       nil,
-				FactDateOfIssuance:    nil,
-				FactDateOfExpiration:  nil,
-				FactAddress:           nil,
-				FactIssuingAuthority:  nil,
-				FactPlaceOfBirth:      nil,
-				FactCountryOfIssuance: nil,
-			}
-			if _, ok := sourceFacts[f.Fact]; !ok {
+			if _, ok := sourceDLFacts[f.Fact]; !ok {
 				return ErrFactInvalidFactToSource
 			}
 		}
 
 		if s == SourceUserSpecified {
-			sourceFacts := map[string]interface{}{
-				FactDisplayName: nil,
-				FactEmail:       nil,
-				FactPhone:       nil,
-			}
-			if _, ok := sourceFacts[f.Fact]; !ok {
+			if _, ok := sourceUserFacts[f.Fact]; !ok {
 				return ErrFactInvalidFactToSource
 			}
 		}
