@@ -35,6 +35,7 @@ var (
 	FactCategories        = "categories"
 	FactSortCode          = "sort_code"
 	FactCountryOfIssuance = "country_of_issuance"
+	FactDocumentNumber    = "document_number"
 
 	OperatorEqual              = "=="
 	OperatorDifferent          = "!="
