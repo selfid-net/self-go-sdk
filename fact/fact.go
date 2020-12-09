@@ -51,10 +51,11 @@ var (
 	StatusRejected     = "rejected"
 	StatusUnauthorized = "unauthorized"
 
-	ErrFactEmptyName       = errors.New("provided fact does not specify a name")
-	ErrFactBadSource       = errors.New("fact must specify one source")
-	ErrFactInvalidSource   = errors.New("provided fact does not specify a valid source")
-	ErrFactInvalidOperator = errors.New("provided fact does not specify a valid operator")
+	ErrFactEmptyName           = errors.New("provided fact does not specify a name")
+	ErrFactBadSource           = errors.New("fact must specify one source")
+	ErrFactInvalidSource       = errors.New("provided fact does not specify a valid source")
+	ErrFactInvalidOperator     = errors.New("provided fact does not specify a valid operator")
+	ErrFactInvalidFactToSource = errors.New("provided source does not support given fact")
 )
 
 // Fact specific details about the fact
@@ -113,6 +114,52 @@ func (f *Fact) validate() error {
 		if s != SourcePassport || s != SourceDrivingLicense || s != SourceUserSpecified || s != SourceIDCard {
 			return ErrFactInvalidSource
 		}
+
+		if s == SourcePassport || s == SourceIDCard {
+			sourceFacts := map[string]interface{}{
+				FactDocumentNumber:    nil,
+				FactSurname:           nil,
+				FactGivenNames:        nil,
+				FactDateOfBirth:       nil,
+				FactDateOfExpiration:  nil,
+				FactSex:               nil,
+				FactNationality:       nil,
+				FactCountryOfIssuance: nil,
+			}
+			if _, ok := sourceFacts[f.Fact]; !ok {
+				return ErrFactInvalidFactToSource
+			}
+		}
+
+		if s == SourceDrivingLicense {
+			sourceFacts := map[string]interface{}{
+				FactDocumentNumber:    nil,
+				FactSurname:           nil,
+				FactGivenNames:        nil,
+				FactDateOfBirth:       nil,
+				FactDateOfIssuance:    nil,
+				FactDateOfExpiration:  nil,
+				FactAddress:           nil,
+				FactIssuingAuthority:  nil,
+				FactPlaceOfBirth:      nil,
+				FactCountryOfIssuance: nil,
+			}
+			if _, ok := sourceFacts[f.Fact]; !ok {
+				return ErrFactInvalidFactToSource
+			}
+		}
+
+		if s == SourceUserSpecified {
+			sourceFacts := map[string]interface{}{
+				FactDisplayName: nil,
+				FactEmail:       nil,
+				FactPhone:       nil,
+			}
+			if _, ok := sourceFacts[f.Fact]; !ok {
+				return ErrFactInvalidFactToSource
+			}
+		}
+
 	}
 
 	if !f.hasValidOperator() {
