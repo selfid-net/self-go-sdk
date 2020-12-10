@@ -141,7 +141,7 @@ func (f *Fact) validate() error {
 	}
 
 	for _, s := range f.Sources {
-		if s != SourcePassport || s != SourceDrivingLicense || s != SourceUserSpecified || s != SourceIDCard {
+		if s != SourcePassport && s != SourceDrivingLicense && s != SourceUserSpecified && s != SourceIDCard {
 			return ErrFactInvalidSource
 		}
 

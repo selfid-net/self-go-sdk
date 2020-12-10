@@ -140,6 +140,13 @@ func (s Service) Request(req *FactRequest) (*FactResponse, error) {
 		return nil, ErrFactRequestBadFacts
 	}
 
+	for _, fact := range req.Facts {
+		err := fact.validate()
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	if req.Expiry == 0 {
 		req.Expiry = defaultRequestTimeout
 	}
