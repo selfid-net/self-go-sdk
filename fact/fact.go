@@ -15,7 +15,7 @@ var (
 	SourcePassport       = "passport"
 	SourceDrivingLicense = "driving_license"
 	SourceUserSpecified  = "user_specified"
-	SourceIDCard         = "id_card"
+	SourceIDCard         = "identity_card"
 
 	FactEmail             = "email_address"
 	FactPhone             = "phone_number"
