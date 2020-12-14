@@ -220,6 +220,38 @@ func (s *SignatureGraph) ActiveDevice(did string) (ed25519.PublicKey, error) {
 	return k.pk, nil
 }
 
+// NextSequence returns the next sequence a new operation should specify
+func (s *SignatureGraph) NextSequence() int {
+	return len(s.ops)
+}
+
+// PreviousSignature returns the signature of the last operation
+func (s *SignatureGraph) PreviousSignature() string {
+	return s.ops[len(s.ops)-1].sig
+}
+
+// Keys returns the ID of all keys, both active and revoked
+func (s *SignatureGraph) Keys() []string {
+	var keys []string
+
+	for k := range s.keys {
+		keys = append(keys, k)
+	}
+
+	return keys
+}
+
+// Devices returns the ID of all devices, both active and revoked
+func (s *SignatureGraph) Devices() []string {
+	var devices []string
+
+	for d := range s.devices {
+		devices = append(devices, d)
+	}
+
+	return devices
+}
+
 func (s *SignatureGraph) add(op *Operation, a *Action) error {
 	// lookup the key the action refers to
 	n, ok := s.keys[a.KID]
