@@ -59,6 +59,10 @@ var (
 	ErrInvalidOperationVersion = errors.New("signature graph contains an operation that does not contain a valid version")
 	// ErrKeyNotFound returned when the caller asks for a key that cannot be found on the graph
 	ErrKeyNotFound = errors.New("signature graph does not contain a key with the specified identifier")
+	// ErrDeviceNotFound returned when the caller asks for a device that cannot be found on the graph
+	ErrDeviceNotFound = errors.New("signature graph does not contain a device with the specified identifier")
 	// ErrKeyRevoked returned when the caller asks for a key that has been revoked
 	ErrKeyRevoked = errors.New("the specified key has been revoked")
+	// ErrNotDeviceKey returned when the caller asks for a device ID by it's key identifier, but the key is not a device key
+	ErrNotDeviceKey = errors.New("the specified key identifier is not a device key")
 )

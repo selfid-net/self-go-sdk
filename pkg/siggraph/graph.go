@@ -252,6 +252,50 @@ func (s *SignatureGraph) Devices() []string {
 	return devices
 }
 
+// GetDeviceID gets a device ID from a key ID
+func (s *SignatureGraph) GetDeviceID(kid string) (string, error) {
+	k, ok := s.keys[kid]
+	if !ok {
+		return "", ErrKeyNotFound
+	}
+
+	if k.did == "" || k.typ != TypeDeviceKey {
+		return "", ErrNotDeviceKey
+	}
+
+	return k.did, nil
+}
+
+// GetKeyID gets a key ID from a device ID
+func (s *SignatureGraph) GetKeyID(did string) (string, error) {
+	d, ok := s.devices[did]
+	if !ok {
+		return "", ErrDeviceNotFound
+	}
+
+	return d.kid, nil
+}
+
+// CreatedAt returns the time a key was created
+func (s *SignatureGraph) CreatedAt(kid string) (int64, error) {
+	k, ok := s.keys[kid]
+	if !ok {
+		return 0, ErrKeyNotFound
+	}
+
+	return k.ca, nil
+}
+
+// RevokedAt returns the time a key was revoked. If the key has not been revoked, the returned timestamp will be 0
+func (s *SignatureGraph) RevokedAt(kid string) (int64, error) {
+	k, ok := s.keys[kid]
+	if !ok {
+		return 0, ErrKeyNotFound
+	}
+
+	return k.ra, nil
+}
+
 func (s *SignatureGraph) add(op *Operation, a *Action) error {
 	// lookup the key the action refers to
 	n, ok := s.keys[a.KID]
