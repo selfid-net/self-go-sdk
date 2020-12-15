@@ -83,6 +83,10 @@ func (c Config) validate() error {
 		return errors.New("config must specify a key to encrypt storage")
 	}
 
+	if c.StorageDir == "" {
+		return errors.New("config must specify a storage directory")
+	}
+
 	return nil
 }
 
