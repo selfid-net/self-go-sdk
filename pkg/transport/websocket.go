@@ -476,7 +476,7 @@ func (c *Websocket) reconnect(err error) {
 	switch e := err.(type) {
 	case net.Error:
 		if !e.Timeout() {
-			return
+			log.Println("[websocket]", e)
 		}
 	case *websocket.CloseError:
 		if e.Code != websocket.CloseAbnormalClosure {
