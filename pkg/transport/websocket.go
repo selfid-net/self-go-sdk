@@ -10,6 +10,7 @@ import (
 	"net"
 	"os"
 	"path/filepath"
+	"strconv"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -99,18 +100,48 @@ func NewWebsocket(config WebsocketConfig) (*Websocket, error) {
 		return nil, err
 	}
 
-	if stats.Size() != 8 {
-		err = fd.Truncate(8)
+	var offset int64
+
+	switch stats.Size() {
+	case 0:
+		err = fd.Truncate(19)
 		if err != nil {
 			return nil, err
 		}
-	}
 
-	offsetData := make([]byte, 8)
+		_, err = fd.WriteAt([]byte("0000000000000000000"), 0)
+		if err != nil {
+			return nil, err
+		}
+	case 8:
+		// convert the old offset format
+		offsetData := make([]byte, 8)
 
-	_, err = fd.Read(offsetData)
-	if err != nil {
-		return nil, err
+		_, err = fd.Read(offsetData)
+		if err != nil {
+			return nil, err
+		}
+
+		err = fd.Truncate(19)
+		if err != nil {
+			return nil, err
+		}
+
+		offset = int64(binary.LittleEndian.Uint64(offsetData))
+	case 19:
+		offsetData := make([]byte, 19)
+
+		_, err = fd.Read(offsetData)
+		if err != nil {
+			return nil, err
+		}
+
+		off, err := strconv.Atoi(string(offsetData))
+		if err != nil {
+			return nil, err
+		}
+
+		offset = int64(off)
 	}
 
 	c := Websocket{
@@ -118,7 +149,7 @@ func NewWebsocket(config WebsocketConfig) (*Websocket, error) {
 		queue:     pqueue.New(5),
 		inbox:     make(chan proto.Message, config.InboxSize),
 		responses: sync.Map{},
-		offset:    int64(binary.LittleEndian.Uint64(offsetData)),
+		offset:    offset,
 		ofd:       fd,
 		closed:    1,
 	}
@@ -412,8 +443,7 @@ func (c *Websocket) reader() {
 
 			c.offset = msg.Offset
 
-			offsetData := make([]byte, 8)
-			binary.LittleEndian.PutUint64(offsetData, uint64(c.offset))
+			offsetData := []byte(fmt.Sprintf("%019d", c.offset))
 
 			_, err = c.ofd.WriteAt(offsetData, 0)
 			if err != nil {

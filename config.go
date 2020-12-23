@@ -215,7 +215,7 @@ func (c Config) loadWebsocketConnector() error {
 
 	cfg := transport.WebsocketConfig{
 		MessagingURL: c.MessagingURL,
-		StorageDir:   c.StorageDir,
+		StorageDir:   c.offsetStorageDir,
 		SelfID:       c.SelfAppID,
 		KeyID:        c.kid,
 		DeviceID:     c.DeviceID,
@@ -240,7 +240,7 @@ func (c Config) loadStorageConnector() error {
 	}
 
 	cfg := crypto.StorageConfig{
-		StorageDir: c.StorageDir,
+		StorageDir: c.cryptoStorageDir,
 	}
 
 	client, err := crypto.NewFileStorage(cfg)

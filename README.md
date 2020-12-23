@@ -57,10 +57,10 @@ import "github.com/joinself/self-go-sdk"
 
 func main() {
     cfg := selfsdk.Config{
-		SelfAppID:     os.Getenv("SELF_APP_ID"),
-		SelfAppSecret: os.Getenv("SELF_APP_SECRET"),
-		StorageDir:    "/opt/self/crypto",
-		StorageKey:    "my-secret-crypto-storage-key",
+		SelfAppID:           os.Getenv("SELF_APP_ID"),
+		SelfAppDeviceSecret: os.Getenv("SELF_APP_DEVICE_SECRET"),
+		StorageDir:          "/opt/self/crypto",
+		StorageKey:          "my-secret-crypto-storage-key",
 	}
 
     client, err := selfsdk.New(cfg)

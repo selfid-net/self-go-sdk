@@ -17,10 +17,10 @@ func main() {
 	cid := uuid.New().String()
 
 	cfg := selfsdk.Config{
-		SelfAppID:     os.Getenv("SELF_APP_ID"),
-		SelfAppSecret: os.Getenv("SELF_APP_SECRET"),
-		StorageKey:    "my-secret-crypto-storage-key",
-		StorageDir:    "../.storage/" + os.Getenv("SELF_APP_ID"),
+		SelfAppID:           os.Getenv("SELF_APP_ID"),
+		SelfAppDeviceSecret: os.Getenv("SELF_APP_DEVICE_SECRET"),
+		StorageKey:          "my-secret-crypto-storage-key",
+		StorageDir:          "../.storage/" + os.Getenv("SELF_APP_ID"),
 	}
 
 	if os.Getenv("SELF_ENV") != "" {
