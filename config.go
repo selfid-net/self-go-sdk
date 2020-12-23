@@ -7,6 +7,8 @@ import (
 	"errors"
 	"net"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -41,7 +43,7 @@ type Connectors struct {
 // Config configuration options for the sdk
 type Config struct {
 	SelfAppID            string
-	SelfAppSecret        string
+	SelfAppDeviceSecret  string
 	StorageKey           string
 	DeviceID             string
 	StorageDir           string
@@ -52,6 +54,8 @@ type Config struct {
 	TCPDeadline          time.Duration
 	RequestTimeout       time.Duration
 	Connectors           *Connectors
+	offsetStorageDir     string
+	cryptoStorageDir     string
 	kid                  string
 	sk                   ed25519.PrivateKey
 }
@@ -71,12 +75,12 @@ func (c Config) validate() error {
 		return errors.New("config must specify the self app id")
 	}
 
-	if c.SelfAppSecret == "" {
-		return errors.New("config must specify an app secret key")
+	if c.SelfAppDeviceSecret == "" {
+		return errors.New("config must specify an app device secret key")
 	}
 
-	if len(strings.Split(c.SelfAppSecret, ":")) < 2 {
-		c.SelfAppSecret = "1:" + c.SelfAppSecret
+	if len(strings.Split(c.SelfAppDeviceSecret, ":")) < 2 {
+		return errors.New("config must specify an app device secret key")
 	}
 
 	if c.StorageKey == "" {
@@ -99,10 +103,6 @@ func (c *Config) load() error {
 		c.DeviceID = "1"
 	}
 
-	if c.StorageDir == "" {
-		c.StorageDir = "./.storage"
-	}
-
 	if c.Environment != "" {
 		if c.APIURL == "" {
 			c.APIURL = "https://api." + c.Environment + ".joinself.com"
@@ -111,7 +111,6 @@ func (c *Config) load() error {
 		if c.MessagingURL == "" {
 			c.MessagingURL = "wss://messaging." + c.Environment + ".joinself.com/v1/messaging"
 		}
-
 	}
 
 	if c.APIURL == "" {
@@ -134,11 +133,7 @@ func (c *Config) load() error {
 		c.RequestTimeout = defaultRequestTimeout
 	}
 
-	if len(strings.Split(c.SelfAppSecret, ":")) < 2 {
-		c.SelfAppSecret = "1:" + c.SelfAppSecret
-	}
-
-	kp := strings.Split(c.SelfAppSecret, ":")
+	kp := strings.Split(c.SelfAppDeviceSecret, ":")
 
 	skData, err := decoder.DecodeString(kp[1])
 	if err != nil {
@@ -148,8 +143,13 @@ func (c *Config) load() error {
 	c.sk = ed25519.NewKeyFromSeed(skData)
 	c.kid = kp[0]
 
-	// loading connectors should be done in order due to dependencies
+	// attempt to migrate storage directory if needed
+	err = c.migrateStorage()
+	if err != nil {
+		return err
+	}
 
+	// loading connectors should be done in order due to dependencies
 	err = c.loadRestConnector()
 	if err != nil {
 		return err
@@ -316,6 +316,73 @@ func (c Config) loadMessagingConnector() error {
 	}
 
 	c.Connectors.Messaging = client
+
+	return nil
+}
+
+func (c *Config) migrateStorage() error {
+	var sessions []string
+	var offsetFile string
+
+	c.offsetStorageDir = filepath.Join(c.StorageDir, "devices", c.DeviceID)
+	c.cryptoStorageDir = filepath.Join(c.StorageDir, "devices", c.DeviceID, "keys", c.kid)
+
+	err := os.MkdirAll(c.cryptoStorageDir, 0744)
+	if err != nil {
+		return err
+	}
+
+	// check for any files stored in the old structure and move them into the correct directories
+	err = filepath.Walk(c.StorageDir, func(path string, info os.FileInfo, err error) error {
+		if info.IsDir() {
+			return nil
+		}
+
+		np := strings.Split(info.Name(), ".")
+
+		if len(np) < 2 {
+			return nil
+		}
+
+		if np[1] == "offset" {
+			if offsetFile != "" {
+				return errors.New("multiple offset files found. please remove the old offset file")
+			}
+
+			offsetFile = info.Name()
+		}
+
+		if strings.Contains(np[0], "-session") && np[1] == "pickle" {
+			sessions = append(sessions, info.Name())
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return err
+	}
+
+	if offsetFile == "" {
+		return nil
+	}
+
+	err = os.Rename(filepath.Join(c.StorageDir, offsetFile), filepath.Join(c.offsetStorageDir, offsetFile))
+	if err != nil {
+		return err
+	}
+
+	err = os.Rename(filepath.Join(c.StorageDir, "account.pickle"), filepath.Join(c.cryptoStorageDir, "account.pickle"))
+	if err != nil {
+		return err
+	}
+
+	for _, s := range sessions {
+		err = os.Rename(filepath.Join(c.StorageDir, s), filepath.Join(c.cryptoStorageDir, s))
+		if err != nil {
+			return err
+		}
+	}
 
 	return nil
 }
