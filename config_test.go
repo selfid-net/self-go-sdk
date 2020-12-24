@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"golang.org/x/crypto/ed25519"
 
@@ -23,7 +24,8 @@ func (t *testWebsocketTransport) Send(recipients []string, data []byte) error {
 }
 
 func (t *testWebsocketTransport) Receive() (string, []byte, error) {
-	return "", nil, nil
+	time.Sleep(time.Minute)
+	return "test:1", []byte("{}"), nil
 }
 
 func (t *testWebsocketTransport) Command(command string, payload []byte) ([]byte, error) {
@@ -179,4 +181,8 @@ func TestConfigStorageMigration(t *testing.T) {
 
 	_, err = os.Stat(filepath.Join(testPath, "devices/1/keys/4/app:3-session.pickle"))
 	assert.Nil(t, err)
+
+	// test second migration
+	err = cfg.migrateStorage()
+	require.Nil(t, err)
 }

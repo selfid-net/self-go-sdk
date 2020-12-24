@@ -344,7 +344,7 @@ func (c *Config) migrateStorage() error {
 			return nil
 		}
 
-		if np[1] == "offset" {
+		if np[1] == "offset" && filepath.Dir(path) != c.offsetStorageDir {
 			if offsetFile != "" {
 				return errors.New("multiple offset files found. please remove the old offset file")
 			}
