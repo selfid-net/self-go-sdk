@@ -324,8 +324,8 @@ func (c *Config) migrateStorage() error {
 	var sessions []string
 	var offsetFile string
 
-	c.offsetStorageDir = filepath.Join(c.StorageDir, "devices", c.DeviceID)
-	c.cryptoStorageDir = filepath.Join(c.StorageDir, "devices", c.DeviceID, "keys", c.kid)
+	c.offsetStorageDir = filepath.Join(c.StorageDir, "apps", c.SelfAppID, "devices", c.DeviceID)
+	c.cryptoStorageDir = filepath.Join(c.StorageDir, "apps", c.SelfAppID, "devices", c.DeviceID, "keys", c.kid)
 
 	err := os.MkdirAll(c.cryptoStorageDir, 0744)
 	if err != nil {

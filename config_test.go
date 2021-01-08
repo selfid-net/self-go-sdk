@@ -167,19 +167,19 @@ func TestConfigStorageMigration(t *testing.T) {
 	require.Nil(t, err)
 
 	// check files have been moved
-	_, err = os.Stat(filepath.Join(testPath, "devices/1/test:1.offset"))
+	_, err = os.Stat(filepath.Join(testPath, "apps/self-id/devices/1/test:1.offset"))
 	assert.Nil(t, err)
 
-	_, err = os.Stat(filepath.Join(testPath, "devices/1/keys/4/account.pickle"))
+	_, err = os.Stat(filepath.Join(testPath, "apps/self-id/devices/1/keys/4/account.pickle"))
 	assert.Nil(t, err)
 
-	_, err = os.Stat(filepath.Join(testPath, "devices/1/keys/4/app:1-session.pickle"))
+	_, err = os.Stat(filepath.Join(testPath, "apps/self-id/devices/1/keys/4/app:1-session.pickle"))
 	assert.Nil(t, err)
 
-	_, err = os.Stat(filepath.Join(testPath, "devices/1/keys/4/app:2-session.pickle"))
+	_, err = os.Stat(filepath.Join(testPath, "apps/self-id/devices/1/keys/4/app:2-session.pickle"))
 	assert.Nil(t, err)
 
-	_, err = os.Stat(filepath.Join(testPath, "devices/1/keys/4/app:3-session.pickle"))
+	_, err = os.Stat(filepath.Join(testPath, "apps/self-id/devices/1/keys/4/app:3-session.pickle"))
 	assert.Nil(t, err)
 
 	// test second migration
