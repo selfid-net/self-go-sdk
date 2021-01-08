@@ -8,10 +8,10 @@ This reduces the liabilities of having to securely store user information and co
 
 In order to run this example, you must have a valid app id and private key. Self credentials are issued by the [Self Developer portal](https://developer.joinself.com/) when you create a new app.
 
-Once you have your valid `SELF_APP_ID` and `SELF_APP_SECRET` you can run this example with:
+Once you have your valid `SELF_APP_ID` and `SELF_APP_DEVICE_SECRET` you can run this example with:
 
 ```bash
-$ SELF_INTERMEDIARY=XXXX SELF_APP_ID=XXXXX SELF_APP_SECRET=XXXXXXXX go run fact.go <your_users_self_id>
+$ SELF_INTERMEDIARY=XXXX SELF_APP_ID=XXXXX SELF_APP_DEVICE_SECRET=XXXXXXXX go run fact.go <your_users_self_id>
 ```
 
 Note you must provide a valid user self_id for `your_users_self_id`. This example will send a fact request to this self_id's devices, so keep an eye on the user's device to look for the fact request.

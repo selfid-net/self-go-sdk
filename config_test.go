@@ -5,10 +5,14 @@ package selfsdk
 import (
 	"crypto/rand"
 	"encoding/base64"
+	"os"
+	"path/filepath"
 	"testing"
+	"time"
 
 	"golang.org/x/crypto/ed25519"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -20,7 +24,8 @@ func (t *testWebsocketTransport) Send(recipients []string, data []byte) error {
 }
 
 func (t *testWebsocketTransport) Receive() (string, []byte, error) {
-	return "", nil, nil
+	time.Sleep(time.Minute)
+	return "test:1", []byte("{}"), nil
 }
 
 func (t *testWebsocketTransport) Command(command string, payload []byte) ([]byte, error) {
@@ -63,7 +68,7 @@ func TestConfigValidate(t *testing.T) {
 	err = cfg.validate()
 	assert.NotNil(t, err)
 
-	cfg.SelfAppSecret = "1:private-key"
+	cfg.SelfAppDeviceSecret = "1:private-key"
 	err = cfg.validate()
 	assert.NotNil(t, err)
 
@@ -84,11 +89,11 @@ func TestConfigLoad(t *testing.T) {
 	require.Nil(t, err)
 
 	cfg := Config{
-		SelfAppID:     "self-id",
-		DeviceID:      "device-id",
-		SelfAppSecret: "1:" + base64.RawStdEncoding.EncodeToString(sk.Seed()),
-		StorageKey:    "super-secret-encryption-key",
-		StorageDir:    "/tmp/test",
+		SelfAppID:           "self-id",
+		DeviceID:            "device-id",
+		SelfAppDeviceSecret: "1:" + base64.RawStdEncoding.EncodeToString(sk.Seed()),
+		StorageKey:          "super-secret-encryption-key",
+		StorageDir:          "/tmp/test",
 		Connectors: &Connectors{
 			Rest:      &trt,
 			Websocket: &twt,
@@ -116,10 +121,11 @@ func TestConfigLoadWithEnvironment(t *testing.T) {
 	require.Nil(t, err)
 
 	cfg := Config{
-		SelfAppID:     "self-id",
-		SelfAppSecret: "1:" + base64.RawStdEncoding.EncodeToString(sk.Seed()),
-		StorageKey:    "super-secret-encryption-key",
-		Environment:   "sandbox",
+		SelfAppID:           "self-id",
+		SelfAppDeviceSecret: "1:" + base64.RawStdEncoding.EncodeToString(sk.Seed()),
+		StorageKey:          "super-secret-encryption-key",
+		StorageDir:          "/tmp/test",
+		Environment:         "sandbox",
 		Connectors: &Connectors{
 			Rest:      &trt,
 			Websocket: &twt,
@@ -132,4 +138,51 @@ func TestConfigLoadWithEnvironment(t *testing.T) {
 
 	assert.Equal(t, cfg.APIURL, "https://api.sandbox.joinself.com")
 	assert.Equal(t, cfg.MessagingURL, "wss://messaging.sandbox.joinself.com/v1/messaging")
+}
+
+func TestConfigStorageMigration(t *testing.T) {
+	testPath := filepath.Join("/tmp", uuid.New().String())
+
+	err := os.Mkdir(testPath, 0755)
+	require.Nil(t, err)
+
+	defer os.RemoveAll(testPath)
+
+	// create some test files that need to be moved to the new layout
+	for _, f := range []string{"test:1.offset", "account.pickle", "app:1-session.pickle", "app:2-session.pickle", "app:3-session.pickle"} {
+		_, err = os.Create(filepath.Join(testPath, f))
+		require.Nil(t, err)
+	}
+
+	cfg := Config{
+		SelfAppID:           "self-id",
+		SelfAppDeviceSecret: "4:MY-DEVICE-KEY",
+		StorageKey:          "super-secret-encryption-key",
+		StorageDir:          testPath,
+		DeviceID:            "1",
+		kid:                 "4",
+	}
+
+	err = cfg.migrateStorage()
+	require.Nil(t, err)
+
+	// check files have been moved
+	_, err = os.Stat(filepath.Join(testPath, "apps/self-id/devices/1/test:1.offset"))
+	assert.Nil(t, err)
+
+	_, err = os.Stat(filepath.Join(testPath, "apps/self-id/devices/1/keys/4/account.pickle"))
+	assert.Nil(t, err)
+
+	_, err = os.Stat(filepath.Join(testPath, "apps/self-id/devices/1/keys/4/app:1-session.pickle"))
+	assert.Nil(t, err)
+
+	_, err = os.Stat(filepath.Join(testPath, "apps/self-id/devices/1/keys/4/app:2-session.pickle"))
+	assert.Nil(t, err)
+
+	_, err = os.Stat(filepath.Join(testPath, "apps/self-id/devices/1/keys/4/app:3-session.pickle"))
+	assert.Nil(t, err)
+
+	// test second migration
+	err = cfg.migrateStorage()
+	require.Nil(t, err)
 }

@@ -33,7 +33,7 @@ type Transport interface {
 	Close() error
 }
 
-// Cryto the crytographic provider used to encrypt and decrypt messages
+// Crypto the crytographic provider used to encrypt and decrypt messages
 type Crypto interface {
 	Encrypt(recipients []string, plaintext []byte) ([]byte, error)
 	Decrypt(sender string, ciphertext []byte) ([]byte, error)
