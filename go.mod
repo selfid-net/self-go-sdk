@@ -4,7 +4,6 @@ go 1.13
 
 require (
 	github.com/beevik/ntp v0.2.0
-	github.com/davecgh/go-spew v1.1.0
 	github.com/golang/protobuf v1.4.1
 	github.com/google/uuid v1.1.1
 	github.com/gorilla/websocket v1.4.1

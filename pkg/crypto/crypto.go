@@ -21,6 +21,7 @@ import (
 var defaultPreKeyBundleSize = 100
 
 var (
+	// ErrInvalidGroupMessageRecipient a received message is not intended for this identity
 	ErrInvalidGroupMessageRecipient = errors.New("group message does not contain a recipient header for this identity")
 )
 

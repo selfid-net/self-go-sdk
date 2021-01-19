@@ -10,6 +10,7 @@ import (
 )
 
 var (
+	// ErrNotExist file does not exist
 	ErrNotExist = os.ErrNotExist
 )
 var perr *os.PathError
@@ -24,7 +25,7 @@ type FileStorage struct {
 	config StorageConfig
 }
 
-// NewStorage creates a new storage client that persists to files
+// NewFileStorage creates a new storage client that persists to files
 func NewFileStorage(config StorageConfig) (*FileStorage, error) {
 	return &FileStorage{config}, os.MkdirAll(config.StorageDir, 0700)
 }
@@ -66,7 +67,7 @@ func (s *FileStorage) GetSession(id string) ([]byte, error) {
 	return data, nil
 }
 
-// SetAccount persists an sessions encoded and encrypted pickle
+// SetSession persists an sessions encoded and encrypted pickle
 func (s *FileStorage) SetSession(id string, session []byte) error {
 	p := filepath.Join(s.config.StorageDir, id+"-session.pickle")
 	return ioutil.WriteFile(p, session, 0600)
