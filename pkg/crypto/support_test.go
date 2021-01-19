@@ -186,7 +186,7 @@ func (p *testPKI) GetDeviceKey(selfID, deviceID string) ([]byte, error) {
 
 	kid := p.dkoff[selfID+":"+deviceID]
 
-	if kid > len(keys) {
+	if kid > len(keys)-1 {
 		return nil, errors.New("prekeys exhausted")
 	}
 
