@@ -49,7 +49,27 @@ func (s *FileStorage) GetAccount() ([]byte, error) {
 // SetAccount persists an accounts encoded and encrypted pickle
 func (s *FileStorage) SetAccount(account []byte) error {
 	p := filepath.Join(s.config.StorageDir, "account.pickle")
-	return ioutil.WriteFile(p, account, 0600)
+
+	f, err := os.OpenFile(p, os.O_CREATE|os.O_RDWR, 0600)
+	if err != nil {
+		return err
+	}
+
+	wb, err := f.Write(account)
+	if err != nil {
+		return err
+	}
+
+	if wb != len(account) {
+		return errors.New("incomplete write of encrypted account")
+	}
+
+	err = f.Sync()
+	if err != nil {
+		return err
+	}
+
+	return f.Close()
 }
 
 // GetSession gets an sessions encoded and encrypted pickle
@@ -70,5 +90,25 @@ func (s *FileStorage) GetSession(id string) ([]byte, error) {
 // SetSession persists an sessions encoded and encrypted pickle
 func (s *FileStorage) SetSession(id string, session []byte) error {
 	p := filepath.Join(s.config.StorageDir, id+"-session.pickle")
-	return ioutil.WriteFile(p, session, 0600)
+
+	f, err := os.OpenFile(p, os.O_CREATE|os.O_RDWR, 0600)
+	if err != nil {
+		return err
+	}
+
+	wb, err := f.Write(session)
+	if err != nil {
+		return err
+	}
+
+	if wb != len(session) {
+		return errors.New("incomplete write of encrypted session")
+	}
+
+	err = f.Sync()
+	if err != nil {
+		return err
+	}
+
+	return f.Close()
 }
