@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"math/big"
 	"strings"
 	"sync"
@@ -247,9 +248,16 @@ func (c *Client) createAccount() (*selfcrypto.Account, error) {
 }
 
 func (c *Client) publishPreKeys(a *selfcrypto.Account) error {
+	log.Println("crypto: generating new prekeys")
+
 	var pkb prekeys
 
-	err := a.GenerateOneTimeKeys(c.config.PreKeyBundleSize)
+	potks, err := a.OneTimeKeys()
+	if err != nil {
+		return err
+	}
+
+	err = a.GenerateOneTimeKeys(c.config.PreKeyBundleSize)
 	if err != nil {
 		return err
 	}
@@ -260,6 +268,11 @@ func (c *Client) publishPreKeys(a *selfcrypto.Account) error {
 	}
 
 	for k, v := range otks.Curve25519 {
+		_, ok := potks.Curve25519[k]
+		if ok {
+			log.Println("crypto: skip publishing prekey", k)
+			continue
+		}
 		pkb = append(pkb, prekey{ID: k, Key: v})
 	}
 
