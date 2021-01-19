@@ -55,7 +55,7 @@ func (s *FileStorage) SetAccount(account []byte) error {
 		return err
 	}
 
-	wb, err := f.Write(account)
+	wb, err := f.WriteAt(account, 0)
 	if err != nil {
 		return err
 	}
@@ -96,7 +96,7 @@ func (s *FileStorage) SetSession(id string, session []byte) error {
 		return err
 	}
 
-	wb, err := f.Write(session)
+	wb, err := f.WriteAt(session, 0)
 	if err != nil {
 		return err
 	}
