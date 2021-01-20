@@ -50,12 +50,12 @@ func (s *FileStorage) GetAccount() ([]byte, error) {
 func (s *FileStorage) SetAccount(account []byte) error {
 	p := filepath.Join(s.config.StorageDir, "account.pickle")
 
-	f, err := os.OpenFile(p, os.O_CREATE|os.O_RDWR, 0600)
+	f, err := os.OpenFile(p, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {
 		return err
 	}
 
-	wb, err := f.WriteAt(account, 0)
+	wb, err := f.Write(account)
 	if err != nil {
 		return err
 	}
@@ -91,12 +91,12 @@ func (s *FileStorage) GetSession(id string) ([]byte, error) {
 func (s *FileStorage) SetSession(id string, session []byte) error {
 	p := filepath.Join(s.config.StorageDir, id+"-session.pickle")
 
-	f, err := os.OpenFile(p, os.O_CREATE|os.O_RDWR, 0600)
+	f, err := os.OpenFile(p, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {
 		return err
 	}
 
-	wb, err := f.WriteAt(session, 0)
+	wb, err := f.Write(session)
 	if err != nil {
 		return err
 	}
