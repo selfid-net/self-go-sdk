@@ -186,3 +186,57 @@ func TestConfigStorageMigration(t *testing.T) {
 	err = cfg.migrateStorage()
 	require.Nil(t, err)
 }
+
+func TestConfigStorageMultipleApps(t *testing.T) {
+	testPath := filepath.Join("/tmp", uuid.New().String())
+
+	err := os.Mkdir(testPath, 0755)
+	require.Nil(t, err)
+
+	defer os.RemoveAll(testPath)
+
+	// create some test files that need to be moved to the new layout
+	files := []string{
+		"apps/self-id-1/devices/1/self-id-1:1.offset",
+		"apps/self-id-1/devices/1/keys/3/account.pickle",
+		"apps/self-id-1/devices/1/keys/3/app:1-session.pickle",
+		"apps/self-id-1/devices/1/keys/3/app:2-session.pickle",
+		"apps/self-id-1/devices/1/keys/3/app:3-session.pickle",
+		"apps/self-id-1/devices/1/keys/4/account.pickle",
+		"apps/self-id-1/devices/1/keys/4/app:1-session.pickle",
+		"apps/self-id-1/devices/1/keys/4/app:2-session.pickle",
+		"apps/self-id-1/devices/1/keys/4/app:3-session.pickle",
+		"apps/self-id-1/devices/2/self-id-1:2.offset",
+		"apps/self-id-1/devices/2/keys/5/account.pickle",
+		"apps/self-id-1/devices/2/keys/5/app:1-session.pickle",
+		"apps/self-id-1/devices/2/keys/5/app:2-session.pickle",
+		"apps/self-id-1/devices/2/keys/5/app:3-session.pickle",
+		"apps/self-id-2/devices/1/self-id-2:1.offset",
+		"apps/self-id-2/devices/1/keys/4/account.pickle",
+		"apps/self-id-2/devices/1/keys/4/app:1-session.pickle",
+		"apps/self-id-2/devices/1/keys/4/app:2-session.pickle",
+		"apps/self-id-2/devices/1/keys/4/app:3-session.pickle",
+	}
+
+	for _, f := range files {
+		fp := filepath.Join(testPath, f)
+
+		err = os.MkdirAll(filepath.Dir(fp), 0777)
+		require.Nil(t, err)
+
+		_, err = os.Create(fp)
+		require.Nil(t, err)
+	}
+
+	cfg := Config{
+		SelfAppID:           "self-id",
+		SelfAppDeviceSecret: "4:MY-DEVICE-KEY",
+		StorageKey:          "super-secret-encryption-key",
+		StorageDir:          testPath,
+		DeviceID:            "1",
+		kid:                 "4",
+	}
+
+	err = cfg.migrateStorage()
+	require.Nil(t, err)
+}
