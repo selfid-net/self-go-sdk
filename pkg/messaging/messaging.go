@@ -198,7 +198,7 @@ func (c *Client) reader() {
 		sender, ciphertext, err := c.transport.Receive()
 		if err != nil {
 			log.Println("messaging:", err)
-			return
+			continue
 		}
 
 		plaintext, err := c.crypto.Decrypt(sender, ciphertext)
@@ -209,13 +209,14 @@ func (c *Client) reader() {
 
 		encPayload := gjson.GetBytes(plaintext, "payload").String()
 		if encPayload == "" {
-			return
+			log.Println("messaging: invalid jws message")
+			continue
 		}
 
 		payload, err := decoder.DecodeString(encPayload)
 		if err != nil {
 			log.Println("messaging:", err)
-			return
+			continue
 		}
 
 		cid := gjson.GetBytes(payload, "cid").String()

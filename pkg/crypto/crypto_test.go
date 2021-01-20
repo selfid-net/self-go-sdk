@@ -237,7 +237,7 @@ func TestCryptoClientDecrypt(t *testing.T) {
 }
 
 func TestCryptoClientExhaustPreKeys(t *testing.T) {
-	senders, pki, astorage := setup(t, 101)
+	senders, pki, astorage := setup(t, 100)
 
 	// setup alice
 	apk, ask, err := ed25519.GenerateKey(rand.Reader)
