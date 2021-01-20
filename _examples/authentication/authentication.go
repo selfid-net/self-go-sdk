@@ -15,7 +15,7 @@ func main() {
 		SelfAppID:           os.Getenv("SELF_APP_ID"),
 		SelfAppDeviceSecret: os.Getenv("SELF_APP_DEVICE_SECRET"),
 		StorageKey:          "my-secret-crypto-storage-key",
-		StorageDir:          "../.storage/" + os.Getenv("SELF_APP_ID"),
+		StorageDir:          "../.storage/",
 	}
 
 	if os.Getenv("SELF_ENV") != "" {
