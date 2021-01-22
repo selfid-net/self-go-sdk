@@ -138,3 +138,25 @@ func TestMessagingSubscribe(t *testing.T) {
 	assert.Equal(t, "alice:1", r.sender)
 	assert.Equal(t, req, r.data)
 }
+
+func TestMessagingClose(t *testing.T) {
+	ws := newTestWebsocket()
+	cr := newTestCrypto()
+
+	cfg := Config{
+		SelfID:    "test",
+		DeviceID:  "1",
+		Transport: ws,
+		Crypto:    cr,
+	}
+
+	c, err := New(cfg)
+	require.Nil(t, err)
+
+	time.Sleep(time.Millisecond * 100)
+
+	close(ws.in)
+
+	err = c.Close()
+	require.Nil(t, err)
+}

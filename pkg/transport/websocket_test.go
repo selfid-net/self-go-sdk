@@ -191,18 +191,14 @@ func TestWebsocketClose(t *testing.T) {
 
 	// handle received messages
 	go func() {
-		for {
-			sender, m, err := c.Receive()
-			require.Nil(t, err)
-			assert.Equal(t, "alice:1", sender)
-			assert.Equal(t, []byte("test"), m)
-			time.Sleep(time.Millisecond)
+		for i := 0; i < 10000; i++ {
+			c.Receive()
 		}
 	}()
 
-	// send some messages
 	go func() {
-		for i := 0; i < 100000; i++ {
+		// send some messages
+		for i := 0; i < 10000; i++ {
 			s.out <- &msgproto.Message{
 				Id:         "test",
 				Sender:     "alice:1",
