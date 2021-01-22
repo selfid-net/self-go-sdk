@@ -278,6 +278,18 @@ func (c *Websocket) Command(command string, payload []byte) ([]byte, error) {
 func (c *Websocket) Close() error {
 	c.close()
 
+	// wait for all messages to be consumed
+	for len(c.inbox) > 0 {
+		time.Sleep(time.Millisecond)
+	}
+
+	time.Sleep(time.Second)
+
+	err := c.ofd.Sync()
+	if err != nil {
+		return err
+	}
+
 	return c.ofd.Close()
 }
 

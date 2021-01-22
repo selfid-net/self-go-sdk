@@ -57,6 +57,8 @@ type Client struct {
 	transport     Transport
 	responses     sync.Map
 	subscriptions sync.Map
+	closing       chan struct{}
+	closed        chan struct{}
 }
 
 // New create a new messaging client
@@ -96,6 +98,8 @@ func New(config Config) (*Client, error) {
 		responses: sync.Map{},
 		transport: config.Transport,
 		crypto:    config.Crypto,
+		closing:   make(chan struct{}, 1),
+		closed:    make(chan struct{}, 1),
 	}
 
 	go c.reader()
@@ -159,6 +163,8 @@ func (c *Client) Command(command string, payload []byte) ([]byte, error) {
 
 // Close gracefully closes down the messaging cient
 func (c *Client) Close() error {
+	c.closing <- struct{}{}
+	<-c.closed
 	return nil
 }
 
@@ -195,6 +201,13 @@ func (c *Client) IsPermittingConnectionsFrom(selfid string) bool {
 
 func (c *Client) reader() {
 	for {
+		// check if reader has been closed
+		select {
+		case <-c.closing:
+			c.closed <- struct{}{}
+		default:
+		}
+
 		sender, ciphertext, err := c.transport.Receive()
 		if err != nil {
 			log.Println("messaging:", err)
