@@ -112,8 +112,12 @@ func (s *testapiserver) testHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func newTestMessagingServer(t *testing.T) *testmsgserver {
+	return newTestMessagingServerWithInbox(t, 1024)
+}
+
+func newTestMessagingServerWithInbox(t *testing.T, inboxSize int) *testmsgserver {
 	s := testmsgserver{
-		in:   make(chan *msgproto.Message, 1024),
+		in:   make(chan *msgproto.Message, inboxSize),
 		out:  make(chan interface{}, 1024),
 		stop: make(chan bool, 1),
 	}

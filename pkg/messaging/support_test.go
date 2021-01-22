@@ -4,6 +4,8 @@ package messaging
 
 import (
 	"errors"
+
+	"github.com/joinself/self-go-sdk/pkg/transport"
 )
 
 type testEvent struct {
@@ -35,7 +37,11 @@ func (c *testWebsocket) Send(recipients []string, data []byte) error {
 }
 
 func (c *testWebsocket) Receive() (string, []byte, error) {
-	e := <-c.in
+	e, ok := <-c.in
+	if !ok {
+		return "", nil, transport.ErrChannelClosed
+	}
+
 	if e.recipient == "failure" {
 		return "", nil, errors.New("transport failure")
 	}

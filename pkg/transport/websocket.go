@@ -31,6 +31,9 @@ const (
 	priorityMessage
 )
 
+// ErrChannelClosed returned when the websocket connection is shut down manually
+var ErrChannelClosed = errors.New("channel closed")
+
 type (
 	sigclose bool
 	sigping  bool
@@ -69,6 +72,7 @@ type Websocket struct {
 	offset    int64
 	ofd       *os.File
 	closed    int32
+	shutdown  int32
 }
 
 type event struct {
@@ -219,7 +223,10 @@ func (c *Websocket) SendAsync(recipients []string, data []byte, callback func(er
 
 // Receive receive a message
 func (c *Websocket) Receive() (string, []byte, error) {
-	e := <-c.inbox
+	e, ok := <-c.inbox
+	if !ok {
+		return "", nil, errors.New("channel closed")
+	}
 
 	m, ok := e.(*msgproto.Message)
 	if !ok {
@@ -276,14 +283,14 @@ func (c *Websocket) Command(command string, payload []byte) ([]byte, error) {
 
 // Close closes the messaging clients persistent connection
 func (c *Websocket) Close() error {
+	atomic.StoreInt32(&c.shutdown, 1)
+
 	c.close()
 
-	// wait for all messages to be consumed
+	// wait for subscribers to drain
 	for len(c.inbox) > 0 {
 		time.Sleep(time.Millisecond)
 	}
-
-	time.Sleep(time.Second)
 
 	err := c.ofd.Sync()
 	if err != nil {
@@ -382,6 +389,10 @@ func (c *Websocket) reader() {
 	var hdr msgproto.Header
 
 	for {
+		if c.isShutdown() {
+			close(c.inbox)
+		}
+
 		if c.isClosed() {
 			return
 		}
@@ -555,4 +566,8 @@ func (c *Websocket) close() bool {
 
 func (c *Websocket) isClosed() bool {
 	return atomic.LoadInt32(&c.closed) == 1
+}
+
+func (c *Websocket) isShutdown() bool {
+	return atomic.LoadInt32(&c.shutdown) == 1
 }

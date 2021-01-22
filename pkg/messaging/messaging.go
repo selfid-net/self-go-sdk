@@ -210,7 +210,9 @@ func (c *Client) reader() {
 
 		sender, ciphertext, err := c.transport.Receive()
 		if err != nil {
-			log.Println("messaging:", err)
+			if !errors.Is(err, transport.ErrChannelClosed) {
+				log.Println("messaging:", err)
+			}
 			continue
 		}
 
