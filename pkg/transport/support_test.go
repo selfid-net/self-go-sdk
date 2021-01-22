@@ -31,7 +31,7 @@ var pk ed25519.PublicKey
 
 type testmsgserver struct {
 	s        *httptest.Server
-	in       chan msgproto.Message
+	in       chan *msgproto.Message
 	out      chan interface{}
 	stop     chan bool
 	mu       sync.Mutex
@@ -48,10 +48,10 @@ func init() {
 	token, sk, pk = testToken("test")
 }
 
-func wait(ch chan msgproto.Message) (*msgproto.Message, error) {
+func wait(ch chan *msgproto.Message) (*msgproto.Message, error) {
 	select {
 	case msg := <-ch:
-		return &msg, nil
+		return msg, nil
 	case <-time.After(time.Millisecond * 100):
 		return nil, errors.New("channel read timeout")
 	}
@@ -113,7 +113,7 @@ func (s *testapiserver) testHandler(w http.ResponseWriter, r *http.Request) {
 
 func newTestMessagingServer(t *testing.T) *testmsgserver {
 	s := testmsgserver{
-		in:   make(chan msgproto.Message, 1024),
+		in:   make(chan *msgproto.Message, 1024),
 		out:  make(chan interface{}, 1024),
 		stop: make(chan bool, 1),
 	}
@@ -267,7 +267,7 @@ func (t *testmsgserver) testHandler(w http.ResponseWriter, r *http.Request) {
 					return
 				}
 
-				t.in <- m
+				t.in <- &m
 			}
 		}
 	}()
@@ -295,12 +295,13 @@ func (t *testmsgserver) testHandler(w http.ResponseWriter, r *http.Request) {
 			t.mu.Lock()
 			err = wc.SetWriteDeadline(time.Now().Add(time.Millisecond * 100))
 			if err != nil {
+				t.mu.Unlock()
 				log.Println(err)
 				return
 			}
 
 			err = wc.WriteMessage(websocket.BinaryMessage, data)
-			defer t.mu.Unlock()
+			t.mu.Unlock()
 
 			if err != nil {
 				log.Println(err)

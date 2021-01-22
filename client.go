@@ -147,3 +147,13 @@ func (c *Client) MessagingService() *messaging.Service {
 
 	return messaging.NewService(cfg)
 }
+
+// Close gracefully closes the self client
+func (c *Client) Close() error {
+	err := c.connectors.Websocket.Close()
+	if err != nil {
+		return err
+	}
+
+	return c.connectors.Messaging.Close()
+}

@@ -170,3 +170,55 @@ func TestOffsetFileConversion(t *testing.T) {
 	// check the offset has been loaded correctly
 	assert.Equal(t, int64(4719), c.offset)
 }
+
+func TestWebsocketClose(t *testing.T) {
+	defer os.Remove("test:1.offset")
+
+	s := newTestMessagingServer(t)
+	defer s.s.Close()
+
+	cfg := WebsocketConfig{
+		SelfID:       "test",
+		DeviceID:     "1",
+		PrivateKey:   sk,
+		MessagingURL: s.endpoint,
+		TCPDeadline:  time.Millisecond * 100,
+		InboxSize:    10240,
+	}
+
+	c, err := NewWebsocket(cfg)
+	require.Nil(t, err)
+
+	// handle received messages
+	go func() {
+		for {
+			sender, m, err := c.Receive()
+			require.Nil(t, err)
+			assert.Equal(t, "alice:1", sender)
+			assert.Equal(t, []byte("test"), m)
+			time.Sleep(time.Millisecond)
+		}
+	}()
+
+	// send some messages
+	go func() {
+		for i := 0; i < 100000; i++ {
+			s.out <- &msgproto.Message{
+				Id:         "test",
+				Sender:     "alice:1",
+				Recipient:  "test:1",
+				Ciphertext: []byte("test"),
+			}
+		}
+	}()
+
+	for len(c.inbox) < 1 {
+		time.Sleep(time.Millisecond)
+	}
+
+	// close the connection
+	c.Close()
+
+	// check all messages have been processed
+	assert.Len(t, c.inbox, 0)
+}

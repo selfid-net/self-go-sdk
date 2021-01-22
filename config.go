@@ -50,6 +50,8 @@ type Config struct {
 	APIURL               string
 	MessagingURL         string
 	Environment          string
+	OnConnect            func()
+	OnDisconnect         func()
 	ReconnectionAttempts int
 	TCPDeadline          time.Duration
 	RequestTimeout       time.Duration
@@ -222,6 +224,8 @@ func (c Config) loadWebsocketConnector() error {
 		PrivateKey:   c.sk,
 		TCPDeadline:  defaultTCPDeadline,
 		InboxSize:    defaultInboxSize,
+		OnConnect:    c.OnConnect,
+		OnDisconnect: c.OnDisconnect,
 	}
 
 	ws, err := transport.NewWebsocket(cfg)
