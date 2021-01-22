@@ -205,6 +205,7 @@ func (c *Client) reader() {
 		select {
 		case <-c.closing:
 			c.closed <- struct{}{}
+			return
 		default:
 		}
 

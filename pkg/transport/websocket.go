@@ -225,7 +225,7 @@ func (c *Websocket) SendAsync(recipients []string, data []byte, callback func(er
 func (c *Websocket) Receive() (string, []byte, error) {
 	e, ok := <-c.inbox
 	if !ok {
-		return "", nil, errors.New("channel closed")
+		return "", nil, ErrChannelClosed
 	}
 
 	m, ok := e.(*msgproto.Message)
@@ -399,7 +399,11 @@ func (c *Websocket) reader() {
 
 		_, data, err := c.ws.ReadMessage()
 		if err != nil {
-			c.reconnect(err)
+			if c.isShutdown() {
+				close(c.inbox)
+			} else {
+				c.reconnect(err)
+			}
 			return
 		}
 
