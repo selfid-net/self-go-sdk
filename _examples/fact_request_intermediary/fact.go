@@ -72,4 +72,8 @@ func main() {
 
 	log.Println("intermediary verified the requried facts")
 
+	err = client.Close()
+	if err != nil {
+		log.Fatal(err)
+	}
 }

@@ -65,6 +65,11 @@ func main() {
 	}
 
 	log.Println("authentication succeeded")
+
+	err = client.Close()
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 type server struct {

@@ -82,6 +82,11 @@ func main() {
 	}
 
 	log.Println("acl commands succeeded")
+
+	err = client.Close()
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 func listConnections(ms *messaging.Service) error {

@@ -70,6 +70,11 @@ func main() {
 		}
 	})
 	WaitForCtrlC()
+
+	err = client.Close()
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 type server struct {
