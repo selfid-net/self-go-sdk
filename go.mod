@@ -7,7 +7,7 @@ require (
 	github.com/golang/protobuf v1.4.1
 	github.com/google/uuid v1.1.1
 	github.com/gorilla/websocket v1.4.1
-	github.com/joinself/self-crypto-go v0.0.0-20200820061019-830905aafda6
+	github.com/joinself/self-crypto-go v0.0.0-20210129141634-6fb3fe2a057f
 	github.com/lucasb-eyer/go-colorful v1.0.3
 	github.com/skip2/go-qrcode v0.0.0-20191027152451-9434209cb086
 	github.com/square/go-jose v2.4.1+incompatible
