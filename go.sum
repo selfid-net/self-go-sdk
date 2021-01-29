@@ -33,6 +33,10 @@ github.com/joinself/self-crypto-go v0.0.0-20200820061019-830905aafda6 h1:HUkigbL
 github.com/joinself/self-crypto-go v0.0.0-20200820061019-830905aafda6/go.mod h1:x4Z50kboD7lDyyNLpaTMq/Y8ZIVg/j1JdTy6pAgxPrc=
 github.com/joinself/self-crypto-go v0.0.0-20210129141634-6fb3fe2a057f h1:oHvcInJrhWQTrS0/8OlXvPw+LoL5yunVn2WbkYY670Q=
 github.com/joinself/self-crypto-go v0.0.0-20210129141634-6fb3fe2a057f/go.mod h1:x4Z50kboD7lDyyNLpaTMq/Y8ZIVg/j1JdTy6pAgxPrc=
+github.com/joinself/self-crypto-go v0.0.0-20210129144402-a8581c2f6a68 h1:dvCf5LMAXoUb+mR97X0rkhetvKRzTLMUPmsdHXeAXfM=
+github.com/joinself/self-crypto-go v0.0.0-20210129144402-a8581c2f6a68/go.mod h1:x4Z50kboD7lDyyNLpaTMq/Y8ZIVg/j1JdTy6pAgxPrc=
+github.com/joinself/self-crypto-go v0.0.0-20210129162042-dab5af1af208 h1:GfvD//ymtVOSxxarBN2/Y9axGHlB1ruhA31f0C3a5f4=
+github.com/joinself/self-crypto-go v0.0.0-20210129162042-dab5af1af208/go.mod h1:x4Z50kboD7lDyyNLpaTMq/Y8ZIVg/j1JdTy6pAgxPrc=
 github.com/lucasb-eyer/go-colorful v1.0.3 h1:QIbQXiugsb+q10B+MI+7DI1oQLdmnep86tWFlaaUAac=
 github.com/lucasb-eyer/go-colorful v1.0.3/go.mod h1:R4dSotOR9KMtayYi1e77YzuveK+i7ruzyGqttikkLy0=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
