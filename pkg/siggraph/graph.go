@@ -329,6 +329,8 @@ func (s *SignatureGraph) add(op *Operation, a *Action) error {
 				return ErrMultipleActiveDeviceKeys
 			}
 		}
+
+		s.devices[a.DID] = n
 	case TypeRecoveryKey:
 		// check there are only one active recovery keys
 		if s.rk != nil {
@@ -341,7 +343,6 @@ func (s *SignatureGraph) add(op *Operation, a *Action) error {
 	}
 
 	s.keys[a.KID] = n
-	s.devices[a.DID] = n
 
 	// mutually connect the two nodes
 	// if the current key is the signer of the first (root)
