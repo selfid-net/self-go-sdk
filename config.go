@@ -52,6 +52,7 @@ type Config struct {
 	Environment          string
 	OnConnect            func()
 	OnDisconnect         func()
+	OnPing               func()
 	ReconnectionAttempts int
 	TCPDeadline          time.Duration
 	RequestTimeout       time.Duration
@@ -226,6 +227,7 @@ func (c Config) loadWebsocketConnector() error {
 		InboxSize:    defaultInboxSize,
 		OnConnect:    c.OnConnect,
 		OnDisconnect: c.OnDisconnect,
+		OnPing:       c.OnPing,
 	}
 
 	ws, err := transport.NewWebsocket(cfg)
