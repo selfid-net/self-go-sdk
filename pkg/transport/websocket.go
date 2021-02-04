@@ -51,6 +51,7 @@ type WebsocketConfig struct {
 	InboxSize    int
 	OnConnect    func()
 	OnDisconnect func()
+	OnPing       func()
 	messagingID  string
 }
 
@@ -434,7 +435,7 @@ func (c *Websocket) reader() {
 
 			pch, ok := c.responses.Load(n.Id)
 			if !ok {
-				return
+				continue
 			}
 
 			c.responses.Delete(n.Id)
@@ -457,7 +458,7 @@ func (c *Websocket) reader() {
 
 			pch, ok := c.responses.Load(a.Id)
 			if !ok {
-				return
+				continue
 			}
 
 			c.responses.Delete(a.Id)
@@ -518,6 +519,10 @@ func (c *Websocket) ping() {
 	for {
 		if c.isClosed() {
 			return
+		}
+
+		if c.config.OnPing != nil {
+			c.config.OnPing()
 		}
 
 		c.queue.Push(priorityPing, sigping(true))
