@@ -50,7 +50,7 @@ type WebsocketConfig struct {
 	TCPDeadline  time.Duration
 	InboxSize    int
 	OnConnect    func()
-	OnDisconnect func()
+	OnDisconnect func(err error)
 	OnPing       func()
 	messagingID  string
 }
@@ -286,7 +286,7 @@ func (c *Websocket) Command(command string, payload []byte) ([]byte, error) {
 func (c *Websocket) Close() error {
 	atomic.StoreInt32(&c.shutdown, 1)
 
-	c.close()
+	c.close(nil)
 
 	// wait for subscribers to drain
 	for len(c.inbox) > 0 {
@@ -510,7 +510,7 @@ func (c *Websocket) writer() {
 		}
 
 		if err != nil {
-			c.close()
+			c.close(err)
 		}
 	}
 }
@@ -531,7 +531,7 @@ func (c *Websocket) ping() {
 }
 
 func (c *Websocket) reconnect(err error) {
-	if !c.close() {
+	if !c.close(err) {
 		return
 	}
 
@@ -556,13 +556,13 @@ func (c *Websocket) reconnect(err error) {
 	}
 }
 
-func (c *Websocket) close() bool {
+func (c *Websocket) close(err error) bool {
 	if !atomic.CompareAndSwapInt32(&c.closed, 0, 1) {
 		return false
 	}
 
 	if c.config.OnDisconnect != nil {
-		c.config.OnDisconnect()
+		c.config.OnDisconnect(err)
 	}
 
 	c.queue.Push(priorityClose, sigclose(true))

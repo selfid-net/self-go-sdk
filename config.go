@@ -51,7 +51,7 @@ type Config struct {
 	MessagingURL         string
 	Environment          string
 	OnConnect            func()
-	OnDisconnect         func()
+	OnDisconnect         func(err error)
 	OnPing               func()
 	ReconnectionAttempts int
 	TCPDeadline          time.Duration

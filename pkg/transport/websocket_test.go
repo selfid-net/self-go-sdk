@@ -52,7 +52,7 @@ func TestWebsocketReconnect(t *testing.T) {
 		OnConnect: func() {
 			connected <- true
 		},
-		OnDisconnect: func() {
+		OnDisconnect: func(err error) {
 			disconnected <- true
 		},
 	}
