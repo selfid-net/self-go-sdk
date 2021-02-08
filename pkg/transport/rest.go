@@ -92,7 +92,8 @@ func (c *Rest) request(method, path string, data []byte, headers map[string]stri
 }
 
 type apiResponse struct {
-	Error string `json:"error"`
+	Code    int    `json:"error_code"`
+	Message string `json:"message"`
 }
 
 func errored(resp *http.Response) error {
@@ -108,8 +109,8 @@ func errored(resp *http.Response) error {
 		return errors.New(resp.Status)
 	}
 
-	if e.Error != "" {
-		return errors.New(e.Error)
+	if e.Message != "" {
+		return errors.New(e.Message)
 	}
 
 	return errors.New(resp.Status)
