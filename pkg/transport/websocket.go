@@ -547,12 +547,12 @@ func (c *Websocket) reconnect(err error) {
 	}
 
 	for i := 0; i < 20; i++ {
+		time.Sleep(c.config.TCPDeadline)
+
 		err := c.connect()
 		if err == nil {
 			return
 		}
-
-		time.Sleep(c.config.TCPDeadline)
 	}
 }
 
