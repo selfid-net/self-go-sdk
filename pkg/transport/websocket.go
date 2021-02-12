@@ -307,6 +307,8 @@ func (c *Websocket) pongHandler(string) error {
 }
 
 func (c *Websocket) connect() error {
+	var ws *websocket.Conn
+
 	if !atomic.CompareAndSwapInt32(&c.closed, 1, 0) {
 		return errors.New("could not connect")
 	}
@@ -317,6 +319,18 @@ func (c *Websocket) connect() error {
 		if !(*success) {
 			// if it failed to reconnect, set the connection status to closed
 			atomic.CompareAndSwapInt32(&c.closed, 0, 1)
+
+			// close the connection
+			if ws == nil {
+				return
+			}
+
+			log.Println("[websocket] closing errored connection")
+
+			err := ws.Close()
+			if err != nil {
+				log.Println("[websocket]", err)
+			}
 		}
 	}(&connected)
 
@@ -325,7 +339,7 @@ func (c *Websocket) connect() error {
 		return err
 	}
 
-	ws, _, err := websocket.DefaultDialer.Dial(c.config.MessagingURL, nil)
+	ws, _, err = websocket.DefaultDialer.Dial(c.config.MessagingURL, nil)
 	if err != nil {
 		return err
 	}

@@ -131,6 +131,22 @@ func newTestMessagingServerWithInbox(t *testing.T, inboxSize int) *testmsgserver
 	return &s
 }
 
+func newTestMessagingServerUnresponsive(t *testing.T) *testmsgserver {
+	s := testmsgserver{
+		in:   make(chan *msgproto.Message, 0),
+		out:  make(chan interface{}, 1024),
+		stop: make(chan bool, 1),
+	}
+
+	m := http.NewServeMux()
+	m.HandleFunc("/", s.testUnresponsiveHandler)
+
+	s.s = httptest.NewServer(m)
+	s.endpoint = "ws" + strings.TrimPrefix(s.s.URL, "http")
+
+	return &s
+}
+
 func errorMessage(id string, err error) []byte {
 	m, err := proto.Marshal(&msgproto.Notification{Type: msgproto.MsgType_ERR, Id: id, Error: err.Error()})
 	if err != nil {
@@ -320,4 +336,18 @@ func (t *testmsgserver) testHandler(w http.ResponseWriter, r *http.Request) {
 		wc.SetWriteDeadline(time.Now())
 		wc.Close()
 	}()
+}
+
+func (t *testmsgserver) testUnresponsiveHandler(w http.ResponseWriter, r *http.Request) {
+	u := websocket.Upgrader{}
+
+	wc, err := u.Upgrade(w, r, nil)
+	if err != nil {
+		panic(err)
+	}
+
+	_, _, err = wc.ReadMessage()
+	if err != nil {
+		panic(err)
+	}
 }
