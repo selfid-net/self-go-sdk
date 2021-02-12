@@ -419,7 +419,7 @@ func (c *Websocket) reader() {
 			if c.isShutdown() {
 				close(c.inbox)
 			} else {
-				log.Println("[websocket] try reconnect from reader routine")
+				log.Println("[websocket] try reconnect from reader routine:", err.Error())
 				c.reconnect(err)
 			}
 			return
