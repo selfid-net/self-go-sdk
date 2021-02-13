@@ -368,6 +368,7 @@ func (c *Websocket) connect() error {
 	c.ws.SetReadDeadline(time.Now().Add(c.config.TCPDeadline))
 	_, data, err = c.ws.ReadMessage()
 	if err != nil {
+		log.Println("AUTHENTICATION TIMEOUT?!", err, c.config.TCPDeadline)
 		return err
 	}
 
