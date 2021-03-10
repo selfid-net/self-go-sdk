@@ -48,12 +48,16 @@ func main() {
 
 	log.Println("Click on " + link)
 
-	err = authService.WaitForResponse(cid, time.Minute)
+	resp, err := authService.WaitForResponse(cid, time.Minute)
 	if err != nil {
 		log.Fatal("auth returned with: ", err)
 	}
 
-	log.Println("authentication succeeded")
+	if !resp.Accepted {
+		log.Fatal("auth rejected:", resp.SelfID)
+	}
+
+	log.Println("authentication succeeded:", resp.SelfID)
 
 	err = client.Close()
 	if err != nil {
