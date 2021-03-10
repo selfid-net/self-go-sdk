@@ -61,6 +61,15 @@ type QRConfig struct {
 	BackgroundColor string
 }
 
+// Response is returned on an asynchronous authentication
+// from either a qr code or deep link authentication
+type Response struct {
+	CID      string
+	SelfID   string
+	DeviceID string
+	Accepted bool
+}
+
 // Request prompts a user to authenticate via biometrics
 func (s Service) Request(selfID string) error {
 	if !s.paidActions() {
@@ -183,16 +192,36 @@ func (s *Service) GenerateDeepLink(req *DeepLinkAuthenticationRequest) (string, 
 }
 
 // WaitForResponse waits for a response from a qr code authentication request
-func (s *Service) WaitForResponse(cid string, exp time.Duration) error {
+func (s *Service) WaitForResponse(cid string, exp time.Duration) (*Response, error) {
 	responder, resp, err := s.messaging.Wait(cid, exp)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	selfID := strings.Split(responder, ":")[0]
+	p := strings.Split(responder, ":")
 
-	_, err = s.authenticationResponse(selfID, resp)
-	return err
+	selfID := p[0]
+	deviceID := p[1]
+
+	r := Response{
+		SelfID:   selfID,
+		DeviceID: deviceID,
+	}
+
+	cid, err = s.authenticationResponse(selfID, resp)
+	if err != nil {
+		if errors.Is(err, ErrResponseStatusRejected) {
+			r.CID = cid
+			r.Accepted = false
+			return &r, nil
+		}
+		return nil, err
+	}
+
+	r.CID = cid
+	r.Accepted = true
+
+	return &r, nil
 }
 
 // Subscribe subscribes to fact request responses
@@ -206,7 +235,7 @@ func (s *Service) Subscribe(sub func(sender, cid string, authenticated bool)) {
 
 func (s *Service) authenticationResponse(selfID string, resp []byte) (string, error) {
 	var payload map[string]string
-	cid := ""
+	var cid string
 
 	jws, err := jose.ParseSigned(string(resp))
 	if err != nil {

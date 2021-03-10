@@ -5,8 +5,10 @@ package identity
 import "encoding/json"
 
 var (
+	// IdentityTypeIndividual an individual's identity
 	IdentityTypeIndividual = "individual"
-	IdentityTypeApp        = "app"
+	// IdentityTypeApp an application's identity
+	IdentityTypeApp = "app"
 )
 
 // User identity -> Individual?
@@ -14,82 +16,25 @@ var (
 // so Identity can be either an [Individual, App, Asset], etc.
 
 // Identity represents all information about a self identity
-type Identity interface {
-	SelfID() string
-	Type() string
-	History() []json.RawMessage
-}
-
-// replace this with whatever we decide for (individual, person, user, human)
-
-// Individual represnts all information about an individual identity
-type Individual struct {
-	selfID       string
-	identityType string
-	history      []json.RawMessage
-}
-
-// SelfID the self ID of the identity
-func (id Individual) SelfID() string {
-	return id.selfID
-}
-
-// Type the type of identity
-func (id Individual) Type() string {
-	return IdentityTypeIndividual
-}
-
-// History the public key history of an identity
-func (id Individual) History() []json.RawMessage {
-	return id.history
-}
-
-// App represents all information about an app identity
-type App struct {
-	selfID       string
-	identityType string
-	history      []json.RawMessage
-}
-
-// SelfID the self ID of the identity
-func (id App) SelfID() string {
-	return id.selfID
-}
-
-// Type the type of identity
-func (id App) Type() string {
-	return IdentityTypeIndividual
-}
-
-// History the public key history of an identity
-func (id App) History() []json.RawMessage {
-	return id.history
+type Identity struct {
+	SelfID  string            `json:"self_id"`
+	Type    string            `json:"type"`
+	History []json.RawMessage `json:"history"`
 }
 
 // Device represents an identities device
 type Device string
 
 // GetIdentity gets an identity by its self ID
-func (s Service) GetIdentity(selfID string) (Identity, error) {
+func (s Service) GetIdentity(selfID string) (*Identity, error) {
 	var identity Identity
 
-	var resp []byte
-	var err error
-
-	switch classifySelfID(selfID) {
-	case IdentityTypeIndividual:
-		identity = &Individual{}
-		resp, err = s.api.Get("/v1/identities/" + selfID)
-	case IdentityTypeApp:
-		identity = &App{}
-		resp, err = s.api.Get("/v1/apps/" + selfID)
-	}
-
+	resp, err := s.api.Get("/v1/identities/" + selfID)
 	if err != nil {
 		return nil, err
 	}
 
-	return identity, json.Unmarshal(resp, identity)
+	return &identity, json.Unmarshal(resp, &identity)
 }
 
 // GetDevices gets an identities devices
