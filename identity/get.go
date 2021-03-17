@@ -2,7 +2,10 @@
 
 package identity
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"errors"
+)
 
 var (
 	// IdentityTypeIndividual an individual's identity
@@ -77,6 +80,28 @@ func (s Service) GetHistory(selfID string) ([]json.RawMessage, error) {
 	}
 
 	return keys, json.Unmarshal(resp, &keys)
+}
+
+// GetScore gets an identity score
+func (s Service) GetScore(selfID string) (score int64, err error) {
+	var resp []byte
+
+	resp, err = s.api.Get("/v1/identities/" + selfID + "/score")
+	if err != nil {
+		return
+	}
+
+	var payload map[string]interface{}
+	err = json.Unmarshal(resp, &payload)
+	if err != nil {
+		return
+	}
+
+	if _, ok := payload["error_code"]; ok {
+		return score, errors.New(payload["message"].(string))
+	}
+
+	return payload["score"].(int64), nil
 }
 
 func classifySelfID(selfID string) string {
