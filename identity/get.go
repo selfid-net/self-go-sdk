@@ -101,7 +101,7 @@ func (s Service) GetScore(selfID string) (score int64, err error) {
 		return score, errors.New(payload["message"].(string))
 	}
 
-	return payload["score"].(int64), nil
+	return int64(payload["score"].(float64)), nil
 }
 
 func classifySelfID(selfID string) string {
