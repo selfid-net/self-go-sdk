@@ -164,6 +164,11 @@ func NewWebsocket(config WebsocketConfig) (*Websocket, error) {
 
 // Send send a message to given recipients. recipient is a combination of "selfID:deviceID"
 func (c *Websocket) Send(recipients []string, data []byte) error {
+	return c.SendAs(recipients, 0, data)
+}
+
+// SendAs send a message to given recipients. recipient is a combination of "selfID:deviceID" with a specific message sub type
+func (c *Websocket) SendAs(recipients []string, mtype int32, data []byte) error {
 	for _, r := range recipients {
 		id := uuid.New().String()
 
@@ -172,6 +177,7 @@ func (c *Websocket) Send(recipients []string, data []byte) error {
 			Sender:     c.config.messagingID,
 			Recipient:  r,
 			Ciphertext: data,
+			SubType:    msgproto.MsgSubType(mtype),
 		})
 
 		if err != nil {
@@ -197,6 +203,11 @@ func (c *Websocket) Send(recipients []string, data []byte) error {
 
 // SendAsync send a message to given recipients with a callback to handle the server response
 func (c *Websocket) SendAsync(recipients []string, data []byte, callback func(err error)) {
+	c.SendAsyncAs(recipients, 0, data, callback)
+}
+
+// SendAsyncAs send a message to given recipients with a callback to handle the server response with a specific message sub type
+func (c *Websocket) SendAsyncAs(recipients []string, mtype int32, data []byte, callback func(err error)) {
 	for _, r := range recipients {
 		id := uuid.New().String()
 
@@ -205,6 +216,7 @@ func (c *Websocket) SendAsync(recipients []string, data []byte, callback func(er
 			Sender:     c.config.messagingID,
 			Recipient:  r,
 			Ciphertext: data,
+			SubType:    msgproto.MsgSubType(mtype),
 		})
 
 		if err != nil {
