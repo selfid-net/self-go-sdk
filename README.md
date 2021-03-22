@@ -1,7 +1,8 @@
 # Self Go SDK
 
-[![GoDoc](https://godoc.org/github.com/joinself/self-go-sdk?status.svg)](https://godoc.org/github.com/joinself/self-go-sdk) [![Go Report Card](https://goreportcard.com/badge/github.com/joinself/self-go-sdk)](https://goreportcard.com/report/github.com/joinself/self-go-sdk) [![Build Status](https://travis-ci.com/joinself/self-go-sdk?branch=master)](https://travis-ci.com/joinself/self-go-sdk)
-
+[![GoDoc](https://godoc.org/github.com/joinself/self-go-sdk?status.svg)](https://godoc.org/github.com/joinself/self-go-sdk)
+[![Go Report Card](https://goreportcard.com/badge/github.com/joinself/self-go-sdk)](https://goreportcard.com/report/github.com/joinself/self-go-sdk)
+![Build Status](https://github.com/joinself/self-go-sdk/actions/workflows/ci.yml/badge.svg?branch=master)
 
 The official self sdk for golang.
 
