@@ -6,6 +6,7 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
+	"io"
 	"log"
 	"net"
 	"os"
@@ -542,7 +543,9 @@ func (c *Websocket) reconnect(err error) {
 		}
 	case *websocket.CloseError:
 		if e.Code != websocket.CloseAbnormalClosure {
-			return
+			if e.Text != io.ErrUnexpectedEOF.Error() {
+				return
+			}
 		}
 	}
 
