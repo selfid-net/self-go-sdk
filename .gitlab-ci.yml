@@ -20,39 +20,6 @@ stages:
   apt-get -y install ${tmpdir}/libself-olm_0.1.14_amd64.deb
   apt-get -y install ${tmpdir}/libself-omemo_0.1.1_amd64.deb
 
-.new-version: &new-version |
-  if [[ $(git tag) == "" ]]; then
-    version="0.1.0"
-  else
-    current_version=$(git ls-remote -q --tags https://${GITHUB_TOKEN}:@github.com/joinself/${CI_PROJECT_NAME} | sort -t / -k 3 -V | grep -v '{}' | tail -n 1 | awk -F / '{print $3}')
-    case "${CI_COMMIT_DESCRIPTION}" in
-      *+bump-major*)
-        version=$(semver bump major ${current_version})
-        ;;
-      *+bump-minor*)
-        version=$(semver bump minor ${current_version})
-        ;;
-      *)
-        version=$(semver bump patch ${current_version})
-        ;;
-    esac
-  fi
-
-.git-release: &git-release |
-  subject=$(git log -n 1 --format=%s)
-  body=$(git log -n 1 --format=%b | grep -E '^\*|^-' | sed 's/^*/-/g') || true
-
-  if [[ -z ${body} ]]; then
-    release_notes="- ${subject}"
-  else
-    release_notes="${body}"
-  fi
-
-  git remote set-url origin https://${GITHUB_TOKEN}:@github.com/joinself/${CI_PROJECT_NAME}
-  git tag -a ${version} -m "${version}"
-  git push origin ${version}
-  hub release create -m "${version}" -m "${release_notes}" ${version}
-
 before_script:
   - export SCRIPTS_DIR=$(mktemp -d)
   - git clone -q --depth 1 "${SCRIPTS_REPO}" "${SCRIPTS_DIR}"
@@ -80,8 +47,8 @@ release:
   image: eu.gcr.io/principal-oxide-204416/deploy
   script:
     - ${SCRIPTS_DIR}/git-setup
-    - *new-version
-    - *git-release
+    - version=$(${SCRIPTS_DIR}/git-new-version -n joinself)
+    - ${SCRIPTS_DIR}/git-release -v ${version}
     - ${SCRIPTS_DIR}/slack-release-notification -n joinself -v ${version}
   only:
     - master
