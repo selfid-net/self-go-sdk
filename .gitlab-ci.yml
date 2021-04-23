@@ -48,7 +48,7 @@ release:
   script:
     - ${SCRIPTS_DIR}/git-setup
     - version=$(${SCRIPTS_DIR}/git-new-version -n joinself)
-    - ${SCRIPTS_DIR}/git-release -v ${version}
+    - ${SCRIPTS_DIR}/git-release -n joinself -v ${version}
     - ${SCRIPTS_DIR}/slack-release-notification -n joinself -v ${version}
   only:
     - master
