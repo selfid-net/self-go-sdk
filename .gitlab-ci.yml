@@ -82,6 +82,6 @@ release:
     - ${SCRIPTS_DIR}/git-setup
     - *new-version
     - *git-release
-    - ${SCRIPTS_DIR}/slack-release-notification -v ${version}
+    - ${SCRIPTS_DIR}/slack-release-notification -n joinself -v ${version}
   only:
     - master
