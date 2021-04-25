@@ -312,12 +312,27 @@ func (c *Websocket) connect() error {
 		return errors.New("could not connect")
 	}
 
+	log.Println("[websocket] connecting to messaging")
+
+	var ws *websocket.Conn
 	var connected bool
 
 	defer func(success *bool) {
 		if !(*success) {
 			// if it failed to reconnect, set the connection status to closed
 			atomic.CompareAndSwapInt32(&c.closed, 0, 1)
+
+			// close the connection
+			if ws == nil {
+				return
+			}
+
+			log.Println("[websocket] closing errored connection")
+
+			err := ws.Close()
+			if err != nil {
+				log.Println("[websocket]", err)
+			}
 		}
 	}(&connected)
 
@@ -326,7 +341,7 @@ func (c *Websocket) connect() error {
 		return err
 	}
 
-	ws, _, err := websocket.DefaultDialer.Dial(c.config.MessagingURL, nil)
+	ws, _, err = websocket.DefaultDialer.Dial(c.config.MessagingURL, nil)
 	if err != nil {
 		return err
 	}
@@ -354,6 +369,7 @@ func (c *Websocket) connect() error {
 	c.ws.SetReadDeadline(time.Now().Add(c.config.TCPDeadline))
 	_, data, err = c.ws.ReadMessage()
 	if err != nil {
+		log.Println("AUTHENTICATION TIMEOUT?!", err, c.config.TCPDeadline)
 		return err
 	}
 
@@ -396,6 +412,7 @@ func (c *Websocket) reader() {
 		}
 
 		if c.isClosed() {
+			log.Println("[websocket] exiting reader routine")
 			return
 		}
 
@@ -404,6 +421,7 @@ func (c *Websocket) reader() {
 			if c.isShutdown() {
 				close(c.inbox)
 			} else {
+				log.Println("[websocket] try reconnect from reader routine:", err.Error())
 				c.reconnect(err)
 			}
 			return
@@ -492,6 +510,7 @@ func (c *Websocket) writer() {
 
 		switch p {
 		case priorityClose:
+			log.Println("[websocket] closing writer routine")
 			return
 		case priorityPing:
 			err = c.ws.WriteControl(websocket.PingMessage, nil, time.Now().Add(c.config.TCPDeadline))
@@ -511,6 +530,7 @@ func (c *Websocket) writer() {
 		}
 
 		if err != nil {
+			log.Println("[websocket] writer attempting close")
 			c.close(err)
 		}
 	}
@@ -519,6 +539,7 @@ func (c *Websocket) writer() {
 func (c *Websocket) ping() {
 	for {
 		if c.isClosed() {
+			log.Println("[websocket] closing ping handler")
 			return
 		}
 
@@ -533,6 +554,7 @@ func (c *Websocket) ping() {
 
 func (c *Websocket) reconnect(err error) {
 	if !c.close(err) {
+		log.Println("[websocket] skipping reconnect:", err.Error())
 		return
 	}
 
@@ -550,12 +572,16 @@ func (c *Websocket) reconnect(err error) {
 	}
 
 	for i := 0; i < 20; i++ {
+		log.Println("[websocket] attempting reconnect")
+
 		time.Sleep(c.config.TCPDeadline)
 
 		err := c.connect()
 		if err == nil {
 			return
 		}
+
+		log.Println("[websocket] failed to connect to messaging")
 	}
 }
 

@@ -5,6 +5,7 @@ package transport
 import (
 	"encoding/binary"
 	"os"
+	"runtime"
 	"testing"
 	"time"
 
@@ -217,4 +218,45 @@ func TestWebsocketClose(t *testing.T) {
 
 	// check all messages have been processed
 	assert.Len(t, c.inbox, 0)
+}
+
+func TestWebsocketCleanup(t *testing.T) {
+	time.Sleep(time.Second)
+
+	defer os.Remove("test:1.offset")
+
+	s := newTestMessagingServerUnresponsive(t)
+	defer s.s.Close()
+
+	cfg := WebsocketConfig{
+		SelfID:       "test",
+		DeviceID:     "1",
+		PrivateKey:   sk,
+		MessagingURL: s.endpoint,
+		TCPDeadline:  time.Millisecond * 100,
+		InboxSize:    10240,
+	}
+
+	goroutines := runtime.NumGoroutine()
+
+	for i := 0; i < 5; i++ {
+		_, err := NewWebsocket(cfg)
+		require.NotNil(t, err)
+
+		time.Sleep(time.Millisecond * 100)
+
+		assert.Equal(t, goroutines, runtime.NumGoroutine())
+	}
+
+	rs := newTestMessagingServer(t)
+	defer rs.s.Close()
+
+	cfg.MessagingURL = rs.endpoint
+
+	c, err := NewWebsocket(cfg)
+	require.Nil(t, err)
+
+	assert.NotEqual(t, goroutines, runtime.NumGoroutine())
+
+	c.Close()
 }
