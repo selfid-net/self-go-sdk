@@ -378,7 +378,6 @@ func (c *Websocket) connect() error {
 
 	go c.reader()
 	go c.writer()
-	go c.ping()
 
 	if c.config.OnConnect != nil {
 		c.config.OnConnect()
@@ -513,21 +512,6 @@ func (c *Websocket) writer() {
 		if err != nil {
 			c.close(err)
 		}
-	}
-}
-
-func (c *Websocket) ping() {
-	for {
-		if c.isClosed() {
-			return
-		}
-
-		if c.config.OnPing != nil {
-			c.config.OnPing()
-		}
-
-		c.queue.Push(priorityPing, sigping(true))
-		time.Sleep(c.config.TCPDeadline / 2)
 	}
 }
 
