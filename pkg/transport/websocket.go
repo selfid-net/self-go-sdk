@@ -26,7 +26,6 @@ import (
 
 const (
 	priorityClose = iota
-	priorityPing
 	priorityNotification
 	priorityACL
 	priorityMessage
@@ -152,7 +151,7 @@ func NewWebsocket(config WebsocketConfig) (*Websocket, error) {
 
 	c := Websocket{
 		config:    config,
-		queue:     pqueue.New(5),
+		queue:     pqueue.New(4),
 		inbox:     make(chan proto.Message, config.InboxSize),
 		responses: sync.Map{},
 		offset:    offset,
@@ -335,6 +334,8 @@ func (c *Websocket) connect() error {
 		return err
 	}
 
+	ws.SetPongHandler(c.pongHandler)
+
 	c.ws = ws
 
 	auth := msgproto.Auth{
@@ -377,8 +378,6 @@ func (c *Websocket) connect() error {
 	}
 
 	connected = true
-
-	ws.SetPongHandler(c.pongHandler)
 
 	go c.reader()
 	go c.writer()
@@ -496,8 +495,6 @@ func (c *Websocket) writer() {
 		switch p {
 		case priorityClose:
 			return
-		case priorityPing:
-			err = c.ws.WriteControl(websocket.PingMessage, nil, time.Now().Add(c.config.TCPDeadline))
 		case priorityNotification, priorityMessage:
 			ev := e.(*event)
 			c.responses.Store(ev.id, ev)
