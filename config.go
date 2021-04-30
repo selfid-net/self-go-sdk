@@ -23,7 +23,7 @@ var (
 	defaultAPIURL               = "https://api.joinself.com"
 	defaultMessagingURL         = "wss://messaging.joinself.com/v1/messaging"
 	defaultReconnectionAttempts = 10
-	defaultTCPDeadline          = time.Second * 5
+	defaultTCPDeadline          = time.Second * 90
 	defaultRequestTimeout       = time.Second * 5
 	defaultInboxSize            = 256
 
