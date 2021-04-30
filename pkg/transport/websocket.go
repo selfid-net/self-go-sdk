@@ -26,7 +26,7 @@ import (
 
 const (
 	priorityClose = iota
-	priorityPing
+	priorityPong
 	priorityNotification
 	priorityACL
 	priorityMessage
@@ -37,7 +37,7 @@ var ErrChannelClosed = errors.New("channel closed")
 
 type (
 	sigclose bool
-	sigping  bool
+	sigpong  bool
 )
 
 // WebsocketConfig configuration for connecting to a websocket
@@ -302,12 +302,15 @@ func (c *Websocket) Close() error {
 	return c.ofd.Close()
 }
 
-func (c *Websocket) pongHandler(string) error {
+func (c *Websocket) pingHandler(string) error {
 	if c.config.OnPing != nil {
 		c.config.OnPing()
 	}
 
 	deadline := time.Now().Add(c.config.TCPDeadline)
+
+	c.queue.Push(priorityPong, sigpong(true))
+
 	return c.ws.SetReadDeadline(deadline)
 }
 
@@ -334,6 +337,8 @@ func (c *Websocket) connect() error {
 	if err != nil {
 		return err
 	}
+
+	ws.SetPingHandler(c.pingHandler)
 
 	c.ws = ws
 
@@ -377,8 +382,6 @@ func (c *Websocket) connect() error {
 	}
 
 	connected = true
-
-	ws.SetPongHandler(c.pongHandler)
 
 	go c.reader()
 	go c.writer()
@@ -496,8 +499,9 @@ func (c *Websocket) writer() {
 		switch p {
 		case priorityClose:
 			return
-		case priorityPing:
-			err = c.ws.WriteControl(websocket.PingMessage, nil, time.Now().Add(c.config.TCPDeadline))
+		case priorityPong:
+			deadline := time.Now().Add(c.config.TCPDeadline)
+			err = c.ws.WriteControl(websocket.PongMessage, nil, deadline)
 		case priorityNotification, priorityMessage:
 			ev := e.(*event)
 			c.responses.Store(ev.id, ev)
