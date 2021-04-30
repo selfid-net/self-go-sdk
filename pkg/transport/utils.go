@@ -3,8 +3,6 @@
 package transport
 
 import (
-	"encoding/base64"
-
 	"golang.org/x/crypto/ed25519"
 
 	"encoding/json"
@@ -13,11 +11,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/joinself/self-go-sdk/pkg/ntp"
 	"github.com/square/go-jose"
-)
-
-var (
-	decoder    = base64.RawStdEncoding
-	urlDecoder = base64.RawURLEncoding
 )
 
 // GenerateToken generates a signed jwt token for use with self services
@@ -31,6 +24,10 @@ func GenerateToken(selfID, kid string, sk ed25519.PrivateKey) (string, error) {
 		"iat": ntp.TimeFunc().Add(-(time.Second * 5)).Unix(),
 		"exp": ntp.TimeFunc().Add(time.Minute).Unix(),
 	})
+
+	if err != nil {
+		return "", err
+	}
 
 	opts := &jose.SignerOptions{
 		ExtraHeaders: map[jose.HeaderKey]interface{}{

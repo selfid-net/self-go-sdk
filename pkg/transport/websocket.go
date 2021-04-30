@@ -36,7 +36,6 @@ var ErrChannelClosed = errors.New("channel closed")
 
 type (
 	sigclose bool
-	sigping  bool
 )
 
 // WebsocketConfig configuration for connecting to a websocket
@@ -307,7 +306,12 @@ func (c *Websocket) pingHandler(string) error {
 	}
 
 	deadline := time.Now().Add(c.config.TCPDeadline)
-	return c.ws.SetReadDeadline(deadline)
+	err := c.ws.SetReadDeadline(deadline)
+	if err != nil {
+		log.Printf("failed to set read deadline: %s\n", err.Error())
+	}
+
+	return nil
 }
 
 func (c *Websocket) connect() error {

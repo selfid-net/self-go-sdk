@@ -20,7 +20,6 @@ import (
 	"github.com/joinself/self-go-sdk/pkg/ntp"
 	"github.com/joinself/self-go-sdk/pkg/protos/msgproto"
 	"github.com/square/go-jose"
-	"github.com/stretchr/testify/require"
 	"golang.org/x/crypto/ed25519"
 	"google.golang.org/protobuf/proto"
 )
@@ -55,30 +54,6 @@ func wait(ch chan *msgproto.Message) (*msgproto.Message, error) {
 	case <-time.After(time.Millisecond * 100):
 		return nil, errors.New("channel read timeout")
 	}
-}
-
-func newRequestMessage(t *testing.T, selfID, cid string) []byte {
-	m, err := json.Marshal(map[string]string{
-		"cid":     cid,
-		"iss":     selfID,
-		"message": "response",
-	})
-
-	require.Nil(t, err)
-
-	opts := &jose.SignerOptions{
-		ExtraHeaders: map[jose.HeaderKey]interface{}{
-			"kid": "1",
-		},
-	}
-
-	signer, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.EdDSA, Key: sk}, opts)
-	require.Nil(t, err)
-
-	signedPayload, err := signer.Sign(m)
-	require.Nil(t, err)
-
-	return []byte(signedPayload.FullSerialize())
 }
 
 func newTestAPIServer(t *testing.T) *testapiserver {
@@ -190,16 +165,13 @@ func (t *testmsgserver) testHandler(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 
-	wc.SetPingHandler(func(appData string) error {
+	wc.SetPongHandler(func(appData string) error {
 		err := wc.SetReadDeadline(time.Now().Add(time.Second * 5))
 		if err != nil {
 			log.Println(err.Error())
 		}
 
-		t.mu.Lock()
-		defer t.mu.Unlock()
-
-		return wc.WriteControl(websocket.PongMessage, nil, time.Now().Add(time.Millisecond*100))
+		return err
 	})
 
 	_, msg, err := wc.ReadMessage()
