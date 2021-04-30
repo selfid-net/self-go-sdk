@@ -301,7 +301,7 @@ func (c *Websocket) Close() error {
 	return c.ofd.Close()
 }
 
-func (c *Websocket) pongHandler(string) error {
+func (c *Websocket) pingHandler(string) error {
 	if c.config.OnPing != nil {
 		c.config.OnPing()
 	}
@@ -334,7 +334,7 @@ func (c *Websocket) connect() error {
 		return err
 	}
 
-	ws.SetPongHandler(c.pongHandler)
+	ws.SetPingHandler(c.pingHandler)
 
 	c.ws = ws
 
