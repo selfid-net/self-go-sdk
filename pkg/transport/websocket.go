@@ -303,6 +303,10 @@ func (c *Websocket) Close() error {
 }
 
 func (c *Websocket) pongHandler(string) error {
+	if c.config.OnPing != nil {
+		c.config.OnPing()
+	}
+
 	deadline := time.Now().Add(c.config.TCPDeadline)
 	return c.ws.SetReadDeadline(deadline)
 }
