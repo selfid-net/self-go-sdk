@@ -5,6 +5,7 @@ go 1.13
 require (
 	github.com/beevik/ntp v0.2.0
 	github.com/golang/protobuf v1.4.1
+	github.com/google/flatbuffers v2.0.0+incompatible
 	github.com/google/uuid v1.1.1
 	github.com/gorilla/websocket v1.4.1
 	github.com/joinself/self-crypto-go v0.0.0-20210129162042-dab5af1af208

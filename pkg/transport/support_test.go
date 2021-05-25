@@ -15,13 +15,13 @@ import (
 	"testing"
 	"time"
 
+	flatbuffers "github.com/google/flatbuffers/go"
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 	"github.com/joinself/self-go-sdk/pkg/ntp"
-	"github.com/joinself/self-go-sdk/pkg/protos/msgproto"
+	"github.com/joinself/self-go-sdk/pkg/protos/msgprotov2"
 	"github.com/square/go-jose"
 	"golang.org/x/crypto/ed25519"
-	"google.golang.org/protobuf/proto"
 )
 
 var token string
@@ -30,8 +30,8 @@ var pk ed25519.PublicKey
 
 type testmsgserver struct {
 	s        *httptest.Server
-	in       chan *msgproto.Message
-	out      chan interface{}
+	in       chan *msgprotov2.Message
+	out      chan []byte
 	stop     chan bool
 	mu       sync.Mutex
 	endpoint string
@@ -47,7 +47,7 @@ func init() {
 	token, sk, pk = testToken("test")
 }
 
-func wait(ch chan *msgproto.Message) (*msgproto.Message, error) {
+func wait(ch chan *msgprotov2.Message) (*msgprotov2.Message, error) {
 	select {
 	case msg := <-ch:
 		return msg, nil
@@ -92,8 +92,8 @@ func newTestMessagingServer(t *testing.T) *testmsgserver {
 
 func newTestMessagingServerWithInbox(t *testing.T, inboxSize int) *testmsgserver {
 	s := testmsgserver{
-		in:   make(chan *msgproto.Message, inboxSize),
-		out:  make(chan interface{}, 1024),
+		in:   make(chan *msgprotov2.Message, inboxSize),
+		out:  make(chan []byte, 1024),
 		stop: make(chan bool, 1),
 	}
 
@@ -107,12 +107,18 @@ func newTestMessagingServerWithInbox(t *testing.T, inboxSize int) *testmsgserver
 }
 
 func errorMessage(id string, err error) []byte {
-	m, err := proto.Marshal(&msgproto.Notification{Type: msgproto.MsgType_ERR, Id: id, Error: err.Error()})
-	if err != nil {
-		log.Println(err)
-	}
+	b := flatbuffers.NewBuilder(1024)
 
-	return m
+	nid := b.CreateString(id)
+
+	msgprotov2.NotificationStart(b)
+	msgprotov2.NotificationAddMsgtype(b, msgprotov2.MsgTypeERR)
+	msgprotov2.NotificationAddId(b, nid)
+	n := msgprotov2.NotificationEnd(b)
+
+	b.Finish(n)
+
+	return b.FinishedBytes()
 }
 
 func testToken(id string) (string, ed25519.PrivateKey, ed25519.PublicKey) {
@@ -179,22 +185,16 @@ func (t *testmsgserver) testHandler(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 
-	var req msgproto.Auth
+	req := msgprotov2.GetRootAsAuth(msg, 0)
 
-	err = proto.Unmarshal(msg, &req)
-	if err != nil {
-		wc.WriteMessage(websocket.BinaryMessage, errorMessage(req.Id, err))
-		panic(err)
-	}
-
-	rt, err := jose.ParseSigned(req.Token)
+	rt, err := jose.ParseSigned(string(req.Token()))
 	if err != nil {
 		panic(err)
 	}
 
 	payload, err := rt.Verify(pk)
 	if err != nil {
-		wc.WriteMessage(websocket.BinaryMessage, errorMessage(req.Id, err))
+		wc.WriteMessage(websocket.BinaryMessage, errorMessage(string(req.Id()), err))
 		panic(err)
 	}
 
@@ -202,71 +202,89 @@ func (t *testmsgserver) testHandler(w http.ResponseWriter, r *http.Request) {
 
 	err = json.Unmarshal(payload, &claims)
 	if err != nil {
-		wc.WriteMessage(websocket.BinaryMessage, errorMessage(req.Id, err))
+		wc.WriteMessage(websocket.BinaryMessage, errorMessage(string(req.Id()), err))
 		panic(err)
 	}
 
 	_, ok := claims["iss"]
 	if !ok {
-		wc.WriteMessage(websocket.BinaryMessage, errorMessage(req.Id, errors.New("invalid issuer")))
+		wc.WriteMessage(websocket.BinaryMessage, errorMessage(string(req.Id()), errors.New("invalid issuer")))
 		panic("invalid issuer")
 	}
 
-	data, _ := proto.Marshal(&msgproto.Notification{Type: msgproto.MsgType_ACK, Id: req.Id})
-	wc.WriteMessage(websocket.BinaryMessage, data)
+	b := flatbuffers.NewBuilder(1024)
+
+	nid := b.CreateByteString(req.Id())
+
+	msgprotov2.NotificationStart(b)
+	msgprotov2.NotificationAddMsgtype(b, msgprotov2.MsgTypeACK)
+	msgprotov2.NotificationAddId(b, nid)
+	n := msgprotov2.NotificationEnd(b)
+
+	b.Finish(n)
+
+	wc.WriteMessage(websocket.BinaryMessage, b.FinishedBytes())
 
 	go func() {
 		for {
-			var h msgproto.Header
-
 			_, data, err := wc.ReadMessage()
 			if err != nil {
 				return
 			}
 
-			err = proto.Unmarshal(data, &h)
-			if err != nil {
-				log.Println(err)
-				return
-			}
+			h := msgprotov2.GetRootAsHeader(data, 0)
 
-			t.out <- &msgproto.Notification{Type: msgproto.MsgType_ACK, Id: h.Id}
+			b := flatbuffers.NewBuilder(1024)
 
-			if h.Type == msgproto.MsgType_MSG {
-				m := msgproto.Message{
-					Offset: atomic.AddInt64(&offset, 1),
+			nid := b.CreateByteString(h.Id())
+
+			msgprotov2.NotificationStart(b)
+			msgprotov2.NotificationAddMsgtype(b, msgprotov2.MsgTypeACK)
+			msgprotov2.NotificationAddId(b, nid)
+			n := msgprotov2.NotificationEnd(b)
+
+			b.Finish(n)
+
+			t.out <- b.FinishedBytes()
+
+			if h.Msgtype() == msgprotov2.MsgTypeMSG {
+				m := msgprotov2.GetRootAsMessage(data, 0)
+
+				md := m.Metadata(nil)
+				if md == nil {
+					panic("metadata is nil")
 				}
 
-				err = proto.Unmarshal(data, &m)
-				if err != nil {
-					log.Println(err)
-					return
-				}
+				md.MutateOffset(atomic.AddInt64(&offset, 1))
 
-				t.in <- &m
+				t.in <- m
 			}
 		}
 	}()
 
 	go func() {
 		for {
-			var data []byte
-			var err error
+			/*
+				var data []byte
+				var err error
+			*/
 
-			e := <-t.out
+			data := <-t.out
 
-			switch v := e.(type) {
-			case *msgproto.Message:
-				v.Offset = atomic.AddInt64(&offset, 1)
-				data, err = proto.Marshal(v)
-			case *msgproto.Notification:
-				data, err = proto.Marshal(v)
-			}
+			/*
+				switch v := e.(type) {
+				case *msgprotov1.Message:
+					v.Offset = atomic.AddInt64(&offset, 1)
+					data, err = proto.Marshal(v)
+				case *msgprotov1.Notification:
+					data, err = proto.Marshal(v)
+				}
 
-			if err != nil {
-				log.Println(err)
-				return
-			}
+				if err != nil {
+					log.Println(err)
+					return
+				}
+			*/
 
 			t.mu.Lock()
 			err = wc.SetWriteDeadline(time.Now().Add(time.Millisecond * 100))

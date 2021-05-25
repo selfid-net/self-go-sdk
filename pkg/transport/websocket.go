@@ -16,12 +16,12 @@ import (
 	"sync/atomic"
 	"time"
 
+	flatbuffers "github.com/google/flatbuffers/go"
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 	"github.com/joinself/self-go-sdk/pkg/pqueue"
-	"github.com/joinself/self-go-sdk/pkg/protos/msgproto"
+	"github.com/joinself/self-go-sdk/pkg/protos/msgprotov2"
 	"golang.org/x/crypto/ed25519"
-	"google.golang.org/protobuf/proto"
 )
 
 const (
@@ -69,12 +69,13 @@ type Websocket struct {
 	config    WebsocketConfig
 	ws        *websocket.Conn
 	queue     *pqueue.Queue
-	inbox     chan proto.Message
+	inbox     chan *msgprotov2.Message
 	responses sync.Map
 	offset    int64
 	ofd       *os.File
 	closed    int32
 	shutdown  int32
+	pool      sync.Pool
 }
 
 type event struct {
@@ -153,11 +154,16 @@ func NewWebsocket(config WebsocketConfig) (*Websocket, error) {
 	c := Websocket{
 		config:    config,
 		queue:     pqueue.New(5),
-		inbox:     make(chan proto.Message, config.InboxSize),
+		inbox:     make(chan *msgprotov2.Message, config.InboxSize),
 		responses: sync.Map{},
 		offset:    offset,
 		ofd:       fd,
 		closed:    1,
+		pool: sync.Pool{
+			New: func() interface{} {
+				return flatbuffers.NewBuilder(1024)
+			},
+		},
 	}
 
 	return &c, c.connect()
@@ -165,19 +171,39 @@ func NewWebsocket(config WebsocketConfig) (*Websocket, error) {
 
 // Send send a message to given recipients. recipient is a combination of "selfID:deviceID"
 func (c *Websocket) Send(recipients []string, data []byte) error {
+	b := c.pool.Get().(*flatbuffers.Builder)
+	defer c.pool.Put(b)
+
 	for _, r := range recipients {
 		id := uuid.New().String()
 
-		m, err := proto.Marshal(&msgproto.Message{
-			Id:         id,
-			Sender:     c.config.messagingID,
-			Recipient:  r,
-			Ciphertext: data,
-		})
+		// reset the flatbuffer builder's internal buffer
+		b.Reset()
 
-		if err != nil {
-			return err
-		}
+		mid := b.CreateString(id)
+		msd := b.CreateString(c.config.messagingID)
+		mrp := b.CreateString(r)
+		mct := b.CreateByteVector(data)
+
+		msgprotov2.MessageStart(b)
+		msgprotov2.MessageAddId(b, mid)
+		msgprotov2.MessageAddMsgtype(b, msgprotov2.MsgTypeMSG)
+		msgprotov2.MessageAddSender(b, msd)
+		msgprotov2.MessageAddRecipient(b, mrp)
+		msgprotov2.MessageAddMetadata(b, msgprotov2.CreateMetadata(
+			b,
+			0,
+			0,
+		))
+
+		msgprotov2.MessageAddCiphertext(b, mct)
+		msg := msgprotov2.MessageEnd(b)
+
+		b.Finish(msg)
+
+		fb := b.FinishedBytes()
+		m := make([]byte, len(fb))
+		copy(m, fb)
 
 		e := event{
 			id:   id,
@@ -187,7 +213,7 @@ func (c *Websocket) Send(recipients []string, data []byte) error {
 
 		c.queue.Push(priorityMessage, &e)
 
-		err = <-e.err
+		err := <-e.err
 		if err != nil {
 			return err
 		}
@@ -198,20 +224,39 @@ func (c *Websocket) Send(recipients []string, data []byte) error {
 
 // SendAsync send a message to given recipients with a callback to handle the server response
 func (c *Websocket) SendAsync(recipients []string, data []byte, callback func(err error)) {
+	b := c.pool.Get().(*flatbuffers.Builder)
+	defer c.pool.Put(b)
+
 	for _, r := range recipients {
 		id := uuid.New().String()
 
-		m, err := proto.Marshal(&msgproto.Message{
-			Id:         id,
-			Sender:     c.config.messagingID,
-			Recipient:  r,
-			Ciphertext: data,
-		})
+		// reset the flatbuffer builder's internal buffer
+		b.Reset()
 
-		if err != nil {
-			callback(err)
-			return
-		}
+		mid := b.CreateString(id)
+		msd := b.CreateString(c.config.messagingID)
+		mrp := b.CreateString(r)
+		mct := b.CreateByteVector(data)
+
+		msgprotov2.MessageStart(b)
+		msgprotov2.MessageAddId(b, mid)
+		msgprotov2.MessageAddMsgtype(b, msgprotov2.MsgTypeMSG)
+		msgprotov2.MessageAddSender(b, msd)
+		msgprotov2.MessageAddRecipient(b, mrp)
+		msgprotov2.MessageAddMetadata(b, msgprotov2.CreateMetadata(
+			b,
+			0,
+			0,
+		))
+
+		msgprotov2.MessageAddCiphertext(b, mct)
+		msg := msgprotov2.MessageEnd(b)
+
+		b.Finish(msg)
+
+		fb := b.FinishedBytes()
+		m := make([]byte, len(fb))
+		copy(m, fb)
 
 		e := event{
 			id:   id,
@@ -223,58 +268,91 @@ func (c *Websocket) SendAsync(recipients []string, data []byte, callback func(er
 	}
 }
 
+// SendAsync send a message with a given id to a single recipient, with a callback to handle the server response
+func (c *Websocket) SendAsyncWithID(id, recipient string, data []byte, callback func(err error)) {
+	b := c.pool.Get().(*flatbuffers.Builder)
+	defer c.pool.Put(b)
+
+	// reset the flatbuffer builder's internal buffer
+	b.Reset()
+
+	mid := b.CreateString(id)
+	msd := b.CreateString(c.config.messagingID)
+	mrp := b.CreateString(recipient)
+	mct := b.CreateByteVector(data)
+
+	msgprotov2.MessageStart(b)
+	msgprotov2.MessageAddId(b, mid)
+	msgprotov2.MessageAddMsgtype(b, msgprotov2.MsgTypeMSG)
+	msgprotov2.MessageAddSender(b, msd)
+	msgprotov2.MessageAddRecipient(b, mrp)
+	msgprotov2.MessageAddMetadata(b, msgprotov2.CreateMetadata(
+		b,
+		0,
+		0,
+	))
+
+	msgprotov2.MessageAddCiphertext(b, mct)
+	msg := msgprotov2.MessageEnd(b)
+
+	b.Finish(msg)
+
+	fb := b.FinishedBytes()
+	m := make([]byte, len(fb))
+	copy(m, fb)
+
+	e := event{
+		id:   id,
+		data: m,
+		cb:   callback,
+	}
+
+	c.queue.Push(priorityMessage, &e)
+}
+
 // Receive receive a message
 func (c *Websocket) Receive() (string, []byte, error) {
-	e, ok := <-c.inbox
+	m, ok := <-c.inbox
 	if !ok {
 		return "", nil, ErrChannelClosed
 	}
 
-	m, ok := e.(*msgproto.Message)
-	if !ok {
-		return "", nil, errors.New("received unknown message")
-	}
-
-	return m.Sender, m.Ciphertext, nil
+	return string(m.Sender()), m.CiphertextBytes(), nil
 }
 
 // Command sends a command to the messaging server to be fulfilled
 func (c *Websocket) Command(command string, payload []byte) ([]byte, error) {
-	var cmd proto.Message
+	b := c.pool.Get().(*flatbuffers.Builder)
+	defer c.pool.Put(b)
 
 	id := uuid.New().String()
 
+	b.Reset()
+
+	aid := b.CreateByteString([]byte(id))
+	apl := b.CreateByteVector(payload)
+
+	msgprotov2.ACLStart(b)
+	msgprotov2.ACLAddMsgtype(b, msgprotov2.MsgTypeACL)
+	msgprotov2.ACLAddId(b, aid)
+
 	switch command {
 	case "acl.list":
-		cmd = &msgproto.AccessControlList{
-			Id:      id,
-			Type:    msgproto.MsgType_ACL,
-			Command: msgproto.ACLCommand_LIST,
-		}
+		msgprotov2.ACLAddCommand(b, msgprotov2.ACLCommandLIST)
+		msgprotov2.ACLAddPayload(b, apl)
 	case "acl.permit":
-		cmd = &msgproto.AccessControlList{
-			Id:      id,
-			Type:    msgproto.MsgType_ACL,
-			Command: msgproto.ACLCommand_PERMIT,
-			Payload: payload,
-		}
+		msgprotov2.ACLAddCommand(b, msgprotov2.ACLCommandPERMIT)
 	case "acl.revoke":
-		cmd = &msgproto.AccessControlList{
-			Id:      id,
-			Type:    msgproto.MsgType_ACL,
-			Command: msgproto.ACLCommand_REVOKE,
-			Payload: payload,
-		}
+		msgprotov2.ACLAddCommand(b, msgprotov2.ACLCommandREVOKE)
 	}
 
-	req, err := proto.Marshal(cmd)
-	if err != nil {
-		return nil, err
-	}
+	acl := msgprotov2.ACLEnd(b)
+
+	b.Finish(acl)
 
 	e := event{
 		id:   id,
-		data: req,
+		data: b.FinishedBytes(),
 		err:  make(chan error, 1),
 	}
 
@@ -342,41 +420,42 @@ func (c *Websocket) connect() error {
 
 	c.ws = ws
 
-	auth := msgproto.Auth{
-		Id:     uuid.New().String(),
-		Type:   msgproto.MsgType_AUTH,
-		Token:  token,
-		Device: c.config.DeviceID,
-		Offset: c.offset,
-	}
+	b := c.pool.Get().(*flatbuffers.Builder)
+	defer c.pool.Put(b)
 
-	data, err := proto.Marshal(&auth)
-	if err != nil {
-		return err
-	}
+	b.Reset()
 
-	err = c.ws.WriteMessage(websocket.BinaryMessage, data)
+	aid := b.CreateString(uuid.New().String())
+	aat := b.CreateString(token)
+	adv := b.CreateString(c.config.DeviceID)
+
+	msgprotov2.AuthStart(b)
+	msgprotov2.AuthAddId(b, aid)
+	msgprotov2.AuthAddMsgtype(b, msgprotov2.MsgTypeAUTH)
+	msgprotov2.AuthAddDevice(b, adv)
+	msgprotov2.AuthAddOffset(b, c.offset)
+	msgprotov2.AuthAddToken(b, aat)
+	auth := msgprotov2.AuthEnd(b)
+
+	b.Finish(auth)
+
+	err = c.ws.WriteMessage(websocket.BinaryMessage, b.FinishedBytes())
 	if err != nil {
 		return err
 	}
 
 	c.ws.SetReadDeadline(time.Now().Add(c.config.TCPDeadline))
-	_, data, err = c.ws.ReadMessage()
+	_, data, err := c.ws.ReadMessage()
 	if err != nil {
 		return err
 	}
 
-	var resp msgproto.Notification
+	resp := msgprotov2.GetRootAsNotification(data, 0)
 
-	err = proto.Unmarshal(data, &resp)
-	if err != nil {
-		return err
-	}
-
-	switch resp.Type {
-	case msgproto.MsgType_ACK:
-	case msgproto.MsgType_ERR:
-		return errors.New(resp.Error)
+	switch resp.Msgtype() {
+	case msgprotov2.MsgTypeACK:
+	case msgprotov2.MsgTypeERR:
+		return errors.New(string(resp.Error()))
 	default:
 		return errors.New("unknown authentication response")
 	}
@@ -394,8 +473,6 @@ func (c *Websocket) connect() error {
 }
 
 func (c *Websocket) reader() {
-	var hdr msgproto.Header
-
 	for {
 		if c.isShutdown() {
 			close(c.inbox)
@@ -415,42 +492,23 @@ func (c *Websocket) reader() {
 			return
 		}
 
-		err = proto.Unmarshal(data, &hdr)
-		if err != nil {
-			continue
-		}
+		hdr := msgprotov2.GetRootAsHeader(data, 0)
 
-		var m proto.Message
+		switch hdr.Msgtype() {
+		case msgprotov2.MsgTypeACK, msgprotov2.MsgTypeERR:
+			n := msgprotov2.GetRootAsNotification(data, 0)
 
-		switch hdr.Type {
-		case msgproto.MsgType_MSG:
-			m = &msgproto.Message{}
-		case msgproto.MsgType_ACL:
-			m = &msgproto.AccessControlList{}
-		case msgproto.MsgType_ACK, msgproto.MsgType_ERR:
-			m = &msgproto.Notification{}
-		}
-
-		err = proto.Unmarshal(data, m)
-		if err != nil {
-			continue
-		}
-
-		switch hdr.Type {
-		case msgproto.MsgType_ACK, msgproto.MsgType_ERR:
-			n := m.(*msgproto.Notification)
-
-			pch, ok := c.responses.Load(n.Id)
+			pch, ok := c.responses.Load(string(n.Id()))
 			if !ok {
 				continue
 			}
 
-			c.responses.Delete(n.Id)
+			c.responses.Delete(string(n.Id()))
 
 			var rerr error
 
-			if n.Type == msgproto.MsgType_ERR {
-				rerr = errors.New(n.Error)
+			if n.Msgtype() == msgprotov2.MsgTypeERR {
+				rerr = errors.New(string(n.Error()))
 			}
 
 			rev := pch.(*event)
@@ -460,26 +518,34 @@ func (c *Websocket) reader() {
 			} else {
 				rev.err <- rerr
 			}
-		case msgproto.MsgType_ACL:
-			a := m.(*msgproto.AccessControlList)
 
-			pch, ok := c.responses.Load(a.Id)
+		case msgprotov2.MsgTypeACL:
+			a := msgprotov2.GetRootAsACL(data, 0)
+
+			pch, ok := c.responses.Load(string(a.Id()))
 			if !ok {
 				continue
 			}
 
-			c.responses.Delete(a.Id)
+			c.responses.Delete(string(a.Id()))
 
 			ev := pch.(*event)
-			ev.data = a.Payload
+			ev.data = a.PayloadBytes()
 			ev.err <- nil
-		case msgproto.MsgType_MSG:
-			msg := m.(*msgproto.Message)
 
-			c.offset = msg.Offset
+		case msgprotov2.MsgTypeMSG:
+			m := msgprotov2.GetRootAsMessage(data, 0)
+
+			md := m.Metadata(nil)
+			if md == nil {
+				log.Fatal("message did not contain valid metadata")
+			}
+
+			c.offset = md.Offset()
 
 			offsetData := []byte(fmt.Sprintf("%019d", c.offset))
 
+			// TODO : flush this to disk every n seconds?
 			_, err = c.ofd.WriteAt(offsetData, 0)
 			if err != nil {
 				log.Fatal(err)
