@@ -339,11 +339,12 @@ func (c *Websocket) Command(command string, payload []byte) ([]byte, error) {
 	switch command {
 	case "acl.list":
 		msgprotov2.ACLAddCommand(b, msgprotov2.ACLCommandLIST)
-		msgprotov2.ACLAddPayload(b, apl)
 	case "acl.permit":
 		msgprotov2.ACLAddCommand(b, msgprotov2.ACLCommandPERMIT)
+		msgprotov2.ACLAddPayload(b, apl)
 	case "acl.revoke":
 		msgprotov2.ACLAddCommand(b, msgprotov2.ACLCommandREVOKE)
+		msgprotov2.ACLAddPayload(b, apl)
 	}
 
 	acl := msgprotov2.ACLEnd(b)
