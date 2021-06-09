@@ -12,11 +12,11 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
 
-	flatbuffers "github.com/google/flatbuffers/go"
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 	"github.com/joinself/self-go-sdk/pkg/pqueue"
@@ -69,13 +69,13 @@ type Websocket struct {
 	config    WebsocketConfig
 	ws        *websocket.Conn
 	queue     *pqueue.Queue
-	inbox     chan *msgprotov2.Message
+	inbox     chan Message
 	responses sync.Map
 	offset    int64
 	ofd       *os.File
 	closed    int32
 	shutdown  int32
-	pool      sync.Pool
+	enc       Encoder
 }
 
 type event struct {
@@ -151,19 +151,23 @@ func NewWebsocket(config WebsocketConfig) (*Websocket, error) {
 		offset = int64(off)
 	}
 
+	var enc Encoder
+
+	if strings.Contains(config.MessagingURL, "/v1/messaging") {
+		enc = newEncoderV1()
+	} else {
+		enc = newEncoderV2()
+	}
+
 	c := Websocket{
 		config:    config,
 		queue:     pqueue.New(5),
-		inbox:     make(chan *msgprotov2.Message, config.InboxSize),
+		inbox:     make(chan Message, config.InboxSize),
 		responses: sync.Map{},
 		offset:    offset,
 		ofd:       fd,
 		closed:    1,
-		pool: sync.Pool{
-			New: func() interface{} {
-				return flatbuffers.NewBuilder(1024)
-			},
-		},
+		enc:       enc,
 	}
 
 	return &c, c.connect()
@@ -171,49 +175,23 @@ func NewWebsocket(config WebsocketConfig) (*Websocket, error) {
 
 // Send send a message to given recipients. recipient is a combination of "selfID:deviceID"
 func (c *Websocket) Send(recipients []string, data []byte) error {
-	b := c.pool.Get().(*flatbuffers.Builder)
-	defer c.pool.Put(b)
-
 	for _, r := range recipients {
 		id := uuid.New().String()
 
-		// reset the flatbuffer builder's internal buffer
-		b.Reset()
-
-		mid := b.CreateString(id)
-		msd := b.CreateString(c.config.messagingID)
-		mrp := b.CreateString(r)
-		mct := b.CreateByteVector(data)
-
-		msgprotov2.MessageStart(b)
-		msgprotov2.MessageAddId(b, mid)
-		msgprotov2.MessageAddMsgtype(b, msgprotov2.MsgTypeMSG)
-		msgprotov2.MessageAddSender(b, msd)
-		msgprotov2.MessageAddRecipient(b, mrp)
-		msgprotov2.MessageAddMetadata(b, msgprotov2.CreateMetadata(
-			b,
-			0,
-			0,
-		))
-
-		msgprotov2.MessageAddCiphertext(b, mct)
-		msg := msgprotov2.MessageEnd(b)
-
-		b.Finish(msg)
-
-		fb := b.FinishedBytes()
-		m := make([]byte, len(fb))
-		copy(m, fb)
+		msg, err := c.enc.MarshalMessage(id, c.config.messagingID, r, data)
+		if err != nil {
+			return err
+		}
 
 		e := event{
 			id:   id,
-			data: m,
+			data: msg,
 			err:  make(chan error, 1),
 		}
 
 		c.queue.Push(priorityMessage, &e)
 
-		err := <-e.err
+		err = <-e.err
 		if err != nil {
 			return err
 		}
@@ -224,43 +202,18 @@ func (c *Websocket) Send(recipients []string, data []byte) error {
 
 // SendAsync send a message to given recipients with a callback to handle the server response
 func (c *Websocket) SendAsync(recipients []string, data []byte, callback func(err error)) {
-	b := c.pool.Get().(*flatbuffers.Builder)
-	defer c.pool.Put(b)
-
 	for _, r := range recipients {
 		id := uuid.New().String()
 
-		// reset the flatbuffer builder's internal buffer
-		b.Reset()
-
-		mid := b.CreateString(id)
-		msd := b.CreateString(c.config.messagingID)
-		mrp := b.CreateString(r)
-		mct := b.CreateByteVector(data)
-
-		msgprotov2.MessageStart(b)
-		msgprotov2.MessageAddId(b, mid)
-		msgprotov2.MessageAddMsgtype(b, msgprotov2.MsgTypeMSG)
-		msgprotov2.MessageAddSender(b, msd)
-		msgprotov2.MessageAddRecipient(b, mrp)
-		msgprotov2.MessageAddMetadata(b, msgprotov2.CreateMetadata(
-			b,
-			0,
-			0,
-		))
-
-		msgprotov2.MessageAddCiphertext(b, mct)
-		msg := msgprotov2.MessageEnd(b)
-
-		b.Finish(msg)
-
-		fb := b.FinishedBytes()
-		m := make([]byte, len(fb))
-		copy(m, fb)
+		msg, err := c.enc.MarshalMessage(id, c.config.messagingID, r, data)
+		if err != nil {
+			callback(err)
+			return
+		}
 
 		e := event{
 			id:   id,
-			data: m,
+			data: msg,
 			cb:   callback,
 		}
 
@@ -270,40 +223,15 @@ func (c *Websocket) SendAsync(recipients []string, data []byte, callback func(er
 
 // SendAsync send a message with a given id to a single recipient, with a callback to handle the server response
 func (c *Websocket) SendAsyncWithID(id, recipient string, data []byte, callback func(err error)) {
-	b := c.pool.Get().(*flatbuffers.Builder)
-	defer c.pool.Put(b)
-
-	// reset the flatbuffer builder's internal buffer
-	b.Reset()
-
-	mid := b.CreateString(id)
-	msd := b.CreateString(c.config.messagingID)
-	mrp := b.CreateString(recipient)
-	mct := b.CreateByteVector(data)
-
-	msgprotov2.MessageStart(b)
-	msgprotov2.MessageAddId(b, mid)
-	msgprotov2.MessageAddMsgtype(b, msgprotov2.MsgTypeMSG)
-	msgprotov2.MessageAddSender(b, msd)
-	msgprotov2.MessageAddRecipient(b, mrp)
-	msgprotov2.MessageAddMetadata(b, msgprotov2.CreateMetadata(
-		b,
-		0,
-		0,
-	))
-
-	msgprotov2.MessageAddCiphertext(b, mct)
-	msg := msgprotov2.MessageEnd(b)
-
-	b.Finish(msg)
-
-	fb := b.FinishedBytes()
-	m := make([]byte, len(fb))
-	copy(m, fb)
+	msg, err := c.enc.MarshalMessage(id, c.config.messagingID, recipient, data)
+	if err != nil {
+		callback(err)
+		return
+	}
 
 	e := event{
 		id:   id,
-		data: m,
+		data: msg,
 		cb:   callback,
 	}
 
@@ -322,38 +250,16 @@ func (c *Websocket) Receive() (string, []byte, error) {
 
 // Command sends a command to the messaging server to be fulfilled
 func (c *Websocket) Command(command string, payload []byte) ([]byte, error) {
-	b := c.pool.Get().(*flatbuffers.Builder)
-	defer c.pool.Put(b)
-
 	id := uuid.New().String()
 
-	b.Reset()
-
-	aid := b.CreateByteString([]byte(id))
-	apl := b.CreateByteVector(payload)
-
-	msgprotov2.ACLStart(b)
-	msgprotov2.ACLAddMsgtype(b, msgprotov2.MsgTypeACL)
-	msgprotov2.ACLAddId(b, aid)
-
-	switch command {
-	case "acl.list":
-		msgprotov2.ACLAddCommand(b, msgprotov2.ACLCommandLIST)
-	case "acl.permit":
-		msgprotov2.ACLAddCommand(b, msgprotov2.ACLCommandPERMIT)
-		msgprotov2.ACLAddPayload(b, apl)
-	case "acl.revoke":
-		msgprotov2.ACLAddCommand(b, msgprotov2.ACLCommandREVOKE)
-		msgprotov2.ACLAddPayload(b, apl)
+	acl, err := c.enc.MarshalACL(id, command, payload)
+	if err != nil {
+		return nil, err
 	}
-
-	acl := msgprotov2.ACLEnd(b)
-
-	b.Finish(acl)
 
 	e := event{
 		id:   id,
-		data: b.FinishedBytes(),
+		data: acl,
 		err:  make(chan error, 1),
 	}
 
@@ -421,26 +327,12 @@ func (c *Websocket) connect() error {
 
 	c.ws = ws
 
-	b := c.pool.Get().(*flatbuffers.Builder)
-	defer c.pool.Put(b)
+	auth, err := c.enc.MarshalAuth(c.config.DeviceID, token, c.offset)
+	if err != nil {
+		return err
+	}
 
-	b.Reset()
-
-	aid := b.CreateString(uuid.New().String())
-	aat := b.CreateString(token)
-	adv := b.CreateString(c.config.DeviceID)
-
-	msgprotov2.AuthStart(b)
-	msgprotov2.AuthAddId(b, aid)
-	msgprotov2.AuthAddMsgtype(b, msgprotov2.MsgTypeAUTH)
-	msgprotov2.AuthAddDevice(b, adv)
-	msgprotov2.AuthAddOffset(b, c.offset)
-	msgprotov2.AuthAddToken(b, aat)
-	auth := msgprotov2.AuthEnd(b)
-
-	b.Finish(auth)
-
-	err = c.ws.WriteMessage(websocket.BinaryMessage, b.FinishedBytes())
+	err = c.ws.WriteMessage(websocket.BinaryMessage, auth)
 	if err != nil {
 		return err
 	}
@@ -493,11 +385,23 @@ func (c *Websocket) reader() {
 			return
 		}
 
-		hdr := msgprotov2.GetRootAsHeader(data, 0)
+		hdr, err := c.enc.UnmarshalHeader(data)
+		if err != nil {
+			if c.isShutdown() {
+				close(c.inbox)
+			} else {
+				c.reconnect(err)
+			}
+			return
+		}
 
 		switch hdr.Msgtype() {
 		case msgprotov2.MsgTypeACK, msgprotov2.MsgTypeERR:
-			n := msgprotov2.GetRootAsNotification(data, 0)
+			n, err := c.enc.UnmarshalNotification(data)
+			if err != nil {
+				log.Printf("[websocket] failed to unmarshal notification: %s", err.Error())
+				continue
+			}
 
 			pch, ok := c.responses.Load(string(n.Id()))
 			if !ok {
@@ -521,7 +425,11 @@ func (c *Websocket) reader() {
 			}
 
 		case msgprotov2.MsgTypeACL:
-			a := msgprotov2.GetRootAsACL(data, 0)
+			a, err := c.enc.UnmarshalACL(data)
+			if err != nil {
+				log.Printf("[websocket] failed to unmarshal acl: %s", err.Error())
+				continue
+			}
 
 			pch, ok := c.responses.Load(string(a.Id()))
 			if !ok {
@@ -535,14 +443,13 @@ func (c *Websocket) reader() {
 			ev.err <- nil
 
 		case msgprotov2.MsgTypeMSG:
-			m := msgprotov2.GetRootAsMessage(data, 0)
-
-			md := m.Metadata(nil)
-			if md == nil {
-				log.Fatal("message did not contain valid metadata")
+			m, _, offset, err := c.enc.UnmarshalMessage(data)
+			if err != nil {
+				log.Printf("[websocket] failed to unmarshal notification: %s", err.Error())
+				continue
 			}
 
-			c.offset = md.Offset()
+			c.offset = offset
 
 			offsetData := []byte(fmt.Sprintf("%019d", c.offset))
 
