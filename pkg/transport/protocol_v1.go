@@ -20,6 +20,7 @@ func newEncoderV1() Encoder {
 func (e *encoderV1) MarshalAuth(device, token string, offset int64) ([]byte, error) {
 	return proto.Marshal(&msgprotov1.Auth{
 		Id:     uuid.New().String(),
+		Type:   msgprotov1.MsgType_AUTH,
 		Device: device,
 		Token:  token,
 		Offset: offset,
@@ -41,6 +42,7 @@ func (e *encoderV1) MarshalACL(id, command string, payload []byte) ([]byte, erro
 
 	return proto.Marshal(&msgprotov1.AccessControlList{
 		Id:      id,
+		Type:    msgprotov1.MsgType_ACL,
 		Command: c,
 		Payload: payload,
 	})
@@ -50,6 +52,7 @@ func (e *encoderV1) MarshalACL(id, command string, payload []byte) ([]byte, erro
 func (e *encoderV1) MarshalMessage(id, sender, recipient string, ciphertext []byte) ([]byte, error) {
 	return proto.Marshal(&msgprotov1.Message{
 		Id:         id,
+		Type:       msgprotov1.MsgType_MSG,
 		Sender:     sender,
 		Recipient:  recipient,
 		Ciphertext: ciphertext,
