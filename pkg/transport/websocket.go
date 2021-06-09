@@ -343,7 +343,10 @@ func (c *Websocket) connect() error {
 		return err
 	}
 
-	resp := msgprotov2.GetRootAsNotification(data, 0)
+	resp, err := c.enc.UnmarshalNotification(data)
+	if err != nil {
+		return err
+	}
 
 	switch resp.Msgtype() {
 	case msgprotov2.MsgTypeACK:
