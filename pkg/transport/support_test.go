@@ -264,27 +264,7 @@ func (t *testmsgserver) testHandler(w http.ResponseWriter, r *http.Request) {
 
 	go func() {
 		for {
-			/*
-				var data []byte
-				var err error
-			*/
-
 			data := <-t.out
-
-			/*
-				switch v := e.(type) {
-				case *msgprotov1.Message:
-					v.Offset = atomic.AddInt64(&offset, 1)
-					data, err = proto.Marshal(v)
-				case *msgprotov1.Notification:
-					data, err = proto.Marshal(v)
-				}
-
-				if err != nil {
-					log.Println(err)
-					return
-				}
-			*/
 
 			t.mu.Lock()
 			err = wc.SetWriteDeadline(time.Now().Add(time.Millisecond * 100))
