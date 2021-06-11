@@ -110,7 +110,7 @@ func TestConfigLoad(t *testing.T) {
 	assert.NotNil(t, cfg.Connectors.Storage)
 	assert.NotNil(t, cfg.Connectors.Messaging)
 	assert.Equal(t, cfg.APIURL, "https://api.joinself.com")
-	assert.Equal(t, cfg.MessagingURL, "wss://messaging.joinself.com/v1/messaging")
+	assert.Equal(t, cfg.MessagingURL, "wss://messaging.joinself.com/v2/messaging")
 }
 
 func TestConfigLoadWithEnvironment(t *testing.T) {
@@ -137,7 +137,7 @@ func TestConfigLoadWithEnvironment(t *testing.T) {
 	require.Nil(t, err)
 
 	assert.Equal(t, cfg.APIURL, "https://api.sandbox.joinself.com")
-	assert.Equal(t, cfg.MessagingURL, "wss://messaging.sandbox.joinself.com/v1/messaging")
+	assert.Equal(t, cfg.MessagingURL, "wss://messaging.sandbox.joinself.com/v2/messaging")
 }
 
 func TestConfigStorageMigration(t *testing.T) {

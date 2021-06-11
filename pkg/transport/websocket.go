@@ -12,6 +12,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -19,9 +20,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 	"github.com/joinself/self-go-sdk/pkg/pqueue"
-	"github.com/joinself/self-go-sdk/pkg/protos/msgproto"
+	"github.com/joinself/self-go-sdk/pkg/protos/msgprotov2"
 	"golang.org/x/crypto/ed25519"
-	"google.golang.org/protobuf/proto"
 )
 
 const (
@@ -69,12 +69,13 @@ type Websocket struct {
 	config    WebsocketConfig
 	ws        *websocket.Conn
 	queue     *pqueue.Queue
-	inbox     chan proto.Message
+	inbox     chan Message
 	responses sync.Map
 	offset    int64
 	ofd       *os.File
 	closed    int32
 	shutdown  int32
+	enc       Encoder
 }
 
 type event struct {
@@ -150,14 +151,23 @@ func NewWebsocket(config WebsocketConfig) (*Websocket, error) {
 		offset = int64(off)
 	}
 
+	var enc Encoder
+
+	if strings.Contains(config.MessagingURL, "/v1/messaging") {
+		enc = newEncoderV1()
+	} else {
+		enc = newEncoderV2()
+	}
+
 	c := Websocket{
 		config:    config,
 		queue:     pqueue.New(5),
-		inbox:     make(chan proto.Message, config.InboxSize),
+		inbox:     make(chan Message, config.InboxSize),
 		responses: sync.Map{},
 		offset:    offset,
 		ofd:       fd,
 		closed:    1,
+		enc:       enc,
 	}
 
 	return &c, c.connect()
@@ -168,20 +178,14 @@ func (c *Websocket) Send(recipients []string, data []byte) error {
 	for _, r := range recipients {
 		id := uuid.New().String()
 
-		m, err := proto.Marshal(&msgproto.Message{
-			Id:         id,
-			Sender:     c.config.messagingID,
-			Recipient:  r,
-			Ciphertext: data,
-		})
-
+		msg, err := c.enc.MarshalMessage(id, c.config.messagingID, r, data)
 		if err != nil {
 			return err
 		}
 
 		e := event{
 			id:   id,
-			data: m,
+			data: msg,
 			err:  make(chan error, 1),
 		}
 
@@ -201,13 +205,7 @@ func (c *Websocket) SendAsync(recipients []string, data []byte, callback func(er
 	for _, r := range recipients {
 		id := uuid.New().String()
 
-		m, err := proto.Marshal(&msgproto.Message{
-			Id:         id,
-			Sender:     c.config.messagingID,
-			Recipient:  r,
-			Ciphertext: data,
-		})
-
+		msg, err := c.enc.MarshalMessage(id, c.config.messagingID, r, data)
 		if err != nil {
 			callback(err)
 			return
@@ -215,7 +213,7 @@ func (c *Websocket) SendAsync(recipients []string, data []byte, callback func(er
 
 		e := event{
 			id:   id,
-			data: m,
+			data: msg,
 			cb:   callback,
 		}
 
@@ -223,58 +221,45 @@ func (c *Websocket) SendAsync(recipients []string, data []byte, callback func(er
 	}
 }
 
+// SendAsync send a message with a given id to a single recipient, with a callback to handle the server response
+func (c *Websocket) SendAsyncWithID(id, recipient string, data []byte, callback func(err error)) {
+	msg, err := c.enc.MarshalMessage(id, c.config.messagingID, recipient, data)
+	if err != nil {
+		callback(err)
+		return
+	}
+
+	e := event{
+		id:   id,
+		data: msg,
+		cb:   callback,
+	}
+
+	c.queue.Push(priorityMessage, &e)
+}
+
 // Receive receive a message
 func (c *Websocket) Receive() (string, []byte, error) {
-	e, ok := <-c.inbox
+	m, ok := <-c.inbox
 	if !ok {
 		return "", nil, ErrChannelClosed
 	}
 
-	m, ok := e.(*msgproto.Message)
-	if !ok {
-		return "", nil, errors.New("received unknown message")
-	}
-
-	return m.Sender, m.Ciphertext, nil
+	return string(m.Sender()), m.CiphertextBytes(), nil
 }
 
 // Command sends a command to the messaging server to be fulfilled
 func (c *Websocket) Command(command string, payload []byte) ([]byte, error) {
-	var cmd proto.Message
-
 	id := uuid.New().String()
 
-	switch command {
-	case "acl.list":
-		cmd = &msgproto.AccessControlList{
-			Id:      id,
-			Type:    msgproto.MsgType_ACL,
-			Command: msgproto.ACLCommand_LIST,
-		}
-	case "acl.permit":
-		cmd = &msgproto.AccessControlList{
-			Id:      id,
-			Type:    msgproto.MsgType_ACL,
-			Command: msgproto.ACLCommand_PERMIT,
-			Payload: payload,
-		}
-	case "acl.revoke":
-		cmd = &msgproto.AccessControlList{
-			Id:      id,
-			Type:    msgproto.MsgType_ACL,
-			Command: msgproto.ACLCommand_REVOKE,
-			Payload: payload,
-		}
-	}
-
-	req, err := proto.Marshal(cmd)
+	acl, err := c.enc.MarshalACL(id, command, payload)
 	if err != nil {
 		return nil, err
 	}
 
 	e := event{
 		id:   id,
-		data: req,
+		data: acl,
 		err:  make(chan error, 1),
 	}
 
@@ -342,41 +327,31 @@ func (c *Websocket) connect() error {
 
 	c.ws = ws
 
-	auth := msgproto.Auth{
-		Id:     uuid.New().String(),
-		Type:   msgproto.MsgType_AUTH,
-		Token:  token,
-		Device: c.config.DeviceID,
-		Offset: c.offset,
-	}
-
-	data, err := proto.Marshal(&auth)
+	auth, err := c.enc.MarshalAuth(c.config.DeviceID, token, c.offset)
 	if err != nil {
 		return err
 	}
 
-	err = c.ws.WriteMessage(websocket.BinaryMessage, data)
+	err = c.ws.WriteMessage(websocket.BinaryMessage, auth)
 	if err != nil {
 		return err
 	}
 
 	c.ws.SetReadDeadline(time.Now().Add(c.config.TCPDeadline))
-	_, data, err = c.ws.ReadMessage()
+	_, data, err := c.ws.ReadMessage()
 	if err != nil {
 		return err
 	}
 
-	var resp msgproto.Notification
-
-	err = proto.Unmarshal(data, &resp)
+	resp, err := c.enc.UnmarshalNotification(data)
 	if err != nil {
 		return err
 	}
 
-	switch resp.Type {
-	case msgproto.MsgType_ACK:
-	case msgproto.MsgType_ERR:
-		return errors.New(resp.Error)
+	switch resp.Msgtype() {
+	case msgprotov2.MsgTypeACK:
+	case msgprotov2.MsgTypeERR:
+		return errors.New(string(resp.Error()))
 	default:
 		return errors.New("unknown authentication response")
 	}
@@ -394,8 +369,6 @@ func (c *Websocket) connect() error {
 }
 
 func (c *Websocket) reader() {
-	var hdr msgproto.Header
-
 	for {
 		if c.isShutdown() {
 			close(c.inbox)
@@ -415,42 +388,35 @@ func (c *Websocket) reader() {
 			return
 		}
 
-		err = proto.Unmarshal(data, &hdr)
+		hdr, err := c.enc.UnmarshalHeader(data)
 		if err != nil {
-			continue
+			if c.isShutdown() {
+				close(c.inbox)
+			} else {
+				c.reconnect(err)
+			}
+			return
 		}
 
-		var m proto.Message
+		switch hdr.Msgtype() {
+		case msgprotov2.MsgTypeACK, msgprotov2.MsgTypeERR:
+			n, err := c.enc.UnmarshalNotification(data)
+			if err != nil {
+				log.Printf("[websocket] failed to unmarshal notification: %s", err.Error())
+				continue
+			}
 
-		switch hdr.Type {
-		case msgproto.MsgType_MSG:
-			m = &msgproto.Message{}
-		case msgproto.MsgType_ACL:
-			m = &msgproto.AccessControlList{}
-		case msgproto.MsgType_ACK, msgproto.MsgType_ERR:
-			m = &msgproto.Notification{}
-		}
-
-		err = proto.Unmarshal(data, m)
-		if err != nil {
-			continue
-		}
-
-		switch hdr.Type {
-		case msgproto.MsgType_ACK, msgproto.MsgType_ERR:
-			n := m.(*msgproto.Notification)
-
-			pch, ok := c.responses.Load(n.Id)
+			pch, ok := c.responses.Load(string(n.Id()))
 			if !ok {
 				continue
 			}
 
-			c.responses.Delete(n.Id)
+			c.responses.Delete(string(n.Id()))
 
 			var rerr error
 
-			if n.Type == msgproto.MsgType_ERR {
-				rerr = errors.New(n.Error)
+			if n.Msgtype() == msgprotov2.MsgTypeERR {
+				rerr = errors.New(string(n.Error()))
 			}
 
 			rev := pch.(*event)
@@ -460,26 +426,37 @@ func (c *Websocket) reader() {
 			} else {
 				rev.err <- rerr
 			}
-		case msgproto.MsgType_ACL:
-			a := m.(*msgproto.AccessControlList)
 
-			pch, ok := c.responses.Load(a.Id)
+		case msgprotov2.MsgTypeACL:
+			a, err := c.enc.UnmarshalACL(data)
+			if err != nil {
+				log.Printf("[websocket] failed to unmarshal acl: %s", err.Error())
+				continue
+			}
+
+			pch, ok := c.responses.Load(string(a.Id()))
 			if !ok {
 				continue
 			}
 
-			c.responses.Delete(a.Id)
+			c.responses.Delete(string(a.Id()))
 
 			ev := pch.(*event)
-			ev.data = a.Payload
+			ev.data = a.PayloadBytes()
 			ev.err <- nil
-		case msgproto.MsgType_MSG:
-			msg := m.(*msgproto.Message)
 
-			c.offset = msg.Offset
+		case msgprotov2.MsgTypeMSG:
+			m, _, offset, err := c.enc.UnmarshalMessage(data)
+			if err != nil {
+				log.Printf("[websocket] failed to unmarshal notification: %s", err.Error())
+				continue
+			}
+
+			c.offset = offset
 
 			offsetData := []byte(fmt.Sprintf("%019d", c.offset))
 
+			// TODO : flush this to disk every n seconds?
 			_, err = c.ofd.WriteAt(offsetData, 0)
 			if err != nil {
 				log.Fatal(err)

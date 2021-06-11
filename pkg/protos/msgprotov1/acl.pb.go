@@ -6,7 +6,7 @@
 // 	protoc        v3.6.1
 // source: acl.proto
 
-package msgproto
+package msgprotov1
 
 import (
 	proto "github.com/golang/protobuf/proto"

@@ -8,7 +8,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/joinself/self-go-sdk/pkg/protos/msgproto"
+	flatbuffers "github.com/google/flatbuffers/go"
+	"github.com/joinself/self-go-sdk/pkg/protos/msgprotov2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -99,9 +100,9 @@ func TestWebsocketSend(t *testing.T) {
 	require.Nil(t, err)
 
 	assert.NotEmpty(t, msg.Id)
-	assert.Equal(t, "test:1", msg.Sender)
-	assert.Equal(t, "alice:1", msg.Recipient)
-	assert.Equal(t, []byte("test"), msg.Ciphertext)
+	assert.Equal(t, []byte("test:1"), msg.Sender())
+	assert.Equal(t, []byte("alice:1"), msg.Recipient())
+	assert.Equal(t, []byte("test"), msg.CiphertextBytes())
 }
 
 func TestWebsocketReceive(t *testing.T) {
@@ -123,12 +124,30 @@ func TestWebsocketReceive(t *testing.T) {
 	require.Nil(t, err)
 	defer c.Close()
 
-	s.out <- &msgproto.Message{
-		Id:         "test",
-		Sender:     "alice:1",
-		Recipient:  "test:1",
-		Ciphertext: []byte("test"),
-	}
+	b := flatbuffers.NewBuilder(1024)
+
+	mid := b.CreateString("test")
+	msd := b.CreateString("alice:1")
+	mrp := b.CreateString("test:1")
+	mct := b.CreateByteVector([]byte("test"))
+
+	msgprotov2.MessageStart(b)
+	msgprotov2.MessageAddId(b, mid)
+	msgprotov2.MessageAddMsgtype(b, msgprotov2.MsgTypeMSG)
+	msgprotov2.MessageAddSender(b, msd)
+	msgprotov2.MessageAddRecipient(b, mrp)
+	msgprotov2.MessageAddMetadata(b, msgprotov2.CreateMetadata(
+		b,
+		0,
+		0,
+	))
+
+	msgprotov2.MessageAddCiphertext(b, mct)
+	msg := msgprotov2.MessageEnd(b)
+
+	b.Finish(msg)
+
+	s.out <- b.FinishedBytes()
 
 	sender, m, err := c.Receive()
 	require.Nil(t, err)
@@ -198,13 +217,37 @@ func TestWebsocketClose(t *testing.T) {
 
 	go func() {
 		// send some messages
+		b := flatbuffers.NewBuilder(1024)
+
 		for i := 0; i < 10000; i++ {
-			s.out <- &msgproto.Message{
-				Id:         "test",
-				Sender:     "alice:1",
-				Recipient:  "test:1",
-				Ciphertext: []byte("test"),
-			}
+			b.Reset()
+
+			mid := b.CreateString("test")
+			msd := b.CreateString("alice:1")
+			mrp := b.CreateString("test:1")
+			mct := b.CreateByteVector([]byte("test"))
+
+			msgprotov2.MessageStart(b)
+			msgprotov2.MessageAddId(b, mid)
+			msgprotov2.MessageAddMsgtype(b, msgprotov2.MsgTypeMSG)
+			msgprotov2.MessageAddSender(b, msd)
+			msgprotov2.MessageAddRecipient(b, mrp)
+			msgprotov2.MessageAddMetadata(b, msgprotov2.CreateMetadata(
+				b,
+				0,
+				0,
+			))
+
+			msgprotov2.MessageAddCiphertext(b, mct)
+			msg := msgprotov2.MessageEnd(b)
+
+			b.Finish(msg)
+
+			fb := b.FinishedBytes()
+			m := make([]byte, len(fb))
+			copy(m, fb)
+
+			s.out <- m
 		}
 	}()
 
