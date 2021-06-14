@@ -3,14 +3,11 @@
 package messaging
 
 import (
-	"encoding/base64"
 	"encoding/json"
 	"time"
 
 	"golang.org/x/crypto/ed25519"
 )
-
-var enc = base64.RawStdEncoding
 
 // restTransport handles all interactions with the self api
 type restTransport interface {
@@ -22,7 +19,7 @@ type messagingClient interface {
 	Send(recipients []string, data []byte) error
 	Request(recipients []string, cid string, data []byte, timeout time.Duration) (string, []byte, error)
 	Subscribe(msgType string, sub func(sender string, payload []byte))
-	Command(command string, payload []byte) ([]byte, error)
+	Command(command, selfID string, payload []byte) ([]byte, error)
 	ListConnections() ([]string, error)
 }
 

@@ -7,8 +7,12 @@ import (
 	"encoding/json"
 	"errors"
 	"log"
+	"runtime"
+	"sort"
 	"sync"
+	"sync/atomic"
 	"time"
+	"unsafe"
 
 	"github.com/joinself/self-go-sdk/pkg/crypto"
 	"github.com/joinself/self-go-sdk/pkg/transport"
@@ -16,9 +20,10 @@ import (
 	"golang.org/x/crypto/ed25519"
 )
 
-var decoder = base64.RawURLEncoding
-
-type subscription func(sender string, payload []byte)
+var (
+	decoder  = base64.RawURLEncoding
+	emptyACL = unsafe.Pointer(nil)
+)
 
 type response struct {
 	sender  string
@@ -57,6 +62,7 @@ type Client struct {
 	transport     Transport
 	responses     sync.Map
 	subscriptions sync.Map
+	acl           *unsafe.Pointer
 	closing       chan struct{}
 	closed        chan struct{}
 }
@@ -98,11 +104,19 @@ func New(config Config) (*Client, error) {
 		responses: sync.Map{},
 		transport: config.Transport,
 		crypto:    config.Crypto,
+		acl:       &emptyACL,
 		closing:   make(chan struct{}, 1),
 		closed:    make(chan struct{}, 1),
 	}
 
 	go c.reader()
+
+	conns, err := c.ListConnections()
+	if err != nil {
+		return nil, err
+	}
+
+	atomic.StorePointer(c.acl, unsafe.Pointer(&conns))
 
 	return &c, nil
 }
@@ -157,8 +171,20 @@ func (c *Client) Subscribe(msgType string, sub func(sender string, payload []byt
 }
 
 // Command sends a command to the messaging server to be fulfilled
-func (c *Client) Command(command string, payload []byte) ([]byte, error) {
-	return c.transport.Command(command, payload)
+func (c *Client) Command(command, selfID string, payload []byte) ([]byte, error) {
+	resp, err := c.transport.Command(command, payload)
+	if err != nil {
+		return nil, err
+	}
+
+	switch command {
+	case "acl.permit":
+		c.permit(selfID)
+	case "acl.revoke":
+		c.revoke(selfID)
+	}
+
+	return resp, nil
 }
 
 // Close gracefully closes down the messaging cient
@@ -172,7 +198,7 @@ func (c *Client) Close() error {
 func (c *Client) ListConnections() ([]string, error) {
 	var rules []string
 
-	resp, err := c.Command("acl.list", nil)
+	resp, err := c.Command("acl.list", "", nil)
 	if err != nil {
 		return nil, err
 	}
@@ -187,15 +213,22 @@ func (c *Client) ListConnections() ([]string, error) {
 
 // IsPermittingConnectionsFrom checks if the current connection is permitting connections from
 func (c *Client) IsPermittingConnectionsFrom(selfid string) bool {
-	conns, err := c.ListConnections()
-	if err != nil {
+	conns := (*[]string)(atomic.LoadPointer(c.acl))
+
+	if len(*conns) == 0 {
 		return false
 	}
-	for _, c := range conns {
-		if c == selfid || c == "*" {
+
+	if (*conns)[0] == "*" {
+		return true
+	}
+
+	for _, c := range *conns {
+		if c == selfid {
 			return true
 		}
 	}
+
 	return false
 }
 
@@ -249,5 +282,65 @@ func (c *Client) reader() {
 			go fn.(func(sender string, plaintext []byte))(sender, plaintext)
 			continue
 		}
+	}
+}
+
+func (c *Client) revoke(selfID string) {
+	for {
+		connsp := atomic.LoadPointer(c.acl)
+		conns := (*[]string)(connsp)
+
+		connsCopy := make([]string, len(*conns))
+		copy(connsCopy, *conns)
+
+		for i, c := range connsCopy {
+			if c == selfID {
+				connsCopy = append(connsCopy[:i], connsCopy[i+1:]...)
+			}
+		}
+
+		success := atomic.CompareAndSwapPointer(
+			c.acl,
+			connsp,
+			unsafe.Pointer(&connsCopy),
+		)
+		if success {
+			return
+		}
+
+		runtime.Gosched()
+	}
+}
+
+func (c *Client) permit(selfID string) {
+	for {
+		connsp := atomic.LoadPointer(c.acl)
+		conns := (*[]string)(connsp)
+
+		connsCopy := make([]string, len(*conns))
+		copy(connsCopy, *conns)
+
+		for _, c := range *conns {
+			if c == selfID {
+				// don't duplicate the entry
+				return
+			}
+		}
+
+		connsCopy = append(connsCopy, selfID)
+
+		sort.Strings(connsCopy)
+
+		success := atomic.CompareAndSwapPointer(
+			c.acl,
+			connsp,
+			unsafe.Pointer(&connsCopy),
+		)
+
+		if success {
+			return
+		}
+
+		runtime.Gosched()
 	}
 }

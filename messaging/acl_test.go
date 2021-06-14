@@ -108,6 +108,8 @@ func TestMessagingListConnections(t *testing.T) {
 		"app-3",
 	})
 
+	require.Nil(t, err)
+
 	permitted, err := s.ListConnections()
 	require.Nil(t, err)
 	assert.Nil(t, m.out["acl.list"])

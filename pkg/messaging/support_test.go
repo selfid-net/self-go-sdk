@@ -49,7 +49,7 @@ func (c *testWebsocket) Receive() (string, []byte, error) {
 }
 
 func (c *testWebsocket) Command(command string, payload []byte) ([]byte, error) {
-	return nil, nil
+	return []byte(`["*"]`), nil
 }
 
 func (c *testWebsocket) Close() error {

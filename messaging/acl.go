@@ -46,7 +46,7 @@ func (c Service) PermitConnection(selfID string) error {
 
 	command := signedPayload.FullSerialize()
 
-	_, err = c.messaging.Command("acl.permit", []byte(command))
+	_, err = c.messaging.Command("acl.permit", selfID, []byte(command))
 
 	return err
 }
@@ -86,7 +86,7 @@ func (c Service) RevokeConnection(selfID string) error {
 
 	command := signedPayload.FullSerialize()
 
-	_, err = c.messaging.Command("acl.revoke", []byte(command))
+	_, err = c.messaging.Command("acl.revoke", selfID, []byte(command))
 
 	return err
 }
