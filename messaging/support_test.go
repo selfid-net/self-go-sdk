@@ -21,13 +21,12 @@ func setup(t *testing.T) (*testMessaging, *testPKI) {
 }
 
 type testMessaging struct {
-	recipients []string
-	sender     string
-	senderpk   ed25519.PublicKey
-	in         []byte
-	out        map[string][]byte
-	responder  func(r map[string]string) (string, []byte, error)
-	sendError  error
+	sender    string
+	senderpk  ed25519.PublicKey
+	in        []byte
+	out       map[string][]byte
+	responder func(r map[string]string) (string, []byte, error)
+	sendError error
 }
 
 func (c *testMessaging) Send(recipients []string, data []byte) error {
@@ -73,7 +72,7 @@ func (c *testMessaging) ListConnections() ([]string, error) {
 	return cs, nil
 }
 
-func (c *testMessaging) Command(command string, payload []byte) ([]byte, error) {
+func (c *testMessaging) Command(command, selfID string, payload []byte) ([]byte, error) {
 	c.out[command] = payload
 	return c.in, c.sendError
 }

@@ -29,7 +29,7 @@ func (t *testWebsocketTransport) Receive() (string, []byte, error) {
 }
 
 func (t *testWebsocketTransport) Command(command string, payload []byte) ([]byte, error) {
-	return nil, nil
+	return []byte(`["*"]`), nil
 }
 
 func (t *testWebsocketTransport) Close() error {
