@@ -1,6 +1,3 @@
-default:
-  image: golang:1.14.4-buster
-
 stages:
   - pre-test
   - test
@@ -36,6 +33,7 @@ license-check:
 
 unit-test:
   stage: test
+  image: golang:1.14.4-buster
   script:
     - *setup
     - go test -v ./...
@@ -44,7 +42,7 @@ unit-test:
 
 release:
   stage: release
-  image: eu.gcr.io/principal-oxide-204416/deploy
+  image: eu.gcr.io/principal-oxide-204416/tools
   script:
     - ${SCRIPTS_DIR}/git-setup
     - version=$(${SCRIPTS_DIR}/git-new-version -n joinself)
